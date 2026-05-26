@@ -36,6 +36,7 @@ import { GoogleMapPanel } from "@/components/GoogleMapPanel";
 import { InquiryForm } from "@/components/InquiryForm";
 import { SiteChrome } from "@/components/SiteChrome";
 import { getContent } from "@/data/aratta-content";
+import { getBrandAssets } from "@/lib/brand-assets";
 import { getBoothFrameForPage } from "@/lib/booth-scenes";
 import { isLang, languages, type Lang } from "@/lib/lang";
 
@@ -71,6 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isLang(rawLang) || !isPage(rawPage)) return {};
   const page = canonicalPage(rawPage);
   const content = getContent(rawLang);
+  const brand = getBrandAssets(rawLang);
   const label = pageLabel(content, page);
   return {
     title: `${label} | ${content.brand}`,
@@ -84,6 +86,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         fa: `/fa/${page}`,
         en: `/en/${page}`,
       },
+    },
+    icons: {
+      icon: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
+      apple: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
+    },
+    openGraph: {
+      title: `${label} | ${content.brand}`,
+      description:
+        rawLang === "fa"
+          ? `صفحه ${label} در تجربه سینمایی اَرَت.`
+          : `${label} page in the Aratta Expo cinematic experience.`,
+      locale: rawLang === "fa" ? "fa_IR" : "en_US",
+      type: "website",
+      images: [brand.fullLogo],
     },
   };
 }

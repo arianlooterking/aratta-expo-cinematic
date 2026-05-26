@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
+import { getBrandAssets } from "@/lib/brand-assets";
 import { cn } from "@/lib/cn";
 import { getAlternateLang, getDirection, getLanguageLabel, type Lang } from "@/lib/lang";
 
@@ -18,6 +19,8 @@ export function SiteChrome({ content }: SiteChromeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const altLang = getAlternateLang(content.lang);
+  const brand = getBrandAssets(content.lang);
+  const isFa = content.lang === "fa";
 
   useEffect(() => {
     document.documentElement.lang = content.lang;
@@ -57,21 +60,34 @@ export function SiteChrome({ content }: SiteChromeProps) {
       </div>
       <header className="fixed inset-x-0 top-4 z-40 px-4">
         <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-3 rounded-[2rem] border border-white/15 bg-black/25 px-3 py-2 shadow-2xl shadow-black/30 backdrop-blur-2xl">
-          <Link href={`/${content.lang}`} className="flex items-center gap-3">
-            <span className="relative flex h-11 w-11 overflow-hidden rounded-full border border-white/20 bg-white/10">
+          <Link href={`/${content.lang}`} className="flex min-w-0 items-center gap-3">
+            <span
+              className={cn(
+                "relative flex h-16 w-16 shrink-0 overflow-hidden rounded-[1.2rem] border border-white/20 bg-white/96 shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_14px_34px_rgba(0,0,0,0.28)]",
+              )}
+            >
               <Image
-                src="/official/aratta-logo.png"
+                src={brand.logo}
                 alt={content.brand}
                 fill
-                sizes="44px"
+                sizes="64px"
                 className="object-contain p-1.5"
                 priority
               />
             </span>
-            <span className="leading-tight">
-              <span className="block text-sm font-bold text-white">{content.brand}</span>
-              <span className="font-latin block text-[0.66rem] uppercase tracking-[0.28em] text-[var(--cyan)]">
-                Expo Systems
+            <span className="hidden min-w-0 leading-tight sm:block">
+              <span className="block max-w-[13rem] truncate text-sm font-black text-white">
+                {isFa ? "شرکت توسعه تجارت اَرَت" : "Aratta Expo"}
+              </span>
+              <span
+                className={cn(
+                  "font-latin mt-0.5 block font-black",
+                  isFa
+                    ? "text-[0.66rem] uppercase tracking-[0.26em] text-[var(--cyan)]"
+                    : "whitespace-nowrap text-[0.62rem] tracking-[0.035em] text-white/68",
+                )}
+              >
+                {isFa ? "Expo Systems" : "Exhibition | Trade Fair | Event"}
               </span>
             </span>
           </Link>

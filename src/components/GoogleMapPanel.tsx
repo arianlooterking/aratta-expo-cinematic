@@ -1,6 +1,7 @@
 import Image from "next/image";
-import { ExternalLink, MapPin, Navigation } from "lucide-react";
+import { ExternalLink, Navigation } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
+import { getBrandAssets } from "@/lib/brand-assets";
 
 type GoogleMapPanelProps = {
   content: SiteContent;
@@ -9,6 +10,7 @@ type GoogleMapPanelProps = {
 
 export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps) {
   const fa = content.lang === "fa";
+  const brand = getBrandAssets(content.lang);
 
   return (
     <div className="glass grid min-h-[430px] overflow-hidden rounded-[2rem] p-4 sm:p-6">
@@ -26,11 +28,11 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-[84%]">
           <div className="relative grid h-[4.25rem] w-[4.25rem] place-items-center rounded-full border border-amber-200/60 bg-black/82 shadow-[0_18px_42px_rgba(0,0,0,0.45),0_0_34px_rgba(214,174,101,0.34)] backdrop-blur-md">
             <Image
-              src="/official/aratta-logo.png"
+              src={brand.pin}
               alt=""
               width={48}
               height={48}
-              className="h-12 w-12 rounded-full object-contain p-1"
+              className="h-12 w-12 rounded-full object-contain bg-white p-1"
             />
             <span className="absolute -bottom-2 h-4 w-4 rotate-45 border-b border-r border-amber-200/60 bg-black/82" />
           </div>
@@ -39,8 +41,14 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
         <div className="absolute inset-x-4 top-4 z-10 sm:inset-x-6 sm:top-6">
           <div className="max-w-md rounded-[1.4rem] border border-white/14 bg-black/62 p-4 shadow-2xl shadow-black/35 backdrop-blur-xl">
             <div className="flex items-start gap-3">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-amber-200/35 bg-amber-200/10 text-[var(--gold)]">
-                <MapPin size={21} />
+              <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-amber-200/35 bg-white shadow-lg shadow-black/25">
+                <Image
+                  src={brand.logo}
+                  alt=""
+                  fill
+                  sizes="48px"
+                  className="object-contain p-1"
+                />
               </span>
               <div>
                 <div className="section-kicker">{content.contact.mapLabel}</div>

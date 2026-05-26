@@ -5,6 +5,7 @@ import { BoothBuildHero } from "@/components/BoothBuildHero";
 import { HomeSections } from "@/components/HomeSections";
 import { SiteChrome } from "@/components/SiteChrome";
 import { getContent } from "@/data/aratta-content";
+import { getBrandAssets } from "@/lib/brand-assets";
 import { isLang, languages, type Lang } from "@/lib/lang";
 
 type PageProps = {
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const content = getContent(rawLang);
+  const brand = getBrandAssets(rawLang);
   const title =
     rawLang === "fa"
       ? "شرکت توسعه تجارت اَرَت | بازطراحی سینمایی نمایشگاهی"
@@ -41,12 +43,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         en: "/en",
       },
     },
+    icons: {
+      icon: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
+      apple: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
+    },
     openGraph: {
       title,
       description,
       locale: rawLang === "fa" ? "fa_IR" : "en_US",
       type: "website",
-      images: ["/concepts/aratta-hero-concept.png"],
+      images: [brand.fullLogo],
     },
     other: {
       "content-language": content.lang,

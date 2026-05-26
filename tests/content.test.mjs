@@ -4,6 +4,9 @@ import assert from "node:assert/strict";
 
 const content = await readFile(new URL("../src/data/aratta-content.ts", import.meta.url), "utf8");
 const routedPage = await readFile(new URL("../src/app/[lang]/[page]/page.tsx", import.meta.url), "utf8");
+const brandAssets = await readFile(new URL("../src/lib/brand-assets.ts", import.meta.url), "utf8");
+const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", import.meta.url), "utf8");
+const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", import.meta.url), "utf8");
 
 test("published exhibitions are explicitly archived", () => {
   assert.match(content, /type ExhibitionStatus = "archived"/);
@@ -43,4 +46,13 @@ test("contact uses real Google Maps data", () => {
 test("equipment rental route alias stays live", () => {
   assert.match(routedPage, /"equipment-rental"/);
   assert.match(routedPage, /page === "equipment-rental" \? "equipment" : page/);
+});
+
+test("official language-specific brand assets are wired into chrome and map", () => {
+  assert.match(brandAssets, /aratta-logo-fa-lockup\.png/);
+  assert.match(brandAssets, /aratta-logo-en-lockup\.png/);
+  assert.match(brandAssets, /aratta-tab-fa\.png/);
+  assert.match(brandAssets, /aratta-tab-en\.png/);
+  assert.match(siteChrome, /getBrandAssets\(content\.lang\)/);
+  assert.match(mapPanel, /src=\{brand\.pin\}/);
 });

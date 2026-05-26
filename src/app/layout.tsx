@@ -27,6 +27,13 @@ export const metadata: Metadata = {
     "A bilingual cinematic redesign for Aratta Expo, an Iranian exhibition organizer for mining, steel, copper, and industrial trade events.",
   applicationName: "Aratta Expo Cinematic",
   authors: [{ name: "Aratta Expo" }],
+  icons: {
+    icon: [
+      { url: "/brand/aratta-tab-fa.png", sizes: "512x512", type: "image/png" },
+      { url: "/brand/aratta-tab-en.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/aratta-tab-fa.png", sizes: "512x512", type: "image/png" }],
+  },
   openGraph: {
     title: "Aratta Expo | شرکت توسعه تجارت اَرَت",
     description:
