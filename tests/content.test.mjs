@@ -59,7 +59,7 @@ test("official language-specific brand assets are wired into chrome and map", ()
   assert.match(mapPanel, /src=\{brand\.pin\}/);
 });
 
-test("landing hero uses the HQ process filmstrip and liquid process bubbles", () => {
+test("landing hero uses a pinned HQ stage scroll sequence", () => {
   for (const file of [
     "hq-stage-01-clean-hall.png",
     "hq-stage-02-blueprint.png",
@@ -70,7 +70,10 @@ test("landing hero uses the HQ process filmstrip and liquid process bubbles", ()
   ]) {
     assert.match(boothScenes, new RegExp(file));
   }
-  assert.match(boothHero, /process-row-inner/);
-  assert.match(boothHero, /process-bubble-row/);
+  assert.match(boothHero, /h-\[620svh\]/);
+  assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
+  assert.match(boothHero, /opacity/);
+  assert.doesNotMatch(boothHero, /process-row-inner/);
+  assert.doesNotMatch(boothHero, /process-bubble-row/);
   assert.doesNotMatch(boothHero, /dashboard-card/);
 });
