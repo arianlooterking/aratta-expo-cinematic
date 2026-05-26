@@ -56,10 +56,10 @@ test("equipment rental route alias stays live", () => {
 });
 
 test("official language-specific brand assets are wired into chrome and map", () => {
-  assert.match(brandAssets, /aratta-logo-fa-lockup\.png/);
-  assert.match(brandAssets, /aratta-logo-en-lockup\.png/);
-  assert.match(brandAssets, /aratta-tab-fa\.png/);
-  assert.match(brandAssets, /aratta-tab-en\.png/);
+  assert.match(brandAssets, /aratta-logo-fa-lockup-dark\.png/);
+  assert.match(brandAssets, /aratta-logo-en-lockup-dark\.png/);
+  assert.match(brandAssets, /aratta-tab-fa-dark\.png/);
+  assert.match(brandAssets, /aratta-tab-en-dark\.png/);
   assert.match(siteChrome, /getBrandAssets\(content\.lang\)/);
   assert.match(mapPanel, /src=\{brand\.pin\}/);
 });
@@ -75,7 +75,19 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
   ]) {
     assert.match(boothScenes, new RegExp(file));
   }
+  for (const file of [
+    "mobile-stage-01.png",
+    "mobile-stage-02.png",
+    "mobile-stage-03.png",
+    "mobile-stage-04.png",
+    "mobile-stage-05.png",
+    "mobile-stage-06.png",
+  ]) {
+    assert.match(boothScenes, new RegExp(file));
+  }
   assert.match(boothHero, /h-\[620svh\]/);
+  assert.match(boothHero, /md:hidden/);
+  assert.match(boothHero, /mobileBoothStageFrames/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
   assert.match(boothHero, /opacity/);
   assert.doesNotMatch(boothHero, /process-row-inner/);

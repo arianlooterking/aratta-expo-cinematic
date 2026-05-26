@@ -25,6 +25,33 @@ export const boothStageFrames = [
   },
 ] as const;
 
+export const mobileBoothStageFrames = [
+  {
+    src: "/hero/mobile-stage-01.png",
+    key: "mobile-clean-hall",
+  },
+  {
+    src: "/hero/mobile-stage-02.png",
+    key: "mobile-blueprint",
+  },
+  {
+    src: "/hero/mobile-stage-03.png",
+    key: "mobile-assembly",
+  },
+  {
+    src: "/hero/mobile-stage-04.png",
+    key: "mobile-structure",
+  },
+  {
+    src: "/hero/mobile-stage-05.png",
+    key: "mobile-identity",
+  },
+  {
+    src: "/hero/mobile-stage-06.png",
+    key: "mobile-final",
+  },
+] as const;
+
 const pageFrameMap: Record<string, string> = {
   about: boothStageFrames[5].src,
   exhibitions: boothStageFrames[4].src,

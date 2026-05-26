@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowDown, FileDown, Images, UserRoundPlus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
-import { boothStageFrames } from "@/lib/booth-scenes";
+import { boothStageFrames, mobileBoothStageFrames } from "@/lib/booth-scenes";
 
 type BoothBuildHeroProps = {
   content: SiteContent;
@@ -16,6 +16,10 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
   const [progress, setProgress] = useState(0);
 
   const stageFrames = boothStageFrames.map((frame, index) => ({
+    ...frame,
+    stage: content.hero.stages[index] ?? content.hero.stages[content.hero.stages.length - 1],
+  }));
+  const mobileStageFrames = mobileBoothStageFrames.map((frame, index) => ({
     ...frame,
     stage: content.hero.stages[index] ?? content.hero.stages[content.hero.stages.length - 1],
   }));
@@ -56,11 +60,11 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     <section
       id="home"
       ref={rootRef}
-      className="relative h-[620svh] bg-black"
+      className="relative h-[560svh] bg-black md:h-[620svh]"
       aria-label={content.hero.title}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-black">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 hidden md:block">
           {stageFrames.map((frame, index) => {
             const local = progress * (stageFrames.length - 1);
             const distance = Math.abs(local - index);
@@ -86,7 +90,35 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
           })}
         </div>
 
-        <div dir={content.dir} className="pointer-events-none absolute inset-x-0 top-28 z-10 px-4 sm:top-32">
+        <div className="absolute inset-0 md:hidden">
+          {mobileStageFrames.map((frame, index) => {
+            const local = progress * (mobileStageFrames.length - 1);
+            const distance = Math.abs(local - index);
+            const opacity = Math.max(0, 1 - distance);
+            const scale = 1.025 - Math.min(0.025, distance * 0.014);
+
+            return (
+              <Image
+                key={frame.key}
+                src={frame.src}
+                alt=""
+                fill
+                priority={index < 2}
+                sizes="100vw"
+                className="absolute inset-0 object-cover object-center"
+                style={{
+                  opacity,
+                  transform: `scale(${scale})`,
+                  transition: "opacity 120ms linear, transform 120ms linear",
+                }}
+              />
+            );
+          })}
+        </div>
+
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.08)_30%,rgba(0,0,0,0.18)_56%,rgba(0,0,0,0.82)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.68),rgba(0,0,0,0.12)_46%,rgba(0,0,0,0.28))]" />
+
+        <div dir={content.dir} className="pointer-events-none absolute inset-x-0 top-28 z-10 hidden px-4 sm:top-32 md:block">
           <div className="section-shell">
             <div className="max-w-[39rem] text-white [text-shadow:0_5px_28px_rgba(0,0,0,0.72)]">
               <p className="font-latin text-[0.68rem] font-black uppercase tracking-[0.3em] text-[var(--cyan)]">
@@ -102,7 +134,77 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
           </div>
         </div>
 
-        <div dir={content.dir} className="absolute inset-x-0 bottom-0 z-10 px-4 pb-5 sm:pb-8">
+        <div className="absolute end-4 top-1/2 z-10 grid -translate-y-1/2 gap-2 md:hidden">
+          {mobileStageFrames.map((frame, index) => (
+            <span
+              key={frame.key}
+              className={[
+                "h-2 w-2 rounded-full border transition",
+                index === activeIndex
+                  ? "scale-125 border-amber-200 bg-[var(--gold)] shadow-[0_0_18px_rgba(216,180,106,0.72)]"
+                  : "border-white/30 bg-white/18",
+              ].join(" ")}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+
+        <div dir={content.dir} className="absolute inset-x-3 bottom-3 z-10 md:hidden">
+          <div className="rounded-[1.45rem] border border-white/16 bg-black/48 p-3 text-white shadow-2xl shadow-black/45 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-latin rounded-full border border-cyan-200/22 bg-cyan-200/8 px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.22em] text-[var(--cyan)]">
+                {activeStage.label}
+              </span>
+              <span className="font-latin text-xs font-black text-white/66">
+                {activeIndex + 1}/{mobileStageFrames.length}
+              </span>
+            </div>
+            <h1 className="mt-3 text-balance text-2xl font-black leading-tight text-white">
+              {content.hero.title}
+            </h1>
+            <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/78">
+              {activeStage.title} - {activeStage.body}
+            </p>
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/18">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[var(--cyan)] to-[var(--gold)]"
+                style={{ width: `${Math.max(5, progress * 100)}%` }}
+              />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Link
+                href={`/${content.lang}/registration`}
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-amber-200/32 bg-amber-200/18 px-3 text-xs font-black text-white"
+              >
+                <UserRoundPlus className="me-2" size={16} />
+                {content.hero.primary}
+              </Link>
+              <Link
+                href={`/${content.lang}/exhibitions`}
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/14 bg-white/8 px-3 text-xs font-black text-white"
+              >
+                <Images className="me-2" size={16} />
+                {content.hero.secondary}
+              </Link>
+              <Link
+                href={`/${content.lang}/forms`}
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/14 bg-white/8 px-3 text-xs font-black text-white"
+              >
+                <FileDown className="me-2" size={16} />
+                {content.lang === "fa" ? "فرم ها" : "Forms"}
+              </Link>
+              <Link
+                href="#about"
+                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-cyan-200/28 bg-cyan-200/12 px-3 text-xs font-black text-white"
+              >
+                {content.lang === "fa" ? "ادامه" : "Continue"}
+                <ArrowDown className="ms-2" size={16} />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div dir={content.dir} className="absolute inset-x-0 bottom-0 z-10 hidden px-4 pb-5 sm:pb-8 md:block">
           <div className="section-shell">
             <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
               <div className="max-w-[42rem] rounded-[1rem] border border-white/14 bg-black/22 p-3 text-white shadow-2xl shadow-black/30 backdrop-blur-sm sm:p-4">

@@ -32,7 +32,7 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
               alt=""
               width={48}
               height={48}
-              className="h-12 w-12 rounded-full object-contain bg-white p-1"
+              className="h-12 w-12 rounded-full object-cover"
             />
             <span className="absolute -bottom-2 h-4 w-4 rotate-45 border-b border-r border-amber-200/60 bg-black/82" />
           </div>
@@ -41,13 +41,13 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
         <div className="absolute inset-x-4 top-4 z-10 sm:inset-x-6 sm:top-6">
           <div className="max-w-md rounded-[1.4rem] border border-white/14 bg-black/62 p-4 shadow-2xl shadow-black/35 backdrop-blur-xl">
             <div className="flex items-start gap-3">
-              <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-amber-200/35 bg-white shadow-lg shadow-black/25">
+              <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-amber-200/35 bg-black shadow-lg shadow-black/25">
                 <Image
                   src={brand.logo}
                   alt=""
                   fill
                   sizes="48px"
-                  className="object-contain p-1"
+                  className="object-cover"
                 />
               </span>
               <div>
