@@ -1,26 +1,26 @@
 export const boothStageFrames = [
   {
-    src: "/hero/booth-stage-01-clean-hall.jpg",
+    src: "/hero/hq-stage-01-clean-hall.png",
     key: "clean-hall",
   },
   {
-    src: "/hero/booth-stage-02-blueprint.jpg",
+    src: "/hero/hq-stage-02-blueprint.png",
     key: "blueprint",
   },
   {
-    src: "/hero/booth-stage-03-assembly.jpg",
+    src: "/hero/hq-stage-03-assembly.png",
     key: "assembly",
   },
   {
-    src: "/hero/booth-stage-04-structure.jpg",
+    src: "/hero/hq-stage-04-structure.png",
     key: "structure",
   },
   {
-    src: "/hero/booth-stage-05-identity.jpg",
+    src: "/hero/hq-stage-05-branding.png",
     key: "identity",
   },
   {
-    src: "/hero/booth-stage-06-final.jpg",
+    src: "/hero/hq-stage-06-live-booth.png",
     key: "final",
   },
 ] as const;

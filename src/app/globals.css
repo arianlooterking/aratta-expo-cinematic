@@ -181,6 +181,63 @@ h3 {
   transform-style: preserve-3d;
 }
 
+.process-row-track {
+  will-change: transform;
+  transition: transform 120ms linear;
+}
+
+.process-row-inner {
+  animation: process-row-drift 42s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.process-bubble {
+  position: relative;
+  overflow: hidden;
+  animation: liquid-bubble-float 6.5s ease-in-out infinite;
+}
+
+.process-bubble::before {
+  position: absolute;
+  inset: -35% auto auto -20%;
+  width: 8rem;
+  height: 8rem;
+  pointer-events: none;
+  content: "";
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.24), transparent 66%);
+  opacity: 0.72;
+}
+
+.process-bubble-row {
+  scrollbar-width: none;
+}
+
+.process-bubble-row::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes process-row-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-18rem, 0, 0);
+  }
+}
+
+@keyframes liquid-bubble-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -0.42rem, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -7,6 +7,8 @@ const routedPage = await readFile(new URL("../src/app/[lang]/[page]/page.tsx", i
 const brandAssets = await readFile(new URL("../src/lib/brand-assets.ts", import.meta.url), "utf8");
 const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", import.meta.url), "utf8");
 const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", import.meta.url), "utf8");
+const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
+const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
 
 test("published exhibitions are explicitly archived", () => {
   assert.match(content, /type ExhibitionStatus = "archived"/);
@@ -55,4 +57,20 @@ test("official language-specific brand assets are wired into chrome and map", ()
   assert.match(brandAssets, /aratta-tab-en\.png/);
   assert.match(siteChrome, /getBrandAssets\(content\.lang\)/);
   assert.match(mapPanel, /src=\{brand\.pin\}/);
+});
+
+test("landing hero uses the HQ process filmstrip and liquid process bubbles", () => {
+  for (const file of [
+    "hq-stage-01-clean-hall.png",
+    "hq-stage-02-blueprint.png",
+    "hq-stage-03-assembly.png",
+    "hq-stage-04-structure.png",
+    "hq-stage-05-branding.png",
+    "hq-stage-06-live-booth.png",
+  ]) {
+    assert.match(boothScenes, new RegExp(file));
+  }
+  assert.match(boothHero, /process-row-inner/);
+  assert.match(boothHero, /process-bubble-row/);
+  assert.doesNotMatch(boothHero, /dashboard-card/);
 });
