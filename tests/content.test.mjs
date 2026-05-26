@@ -10,6 +10,10 @@ const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", 
 const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
 const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
 const homeSections = await readFile(new URL("../src/components/HomeSections.tsx", import.meta.url), "utf8");
+const animatedTabs = await readFile(
+  new URL("../src/components/AnimatedTabs.tsx", import.meta.url),
+  "utf8",
+);
 
 test("published exhibitions are explicitly archived", () => {
   assert.match(content, /type ExhibitionStatus = "archived"/);
@@ -81,4 +85,12 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
 
 test("landing page does not render the duplicate build-stage showcase", () => {
   assert.doesNotMatch(homeSections, /BuildStageShowcase/);
+});
+
+test("operating system section uses stage imagery and real route links", () => {
+  assert.match(animatedTabs, /boothStageFrames/);
+  for (const route of ["exhibitions", "forms", "equipment", "gallery"]) {
+    assert.match(animatedTabs, new RegExp(`route: "${route}"`));
+  }
+  assert.match(animatedTabs, /href=\{`\/\$\{content\.lang\}\/\$\{activeMeta\.route\}`\}/);
 });
