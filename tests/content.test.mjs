@@ -9,6 +9,7 @@ const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", im
 const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", import.meta.url), "utf8");
 const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
 const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
+const homeSections = await readFile(new URL("../src/components/HomeSections.tsx", import.meta.url), "utf8");
 
 test("published exhibitions are explicitly archived", () => {
   assert.match(content, /type ExhibitionStatus = "archived"/);
@@ -76,4 +77,8 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
   assert.doesNotMatch(boothHero, /process-row-inner/);
   assert.doesNotMatch(boothHero, /process-bubble-row/);
   assert.doesNotMatch(boothHero, /dashboard-card/);
+});
+
+test("landing page does not render the duplicate build-stage showcase", () => {
+  assert.doesNotMatch(homeSections, /BuildStageShowcase/);
 });

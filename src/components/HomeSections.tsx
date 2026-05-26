@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
 import { AnimatedTabs } from "@/components/AnimatedTabs";
-import { BuildStageShowcase } from "@/components/BuildStageShowcase";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
 import { InquiryForm } from "@/components/InquiryForm";
@@ -24,7 +23,6 @@ type HomeSectionsProps = {
 export function HomeSections({ content }: HomeSectionsProps) {
   return (
     <>
-      <BuildStageShowcase content={content} />
       <AboutSection content={content} />
       <ExhibitionsSection content={content} />
       <AnimatedTabs content={content} />
