@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+:root {
+  --background: #040608;
+  --foreground: #f6f2ea;
+  --muted: #a9b2b8;
+  --panel: rgba(14, 19, 24, 0.72);
+  --panel-strong: rgba(18, 24, 30, 0.94);
+  --border: rgba(216, 225, 226, 0.15);
+  --gold: #d6ae65;
+  --cyan: #7ddce8;
+  --copper: #b98255;
+  --steel: #d9e3e6;
+  --danger: #ff6b6b;
+  --success: #6ee7b7;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: auto;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(125, 220, 232, 0.1), transparent 32rem),
+    radial-gradient(circle at 86% 12%, rgba(214, 174, 101, 0.12), transparent 30rem),
+    linear-gradient(180deg, #030506 0%, #071012 46%, #040608 100%);
+  color: var(--foreground);
+  font-family: var(--font-vazirmatn), var(--font-geist-sans), Tahoma, Arial, sans-serif;
+  font-feature-settings: "ss01" 1, "kern" 1;
+  line-height: 1.65;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.22;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 86px 86px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+::selection {
+  background: rgba(125, 220, 232, 0.3);
+  color: #ffffff;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.font-latin {
+  font-family: var(--font-geist-sans), Inter, Arial, sans-serif;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.glass {
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04)),
+    rgba(10, 15, 19, 0.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 24px 70px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+
+.liquid-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.055)),
+    linear-gradient(135deg, rgba(125, 220, 232, 0.14), rgba(214, 174, 101, 0.18));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 16px 38px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(18px) saturate(135%);
+}
+
+.liquid-button::after {
+  position: absolute;
+  inset: -130% 15% auto auto;
+  z-index: -1;
+  width: 10rem;
+  height: 10rem;
+  content: "";
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.42), transparent 64%);
+  transform: rotate(18deg);
+  transition: transform 600ms ease, opacity 600ms ease;
+  opacity: 0.5;
+}
+
+.liquid-button:hover::after {
+  transform: translate3d(-52%, 88%, 0) rotate(18deg);
+  opacity: 0.9;
+}
+
+.section-shell {
+  width: min(1180px, calc(100vw - 32px));
+  margin-inline: auto;
+}
+
+.section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--cyan);
+  font-family: var(--font-geist-sans), Inter, Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.section-kicker::before {
+  width: 2.5rem;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, var(--cyan));
+}
+
+[dir="ltr"] .section-kicker::before {
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+
+.industrial-card {
+  border: 1px solid rgba(216, 225, 226, 0.14);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.02)),
+    rgba(8, 12, 16, 0.8);
+  box-shadow: 0 16px 54px rgba(0, 0, 0, 0.24);
+}
+
+.hero-grid-plane {
+  background-image:
+    linear-gradient(rgba(62, 231, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(62, 231, 255, 0.22) 1px, transparent 1px);
+  background-size: 42px 42px;
+  transform: perspective(740px) rotateX(64deg);
+  transform-origin: center bottom;
+}
+
+.booth-panel {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
