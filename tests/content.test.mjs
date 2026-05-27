@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const content = await readFile(new URL("../src/data/aratta-content.ts", import.meta.url), "utf8");
+const rootPage = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
 const routedPage = await readFile(new URL("../src/app/[lang]/[page]/page.tsx", import.meta.url), "utf8");
 const brandAssets = await readFile(new URL("../src/lib/brand-assets.ts", import.meta.url), "utf8");
 const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", import.meta.url), "utf8");
@@ -40,6 +41,21 @@ test("bilingual navigation preserves all current public tabs", () => {
   ]) {
     assert.match(content, new RegExp(`id: "${id}"`));
   }
+});
+
+test("root route opens Persian by default", () => {
+  assert.match(rootPage, /redirect\("\/fa"\)/);
+  assert.doesNotMatch(rootPage, /redirect\("\/en"\)/);
+});
+
+test("hero stage captions use polished bilingual production copy", () => {
+  assert.match(content, /آغاز از صحنه خالص/);
+  assert.match(content, /نقشه فنی و مسیر حرکت/);
+  assert.match(content, /فضای آماده مذاکره/);
+  assert.match(content, /From blank hall to intent/);
+  assert.match(content, /Ready for business conversations/);
+  assert.doesNotMatch(content, /سالن خام و نور محیط/);
+  assert.doesNotMatch(content, /Clean hall and ambient light/);
 });
 
 test("official download links remain connected to Aratta source files", () => {

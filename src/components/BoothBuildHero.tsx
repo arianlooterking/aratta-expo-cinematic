@@ -164,11 +164,11 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
                 {activeIndex + 1}/{mobileStageFrames.length}
               </span>
             </div>
-            <h1 className="mt-3 text-balance text-2xl font-black leading-tight text-white">
-              {content.hero.title}
-            </h1>
-            <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/78">
-              {activeStage.title} - {activeStage.body}
+            <h2 className="mt-3 text-balance text-2xl font-black leading-tight text-white">
+              {activeStage.title}
+            </h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-white/78">
+              {activeStage.body}
             </p>
             <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/18">
               <div

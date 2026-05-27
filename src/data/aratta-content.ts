@@ -221,33 +221,33 @@ const fa: SiteContent = {
     stages: [
       {
         label: "مرحله ۰۱",
-        title: "سالن خام و نور محیط",
-        body: "فضای تاریک نمایشگاهی با کف براق، نورهای گرم و جایگاه اولیه غرفه آماده تعریف می شود.",
+        title: "آغاز از صحنه خالص",
+        body: "نور محیط، خطوط کف و جایگاه اولیه، سالن را به نقطه شروع یک تجربه نمایشگاهی دقیق تبدیل می کند.",
       },
       {
         label: "مرحله ۰۲",
-        title: "شبکه فنی و نقشه سه بعدی",
-        body: "خطوط لیزری، مسیرهای گردش، جانمایی غرفه و پنل های فنی روی سالن شکل می گیرند.",
+        title: "نقشه فنی و مسیر حرکت",
+        body: "شبکه نور، مسیر بازدیدکننده و محدوده های اجرایی، جانمایی غرفه را به یک نقشه قابل اجرا تبدیل می کنند.",
       },
       {
         label: "مرحله ۰۳",
-        title: "ورود تیم اجرا و متریال",
-        body: "تیم اجرایی، پکیج ها، پنل ها، کابل ها و سازه های اولیه وارد مسیر ساخت می شوند.",
+        title: "ورود اجرا و متریال",
+        body: "تیم نصب، تجهیزات، پنل ها و زیرساخت ها وارد سالن می شوند تا طرح از تصویر به ساخت نزدیک شود.",
       },
       {
         label: "مرحله ۰۴",
-        title: "سازه، شیشه و قاب اصلی",
-        body: "ستون ها، قاب های شیشه ای، سقف و نورهای خطی بدنه اصلی غرفه را می سازند.",
+        title: "شکل گیری معماری غرفه",
+        body: "ستون ها، شیشه، قاب های فلزی و نورهای خطی، حجم اصلی غرفه را با هویت صنعتی می سازند.",
       },
       {
         label: "مرحله ۰۵",
-        title: "هویت اَرَت و محتوای صنعتی",
-        body: "تابلو دو زبانه، نمایشگرهای معدن و فولاد، مسیر خدمات و پیام برند روی صحنه فعال می شوند.",
+        title: "هویت برند و روایت صنعتی",
+        body: "تابلوهای دو زبانه، نمایشگرهای معدن و فولاد و مسیر خدمات، پیام اَرَت را در صحنه فعال می کنند.",
       },
       {
         label: "مرحله ۰۶",
-        title: "غرفه آماده مذاکره",
-        body: "پذیرش، جلسات، مشارکت کنندگان، مسیر فرم ها و ارتباط رسمی در تجربه نهایی آماده است.",
+        title: "فضای آماده مذاکره",
+        body: "پذیرش، جلسه، فرم های رسمی و مسیر تماس، تجربه نهایی را برای مشارکت کننده و بازدیدکننده کامل می کنند.",
       },
     ],
     metrics: [
@@ -439,33 +439,33 @@ const en: SiteContent = {
     stages: [
       {
         label: "Stage 01",
-        title: "Clean hall and ambient light",
-        body: "The dark exhibition floor, warm light strips, and first booth footprint establish the clean slate.",
+        title: "From blank hall to intent",
+        body: "Ambient light, floor lines, and the first footprint turn the empty venue into a precise starting point.",
       },
       {
         label: "Stage 02",
-        title: "Technical grid and spatial plan",
-        body: "Laser lines, circulation paths, technical panels, and booth zones become visible in the hall.",
+        title: "Technical plan and visitor flow",
+        body: "Grid lines, circulation paths, and operating zones translate the booth concept into an executable plan.",
       },
       {
         label: "Stage 03",
-        title: "Crew and materials arrive",
-        body: "Installers, crates, cables, modular panels, and equipment move into the construction path.",
+        title: "Execution team and materials",
+        body: "Install crews, equipment, panels, and infrastructure enter the hall as the design moves from image to build.",
       },
       {
         label: "Stage 04",
-        title: "Structure, glass, and frame",
-        body: "Columns, glass bays, roof trusses, and linear lighting form the main booth architecture.",
+        title: "Architecture takes shape",
+        body: "Columns, glass, metal frames, and linear lighting define the booth volume with industrial clarity.",
       },
       {
         label: "Stage 05",
-        title: "Aratta identity and industrial media",
-        body: "Bilingual signage, mining screens, service paths, and brand messages activate the stand.",
+        title: "Brand identity and industry story",
+        body: "Bilingual signage, mining and steel media, and service pathways bring Aratta's message into the space.",
       },
       {
         label: "Stage 06",
-        title: "Booth ready for business",
-        body: "Reception, meetings, participant flows, official forms, and contact paths are ready for the final experience.",
+        title: "Ready for business conversations",
+        body: "Reception, meetings, official forms, and contact paths complete the experience for participants and visitors.",
       },
     ],
     metrics: [
