@@ -70,7 +70,7 @@ test("official language-specific brand assets are wired into chrome and map", ()
 
 test("landing hero uses a pinned HQ stage scroll sequence", () => {
   for (const file of [
-    "hq-stage-01-clean-hall.png",
+    "hq-stage-01-logo-hall.png",
     "hq-stage-02-blueprint.png",
     "hq-stage-03-assembly.png",
     "hq-stage-04-structure.png",

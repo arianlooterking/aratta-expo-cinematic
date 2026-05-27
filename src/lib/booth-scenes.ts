@@ -1,6 +1,6 @@
 export const boothStageFrames = [
   {
-    src: "/hero/hq-stage-01-clean-hall.png",
+    src: "/hero/hq-stage-01-logo-hall.png",
     key: "clean-hall",
   },
   {
