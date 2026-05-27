@@ -101,7 +101,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
             </span>
           </Link>
 
-          <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
+          <nav aria-label="Primary" className="hidden items-center gap-1 xl:flex">
             {content.nav.map((item) => (
               <Link
                 key={item.id}
@@ -131,7 +131,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
             <button
               type="button"
               aria-label={isOpen ? "Close menu" : "Open menu"}
-              className="glass grid h-11 w-11 place-items-center rounded-full text-white lg:hidden"
+              className="glass grid h-11 w-11 place-items-center rounded-full text-white xl:hidden"
               onClick={() => setIsOpen((value) => !value)}
             >
               {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -142,7 +142,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
 
       <div
         className={cn(
-          "fixed inset-x-3 top-[5.75rem] z-30 origin-top rounded-3xl p-0 transition duration-300 lg:hidden",
+          "fixed inset-x-3 top-[5.75rem] z-30 origin-top rounded-3xl p-0 transition duration-300 xl:hidden",
           isOpen ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0",
         )}
       >

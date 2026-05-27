@@ -43,11 +43,11 @@ function ExhibitionsSection({ content }: HomeSectionsProps) {
         <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
             <div className="section-kicker">{content.exhibitions.kicker}</div>
-            <h2 className="mt-4 text-4xl font-black text-white sm:text-5xl">
+            <h2 className="section-display-title mt-4 font-black text-white">
               {content.exhibitions.title}
             </h2>
           </div>
-          <p className="industrial-card rounded-[1.5rem] p-5 leading-8 text-white/68">
+          <p className="industrial-card site-copy rounded-[1.5rem] p-5 text-white/68">
             {content.exhibitions.note}
           </p>
         </div>
@@ -106,8 +106,8 @@ function RegistrationSection({ content }: HomeSectionsProps) {
       <div className="section-shell grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="industrial-card rounded-[2rem] p-7">
           <div className="section-kicker">{content.registration.kicker}</div>
-          <h2 className="mt-4 text-4xl font-black text-white">{content.registration.title}</h2>
-          <p className="mt-5 text-lg leading-9 text-white/70">{content.registration.body}</p>
+          <h2 className="card-display-title mt-4 font-black text-white">{content.registration.title}</h2>
+          <p className="site-copy mt-5 text-lg text-white/70">{content.registration.body}</p>
           <div className="mt-8 grid gap-3">
             {content.registration.downloads.map((download) => (
               <a
@@ -167,8 +167,8 @@ function EquipmentParticipantsSection({ content }: HomeSectionsProps) {
               <div className="font-latin text-xs font-bold uppercase tracking-[0.22em] text-[var(--cyan)]">
                 {item.type}
               </div>
-              <h2 className="mt-5 text-3xl font-black text-white">{item.label}</h2>
-              <p className="mt-4 leading-8 text-white/62">
+              <h2 className="card-display-title mt-5 font-black text-white">{item.label}</h2>
+              <p className="site-copy mt-4 text-white/62">
                 {content.lang === "fa"
                   ? "مسیر مستقیم به فایل رسمی، بدون لینک مرده و بدون وعده ثبت خودکار."
                   : "Direct path to the official file, with no dead link and no automated-registration claim."}
@@ -190,7 +190,7 @@ function NewsSection({ content }: HomeSectionsProps) {
     <section id="news" className="py-24">
       <div className="section-shell">
         <div className="section-kicker">{content.news.kicker}</div>
-        <h2 className="mt-4 text-4xl font-black text-white sm:text-5xl">{content.news.title}</h2>
+        <h2 className="section-display-title mt-4 font-black text-white">{content.news.title}</h2>
         <div className="mt-10 grid gap-4">
           {content.news.items.map((item) => (
             <article
@@ -229,7 +229,7 @@ function GallerySection({ content }: HomeSectionsProps) {
       <div className="section-shell">
         <div className="mb-10 max-w-3xl">
           <div className="section-kicker">{content.gallery.kicker}</div>
-          <h2 className="mt-4 text-4xl font-black text-white sm:text-5xl">
+          <h2 className="section-display-title mt-4 font-black text-white">
             {content.gallery.title}
           </h2>
         </div>
@@ -245,7 +245,7 @@ function ContactSection({ content }: HomeSectionsProps) {
       <div className="section-shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="industrial-card rounded-[2rem] p-7">
           <div className="section-kicker">{content.contact.kicker}</div>
-          <h2 className="mt-4 text-4xl font-black text-white">{content.contact.title}</h2>
+          <h2 className="card-display-title mt-4 font-black text-white">{content.contact.title}</h2>
           <div className="mt-8 grid gap-5">
             <ContactRow icon={<MapPin size={21} />} label={content.contact.addressLabel}>
               {content.contact.address}

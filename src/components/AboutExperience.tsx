@@ -88,10 +88,10 @@ export function AboutExperience({ content }: AboutExperienceProps) {
             <div className="pointer-events-none absolute -end-20 top-8 h-56 w-56 rounded-full border border-cyan-200/10 bg-cyan-200/6 blur-2xl" />
             <div className="relative">
               <div className="section-kicker">{content.about.kicker}</div>
-              <h2 className="mt-4 text-balance text-4xl font-black leading-tight text-white sm:text-5xl">
+              <h2 className="section-display-title mt-4 text-balance font-black text-white">
                 {content.about.title}
               </h2>
-              <p className="mt-5 text-base font-semibold leading-8 text-white/68 sm:text-lg sm:leading-9">
+              <p className="site-copy mt-5 text-base font-semibold text-white/68 sm:text-lg">
                 {content.about.body}
               </p>
 
@@ -229,10 +229,10 @@ export function AboutExperience({ content }: AboutExperienceProps) {
                 <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-cyan-200/24 bg-cyan-200/10 text-[var(--cyan)]">
                   <ActiveIcon size={25} strokeWidth={1.8} />
                 </div>
-                <h3 className="text-2xl font-black leading-tight text-white sm:text-3xl">
+                <h3 className="card-display-title font-black text-white">
                   {activeProof}
                 </h3>
-                <p className="mt-3 text-sm font-semibold leading-7 text-white/68 sm:text-base sm:leading-8">
+                <p className="site-copy mt-3 text-sm font-semibold text-white/68 sm:text-base">
                   {activeBody}
                 </p>
                 <Link

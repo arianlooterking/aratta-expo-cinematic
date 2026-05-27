@@ -192,15 +192,17 @@ function PageHeader({
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,5,8,0.92)_0%,rgba(2,5,8,0.72)_44%,rgba(2,5,8,0.2)_100%)] rtl:bg-[linear-gradient(270deg,rgba(2,5,8,0.92)_0%,rgba(2,5,8,0.72)_44%,rgba(2,5,8,0.2)_100%)]" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(2,5,8,0.08),rgba(2,5,8,0.72))]" />
 
-      <div className="relative grid min-h-[300px] gap-6 lg:grid-cols-[0.72fr_1fr] lg:items-end">
-        <div>
+      <div className="relative grid min-h-[300px] gap-6 lg:grid-cols-[0.78fr_1fr] lg:items-end">
+        <div className="max-w-[44rem]">
           <div className="section-kicker">{eyebrow}</div>
-          <h1 className="mt-4 text-4xl font-black text-white sm:text-6xl">{title}</h1>
+          <h1 className="page-display-title mt-4 font-black text-white">{title}</h1>
           <p className="font-latin mt-5 inline-flex rounded-full border border-cyan-200/22 bg-black/28 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-[var(--cyan)] backdrop-blur-xl">
             Aratta Expo / cinematic frame
           </p>
         </div>
-        <p className="glass rounded-[1.6rem] p-6 text-lg leading-9 text-white/76">{body}</p>
+        <p className="glass site-copy rounded-[1.6rem] p-6 text-base font-semibold text-white/76 sm:text-lg">
+          {body}
+        </p>
       </div>
     </div>
   );
@@ -435,10 +437,10 @@ function AboutPage({ content }: { content: Content }) {
               Aratta Trade Development
             </span>
           </div>
-          <h2 className="mt-5 text-3xl font-black leading-tight text-white sm:text-5xl">
+          <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "اپراتور رویدادهای تخصصی معدن، فولاد و مس" : "Operator for mining, steel, and copper exhibition systems"}
           </h2>
-          <p className="mt-5 text-lg leading-9 text-white/68">{content.about.body}</p>
+          <p className="site-copy mt-5 text-lg text-white/68">{content.about.body}</p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
             {content.about.proof.map((item) => (
               <div key={item} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
@@ -456,7 +458,7 @@ function AboutPage({ content }: { content: Content }) {
             <p className="font-latin text-xs font-black uppercase tracking-[0.25em] text-[var(--cyan)]">
               2026+ redesign standard
             </p>
-            <h3 className="mt-3 text-3xl font-black text-white">
+            <h3 className="card-display-title mt-3 font-black text-white">
               {fa ? "طراحی دوباره با حفظ واقعیت منبع" : "Redesigned without losing source truth"}
             </h3>
           </div>
@@ -480,8 +482,8 @@ function AboutPage({ content }: { content: Content }) {
               <span className="grid h-13 w-13 place-items-center rounded-2xl border border-cyan-200/22 bg-cyan-200/8 text-[var(--cyan)]">
                 <Icon size={23} />
               </span>
-              <h3 className="mt-5 text-2xl font-black text-white">{service.title}</h3>
-              <p className="mt-3 leading-8 text-white/62">{service.body}</p>
+              <h3 className="mt-5 text-2xl font-black leading-tight text-white">{service.title}</h3>
+              <p className="site-copy mt-3 text-white/62">{service.body}</p>
             </article>
           );
         })}
@@ -532,10 +534,10 @@ function ExhibitionsPage({ content }: { content: Content }) {
             <div className="font-latin text-xs font-black uppercase tracking-[0.24em] text-[var(--cyan)]">
               {fa ? "داده رسمی، طراحی بهتر" : "Official data, better structure"}
             </div>
-            <h2 className="mt-4 text-3xl font-black leading-tight text-white">
+            <h2 className="card-display-title mt-4 font-black text-white">
               {data.deepEvents[0].event.title}
             </h2>
-            <p className="mt-5 text-lg leading-9 text-white/70">{data.deepEvents[0].event.summary}</p>
+            <p className="site-copy mt-5 text-lg text-white/70">{data.deepEvents[0].event.summary}</p>
             <div className="mt-6 grid gap-3">
               {data.deepEvents[0].facts.map((fact) => (
                 <div key={fact.label} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3">
@@ -610,7 +612,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="section-kicker">{fa ? "آرشیو رویدادها" : "Event archive"}</div>
-            <h2 className="mt-3 text-3xl font-black text-white">
+            <h2 className="card-display-title mt-3 font-black text-white">
               {fa ? "رویدادهای قدیمی منتشرشده در سایت اَرَت" : "Older events published on Aratta"}
             </h2>
           </div>
@@ -645,8 +647,8 @@ function RegistrationPage({ content }: { content: Content }) {
             <ClipboardCheck size={23} />
             <span className="font-latin text-xs font-black uppercase tracking-[0.22em]">Official workflow</span>
           </div>
-          <h2 className="mt-5 text-3xl font-black text-white">{content.registration.title}</h2>
-          <p className="mt-4 leading-8 text-white/66">{content.registration.body}</p>
+          <h2 className="card-display-title mt-5 font-black text-white">{content.registration.title}</h2>
+          <p className="site-copy mt-4 text-white/66">{content.registration.body}</p>
           <ol className="mt-6 grid gap-3">
             {data.registrationSteps.map((step, index) => (
               <li key={step} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
@@ -659,7 +661,7 @@ function RegistrationPage({ content }: { content: Content }) {
           </ol>
         </div>
         <div className="glass rounded-[2rem] p-7">
-          <h2 className="text-3xl font-black text-white">{content.registration.formTitle}</h2>
+          <h2 className="card-display-title font-black text-white">{content.registration.formTitle}</h2>
           <p className="mt-3 flex items-start gap-2 leading-8 text-white/60">
             <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={18} />
             {fa
@@ -730,8 +732,8 @@ function DownloadsPage({
                 <ModeIcon size={29} />
               </span>
               <div className="section-kicker mt-6">{fa ? "دانلود واقعی" : "Real downloads"}</div>
-              <h2 className="mt-4 text-3xl font-black leading-tight text-white sm:text-5xl">{modeCopy.title}</h2>
-              <p className="mt-4 text-base leading-8 text-white/64">{modeCopy.body}</p>
+              <h2 className="card-display-title mt-4 font-black text-white">{modeCopy.title}</h2>
+              <p className="site-copy mt-4 text-base text-white/64">{modeCopy.body}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               {[
@@ -747,7 +749,7 @@ function DownloadsPage({
               <div className="sm:col-span-3 rounded-[1.4rem] border border-amber-200/18 bg-amber-200/[0.055] p-5">
                 <div className="flex items-start gap-3">
                   <ShieldCheck className="mt-1 shrink-0 text-[var(--gold)]" size={20} />
-                  <p className="leading-8 text-white/70">
+                  <p className="site-copy text-white/70">
                     {fa
                       ? "دکمه اصلی، فایل واقعی همین سایت را دانلود می کند؛ لینک منبع رسمی هم جدا نگه داشته شده است."
                       : "The primary action downloads the real mirrored file from this site; the official source link is kept separately."}
@@ -773,7 +775,7 @@ function DownloadsPage({
                   </span>
                   <h3 className="text-2xl font-black text-white">{step.title}</h3>
                 </div>
-                <p className="mt-3 leading-8 text-white/62">{step.body}</p>
+                <p className="site-copy mt-3 text-white/62">{step.body}</p>
               </article>
             ))}
           </div>
@@ -785,10 +787,10 @@ function DownloadsPage({
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
               <div className="section-kicker">{fa ? "PDF رسمی" : "Official PDF"}</div>
-              <h2 className="mt-3 text-3xl font-black text-white">
+              <h2 className="card-display-title mt-3 font-black text-white">
                 {fa ? "مشارکت کنندگان KIMEX 2025" : "KIMEX 2025 participants"}
               </h2>
-              <p className="mt-4 leading-8 text-white/62">
+              <p className="site-copy mt-4 text-white/62">
                 {fa
                   ? "این فهرست به صورت فایل PDF از سایت قبلی حفظ شده است. چون تاریخ رویداد گذشته، وضعیت آن آرشیوی است."
                   : "This list is preserved as a PDF from the previous site. Because the event date has passed, its status is archival."}
@@ -823,8 +825,8 @@ function DownloadsPage({
                   {item.type}
                 </span>
               </div>
-              <h3 className="mt-6 text-2xl font-black leading-9 text-white">{item.label}</h3>
-              <p className="mt-3 min-h-16 leading-8 text-white/64">{item.description}</p>
+              <h3 className="mt-6 text-2xl font-black leading-tight text-white">{item.label}</h3>
+              <p className="site-copy mt-3 min-h-16 text-white/64">{item.description}</p>
               <dl className="mt-6 grid gap-2 text-sm">
                 <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-2">
                   <dt className="text-white/46">{fa ? "نام فایل" : "File"}</dt>
@@ -876,18 +878,18 @@ function NewsPage({ content }: { content: Content }) {
             <span className="rounded-full border border-cyan-200/24 bg-black/38 px-3 py-1 text-xs font-black text-[var(--cyan)]">
               {data.newsArchive[0].category}
             </span>
-            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-white sm:text-5xl">
+            <h2 className="card-display-title mt-4 max-w-3xl font-black text-white">
               {data.newsArchive[0].title}
             </h2>
-            <p className="mt-4 max-w-2xl leading-8 text-white/70">{data.newsArchive[0].body}</p>
+            <p className="site-copy mt-4 max-w-2xl text-white/70">{data.newsArchive[0].body}</p>
           </div>
         </article>
         <div className="industrial-card rounded-[2rem] p-7">
           <Newspaper className="text-[var(--gold)]" size={30} />
-          <h2 className="mt-5 text-3xl font-black text-white">
+          <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "خبرها به عنوان آرشیو رسمی" : "News as an official archive"}
           </h2>
-          <p className="mt-4 leading-8 text-white/62">
+          <p className="site-copy mt-4 text-white/62">
             {fa
               ? "خبرهای سایت قبلی با تصویر، تاریخ، دسته و لینک منبع نگهداری شده اند؛ تاریخ های گذشته به عنوان خبر آرشیوی نمایش داده می شوند."
               : "Previous-site updates are kept with image, date, category, and source link; past dates are presented as archived news."}
@@ -909,8 +911,8 @@ function NewsPage({ content }: { content: Content }) {
               <time className="font-latin text-xs font-bold uppercase tracking-[0.22em] text-[var(--gold)]">
                 {item.date}
               </time>
-              <h2 className="mt-4 text-2xl font-black leading-8 text-white">{item.title}</h2>
-              <p className="mt-3 leading-8 text-white/64">{item.body}</p>
+              <h2 className="mt-4 text-2xl font-black leading-tight text-white">{item.title}</h2>
+              <p className="site-copy mt-3 text-white/64">{item.body}</p>
               {item.href ? (
                 <a href={item.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 font-bold text-[var(--gold)]">
                   <ArrowUpRight size={18} />
@@ -934,10 +936,10 @@ function GalleryPage({ content }: { content: Content }) {
       <section className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
         <div className="industrial-card rounded-[2rem] p-7">
           <BookOpen className="text-[var(--gold)]" size={30} />
-          <h2 className="mt-5 text-3xl font-black text-white">
+          <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "آرشیو تصویری سایت قبلی، بازسازی شده" : "Previous-site image archive, rebuilt"}
           </h2>
-          <p className="mt-4 leading-8 text-white/62">
+          <p className="site-copy mt-4 text-white/62">
             {fa
               ? "تصاویر رسمی قدیمی از Caprrex و Simex در کنار گالری فعلی قرار گرفته اند تا صفحه گالری فقط یک شبکه عکس ساده نباشد."
               : "Older official Caprrex and Simex media now sits beside the current gallery so the page is more than a simple image grid."}
@@ -962,9 +964,9 @@ function GalleryPage({ content }: { content: Content }) {
             <div className="mb-5 grid gap-3 md:grid-cols-[0.7fr_1.3fr] md:items-end">
               <div>
                 <div className="section-kicker">{group.date}</div>
-                <h2 className="mt-3 text-3xl font-black text-white">{group.title}</h2>
+                <h2 className="card-display-title mt-3 font-black text-white">{group.title}</h2>
               </div>
-              <p className="leading-8 text-white/62">{group.body}</p>
+              <p className="site-copy text-white/62">{group.body}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {group.images.map((src, index) => (
@@ -982,7 +984,7 @@ function GalleryPage({ content }: { content: Content }) {
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="section-kicker">{content.gallery.kicker}</div>
-            <h2 className="mt-3 text-3xl font-black text-white">{content.gallery.title}</h2>
+            <h2 className="card-display-title mt-3 font-black text-white">{content.gallery.title}</h2>
           </div>
           <span className="rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-sm text-white/58">
             {fa ? "با لایت باکس" : "With lightbox"}
@@ -1030,10 +1032,10 @@ function ContactPage({ content }: { content: Content }) {
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="industrial-card rounded-[2rem] p-7">
           <Sparkles className="text-[var(--cyan)]" size={30} />
-          <h2 className="mt-5 text-3xl font-black text-white">
+          <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "درخواست سریع همکاری یا غرفه" : "Quick participation or booth request"}
           </h2>
-          <p className="mt-4 leading-8 text-white/62">
+          <p className="site-copy mt-4 text-white/62">
             {fa
               ? "برای امنیت و صداقت، فرم یک پیش نویس ایمیل می سازد و چیزی را به صورت مخفی یا جعلی ارسال نمی کند."
               : "For safety and honesty, the form creates an email draft and does not silently submit or fake a backend action."}

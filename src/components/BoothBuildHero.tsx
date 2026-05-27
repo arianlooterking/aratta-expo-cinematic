@@ -116,18 +116,23 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
           })}
         </div>
 
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.42)_0%,rgba(0,0,0,0.08)_30%,rgba(0,0,0,0.18)_56%,rgba(0,0,0,0.82)_100%)] md:bg-[linear-gradient(90deg,rgba(0,0,0,0.68),rgba(0,0,0,0.12)_46%,rgba(0,0,0,0.28))]" />
+        <div className="hero-copy-scrim absolute inset-0" />
 
-        <div dir={content.dir} className="pointer-events-none absolute inset-x-0 top-28 z-10 hidden px-4 sm:top-32 md:block">
+        <div
+          dir={content.dir}
+          className="pointer-events-none absolute inset-x-0 top-[clamp(7.4rem,15svh,10.25rem)] z-10 hidden md:block"
+        >
           <div className="section-shell">
-            <div className="max-w-[39rem] text-white [text-shadow:0_5px_28px_rgba(0,0,0,0.72)]">
-              <p className="font-latin text-[0.68rem] font-black uppercase tracking-[0.3em] text-[var(--cyan)]">
-                Aratta Expo / 2026+
+            <div className="hero-copy-cluster text-white [text-shadow:0_5px_28px_rgba(0,0,0,0.78)]">
+              <p className="text-start">
+                <span className="font-latin inline-block text-[0.68rem] font-black uppercase tracking-[0.3em] text-[var(--cyan)]">
+                  Aratta Expo / 2026+
+                </span>
               </p>
-              <h1 className="mt-4 text-balance text-4xl font-black leading-[1.12] sm:text-5xl lg:text-[4.5rem]">
+              <h1 className="hero-display-title mt-4 text-balance font-black text-white">
                 {content.hero.title}
               </h1>
-              <p className="mt-4 max-w-2xl text-base font-semibold leading-8 text-white/88 sm:text-lg">
+              <p className="hero-subtitle mt-5 font-semibold text-white/88">
                 {content.hero.subtitle}
               </p>
             </div>

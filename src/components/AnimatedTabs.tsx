@@ -129,11 +129,11 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
         <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
           <div>
             <div className="section-kicker">{content.services.kicker}</div>
-            <h2 className="mt-4 max-w-4xl text-balance text-4xl font-black leading-tight text-white sm:text-6xl">
+            <h2 className="section-display-title mt-4 max-w-4xl text-balance font-black text-white">
               {content.services.title}
             </h2>
           </div>
-          <p className="max-w-2xl text-lg leading-9 text-white/64 lg:ms-auto">
+          <p className="site-copy max-w-2xl text-lg text-white/64 lg:ms-auto">
             {copy.intro}
           </p>
         </div>
@@ -174,10 +174,10 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                   <ActiveIcon size={34} strokeWidth={1.7} />
                 </div>
 
-                <h3 className="mt-8 text-balance text-3xl font-black leading-tight text-white sm:text-5xl">
+                <h3 className="card-display-title mt-8 text-balance font-black text-white">
                   {current.title}
                 </h3>
-                <p className="mt-5 max-w-xl text-base leading-8 text-white/72 sm:text-lg sm:leading-9">
+                <p className="site-copy mt-5 max-w-xl text-base text-white/72 sm:text-lg">
                   {current.body}
                 </p>
               </div>

@@ -42,6 +42,7 @@ body {
   font-family: var(--font-vazirmatn), var(--font-geist-sans), Tahoma, Arial, sans-serif;
   font-feature-settings: "ss01" 1, "kern" 1;
   line-height: 1.65;
+  text-align: start;
 }
 
 body::before {
@@ -76,6 +77,8 @@ select {
 
 .font-latin {
   font-family: var(--font-geist-sans), Inter, Arial, sans-serif;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .text-balance {
@@ -87,6 +90,15 @@ h2,
 h3 {
   letter-spacing: 0;
   text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+p,
+li,
+dd,
+dt {
+  overflow-wrap: break-word;
+  text-wrap: pretty;
 }
 
 .glass {
@@ -133,8 +145,80 @@ h3 {
 }
 
 .section-shell {
-  width: min(1180px, calc(100vw - 32px));
+  width: min(1180px, calc(100vw - clamp(1.5rem, 5vw, 4.5rem)));
   margin-inline: auto;
+}
+
+.hero-copy-scrim {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.08) 30%, rgba(0, 0, 0, 0.18) 56%, rgba(0, 0, 0, 0.82) 100%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.42) 29%, rgba(0, 0, 0, 0.1) 58%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+[dir="rtl"] .hero-copy-scrim {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0.08) 30%, rgba(0, 0, 0, 0.18) 56%, rgba(0, 0, 0, 0.82) 100%),
+    linear-gradient(270deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.42) 29%, rgba(0, 0, 0, 0.1) 58%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+.hero-copy-cluster {
+  width: min(38rem, 52vw);
+  max-width: calc(100vw - 4rem);
+  margin-inline-end: auto;
+  text-align: start;
+}
+
+.hero-display-title {
+  font-size: clamp(3rem, 4.85vw, 5.2rem);
+  line-height: 1.06;
+}
+
+.hero-subtitle {
+  max-width: min(34rem, 100%);
+  font-size: clamp(1rem, 1.28vw, 1.18rem);
+  line-height: 1.9;
+}
+
+.section-display-title {
+  font-size: clamp(2.25rem, 4.25vw, 4rem);
+  line-height: 1.12;
+}
+
+.page-display-title {
+  font-size: clamp(2.4rem, 4.6vw, 4.5rem);
+  line-height: 1.08;
+}
+
+.card-display-title {
+  font-size: clamp(1.55rem, 2.45vw, 2.65rem);
+  line-height: 1.16;
+}
+
+.site-copy {
+  max-width: 68ch;
+  line-height: 1.9;
+}
+
+@media (max-width: 1160px) {
+  .hero-copy-cluster {
+    width: min(34rem, 54vw);
+  }
+
+  .hero-display-title {
+    font-size: clamp(2.75rem, 5.15vw, 4rem);
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-copy-cluster {
+    width: min(30rem, 56vw);
+    max-width: calc(100vw - 3rem);
+  }
+
+  .hero-display-title {
+    font-size: clamp(2.25rem, 5vw, 3.2rem);
+    line-height: 1.1;
+  }
 }
 
 .section-kicker {
