@@ -14,6 +14,10 @@ const animatedTabs = await readFile(
   new URL("../src/components/AnimatedTabs.tsx", import.meta.url),
   "utf8",
 );
+const aboutExperience = await readFile(
+  new URL("../src/components/AboutExperience.tsx", import.meta.url),
+  "utf8",
+);
 
 test("published exhibitions are explicitly archived", () => {
   assert.match(content, /type ExhibitionStatus = "archived"/);
@@ -97,6 +101,16 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
 
 test("landing page does not render the duplicate build-stage showcase", () => {
   assert.doesNotMatch(homeSections, /BuildStageShowcase/);
+});
+
+test("about section is an animated capability experience", () => {
+  assert.match(homeSections, /AboutExperience/);
+  assert.match(aboutExperience, /motion\./);
+  assert.match(aboutExperience, /boothStageFrames/);
+  assert.match(aboutExperience, /mobileBoothStageFrames/);
+  for (const route of ["exhibitions", "equipment", "participants"]) {
+    assert.match(aboutExperience, new RegExp(route));
+  }
 });
 
 test("operating system section uses stage imagery and real route links", () => {

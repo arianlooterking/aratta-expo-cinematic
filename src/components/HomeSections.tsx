@@ -2,7 +2,6 @@ import Image from "next/image";
 import {
   ArrowUpRight,
   CalendarClock,
-  CheckCircle2,
   Download,
   FileDown,
   Mail,
@@ -11,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
+import { AboutExperience } from "@/components/AboutExperience";
 import { AnimatedTabs } from "@/components/AnimatedTabs";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
@@ -23,7 +23,7 @@ type HomeSectionsProps = {
 export function HomeSections({ content }: HomeSectionsProps) {
   return (
     <>
-      <AboutSection content={content} />
+      <AboutExperience content={content} />
       <ExhibitionsSection content={content} />
       <AnimatedTabs content={content} />
       <RegistrationSection content={content} />
@@ -33,35 +33,6 @@ export function HomeSections({ content }: HomeSectionsProps) {
       <ContactSection content={content} />
       <Footer content={content} />
     </>
-  );
-}
-
-function AboutSection({ content }: HomeSectionsProps) {
-  return (
-    <section id="about" className="py-24">
-      <div className="section-shell grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <div>
-          <div className="section-kicker">{content.about.kicker}</div>
-          <h2 className="mt-4 text-4xl font-black text-white sm:text-5xl">
-            {content.about.title}
-          </h2>
-          <p className="mt-6 text-lg leading-9 text-white/70">{content.about.body}</p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {content.about.proof.map((item, index) => (
-            <div key={item} className="industrial-card rounded-[1.7rem] p-6">
-              <div className="font-latin text-sm font-black text-[var(--cyan)]">
-                0{index + 1}
-              </div>
-              <div className="mt-5 flex items-start gap-3">
-                <CheckCircle2 className="mt-1 shrink-0 text-[var(--gold)]" size={20} />
-                <p className="text-xl font-bold text-white">{item}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
