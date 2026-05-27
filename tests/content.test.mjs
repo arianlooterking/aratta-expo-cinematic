@@ -1,11 +1,15 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
 const content = await readFile(new URL("../src/data/aratta-content.ts", import.meta.url), "utf8");
 const rootPage = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+const rootLayout = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+const langPage = await readFile(new URL("../src/app/[lang]/page.tsx", import.meta.url), "utf8");
 const routedPage = await readFile(new URL("../src/app/[lang]/[page]/page.tsx", import.meta.url), "utf8");
 const brandAssets = await readFile(new URL("../src/lib/brand-assets.ts", import.meta.url), "utf8");
+const seo = await readFile(new URL("../src/lib/seo.ts", import.meta.url), "utf8");
+const ogPreview = await stat(new URL("../public/og/aratta-expo-booth-preview.png", import.meta.url));
 const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", import.meta.url), "utf8");
 const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", import.meta.url), "utf8");
 const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
@@ -56,6 +60,19 @@ test("hero stage captions use polished bilingual production copy", () => {
   assert.match(content, /Ready for business conversations/);
   assert.doesNotMatch(content, /سالن خام و نور محیط/);
   assert.doesNotMatch(content, /Clean hall and ambient light/);
+});
+
+test("link previews use localized professional metadata and booth image", () => {
+  assert.match(seo, /siteUrl = "https:\/\/aratta-expo-cinematic\.vercel\.app"/);
+  assert.match(seo, /aratta-expo-booth-preview\.png/);
+  assert.match(seo, /width: 1672/);
+  assert.match(seo, /height: 941/);
+  assert.match(seo, /شرکت توسعه تجارت اَرَت \| سامانه نمایشگاه های صنعتی/);
+  assert.match(seo, /Aratta Expo \| Industrial & Mining Exhibition Systems/);
+  assert.match(rootLayout, /metadataBase: new URL\(siteUrl\)/);
+  assert.match(langPage, /twitter:\s*\{/);
+  assert.match(routedPage, /socialPreviewImage/);
+  assert.ok(ogPreview.size > 1_000_000);
 });
 
 test("official download links remain connected to Aratta source files", () => {

@@ -39,6 +39,7 @@ import { getContent } from "@/data/aratta-content";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { getBoothFrameForPage } from "@/lib/booth-scenes";
 import { isLang, languages, type Lang } from "@/lib/lang";
+import { getLanguageSeo, siteName, socialPreviewImage } from "@/lib/seo";
 
 const canonicalPageSlugs = [
   "about",
@@ -74,12 +75,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const content = getContent(rawLang);
   const brand = getBrandAssets(rawLang);
   const label = pageLabel(content, page);
+  const seo = getLanguageSeo(rawLang);
+  const description =
+    rawLang === "fa"
+      ? `${label} در سامانه نمایشگاهی اَرَت؛ مسیر رسمی برای اطلاعات، فرم ها، گالری و ارتباط قابل بررسی.`
+      : `${label} in the Aratta Expo platform, with official information, forms, galleries, and verified contact paths.`;
+  const title = `${label} | ${seo.shortTitle}`;
+
   return {
-    title: `${label} | ${content.brand}`,
-    description:
-      rawLang === "fa"
-        ? `صفحه ${label} در تجربه سینمایی اَرَت.`
-        : `${label} page in the Aratta Expo cinematic experience.`,
+    title,
+    description,
     alternates: {
       canonical: `/${rawLang}/${page}`,
       languages: {
@@ -92,14 +97,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       apple: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
     },
     openGraph: {
-      title: `${label} | ${content.brand}`,
-      description:
-        rawLang === "fa"
-          ? `صفحه ${label} در تجربه سینمایی اَرَت.`
-          : `${label} page in the Aratta Expo cinematic experience.`,
-      locale: rawLang === "fa" ? "fa_IR" : "en_US",
+      title,
+      description,
+      url: `/${rawLang}/${page}`,
+      siteName,
+      locale: seo.locale,
+      alternateLocale: [seo.alternateLocale],
       type: "website",
-      images: [brand.fullLogo],
+      images: [{ ...socialPreviewImage, alt: seo.imageAlt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [socialPreviewImage.url],
     },
   };
 }

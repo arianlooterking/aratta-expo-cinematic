@@ -7,6 +7,7 @@ import { SiteChrome } from "@/components/SiteChrome";
 import { getContent } from "@/data/aratta-content";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { isLang, languages, type Lang } from "@/lib/lang";
+import { getLanguageSeo, siteName, socialPreviewImage } from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -24,18 +25,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const content = getContent(rawLang);
   const brand = getBrandAssets(rawLang);
-  const title =
-    rawLang === "fa"
-      ? "شرکت توسعه تجارت اَرَت | بازطراحی سینمایی نمایشگاهی"
-      : "Aratta Expo | Cinematic Exhibition Redesign";
-  const description =
-    rawLang === "fa"
-      ? "تجربه دوزبانه اَرَت برای نمایشگاه های صنعتی، معدن، فولاد، مس، ثبت درخواست، فرم ها، گالری و تماس رسمی."
-      : "A bilingual Aratta Expo experience for mining, steel, copper, industrial exhibitions, inquiry, forms, gallery, and contact.";
+  const seo = getLanguageSeo(rawLang);
 
   return {
-    title,
-    description,
+    title: seo.title,
+    description: seo.description,
     alternates: {
       canonical: `/${rawLang}`,
       languages: {
@@ -48,11 +42,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       apple: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
     },
     openGraph: {
-      title,
-      description,
-      locale: rawLang === "fa" ? "fa_IR" : "en_US",
+      title: seo.title,
+      description: seo.description,
+      url: `/${rawLang}`,
+      siteName,
+      locale: seo.locale,
+      alternateLocale: [seo.alternateLocale],
       type: "website",
-      images: [brand.fullLogo],
+      images: [{ ...socialPreviewImage, alt: seo.imageAlt }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.title,
+      description: seo.description,
+      images: [socialPreviewImage.url],
     },
     other: {
       "content-language": content.lang,

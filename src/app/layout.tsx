@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Vazirmatn } from "next/font/google";
+import { getLanguageSeo, siteName, siteUrl, socialPreviewImage } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,14 +18,15 @@ const vazirmatn = Vazirmatn({
   subsets: ["arabic", "latin"],
 });
 
+const defaultSeo = getLanguageSeo("fa");
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://arattaexpo.ir"),
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Aratta Expo | شرکت توسعه تجارت اَرَت",
-    template: "%s | Aratta Expo",
+    default: defaultSeo.title,
+    template: "%s",
   },
-  description:
-    "A bilingual cinematic redesign for Aratta Expo, an Iranian exhibition organizer for mining, steel, copper, and industrial trade events.",
+  description: defaultSeo.description,
   applicationName: "Aratta Expo Cinematic",
   authors: [{ name: "Aratta Expo" }],
   icons: {
@@ -35,13 +37,20 @@ export const metadata: Metadata = {
     apple: [{ url: "/brand/aratta-tab-fa.png", sizes: "512x512", type: "image/png" }],
   },
   openGraph: {
-    title: "Aratta Expo | شرکت توسعه تجارت اَرَت",
-    description:
-      "Bilingual exhibition organizer experience with archived event data, official downloads, gallery, registration inquiry, and contact paths.",
+    title: defaultSeo.title,
+    description: defaultSeo.description,
+    siteName,
+    url: "/fa",
     type: "website",
-    locale: "fa_IR",
-    alternateLocale: ["en_US"],
-    images: ["/concepts/aratta-hero-concept.png"],
+    locale: defaultSeo.locale,
+    alternateLocale: [defaultSeo.alternateLocale],
+    images: [{ ...socialPreviewImage, alt: defaultSeo.imageAlt }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultSeo.title,
+    description: defaultSeo.description,
+    images: [socialPreviewImage.url],
   },
 };
 
