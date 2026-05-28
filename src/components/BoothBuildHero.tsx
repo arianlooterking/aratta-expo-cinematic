@@ -23,6 +23,10 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     ...frame,
     stage: content.hero.stages[index] ?? content.hero.stages[content.hero.stages.length - 1],
   }));
+  const mobileCtas =
+    content.lang === "fa"
+      ? { registration: "ثبت", exhibitions: "نمایشگاه", forms: "فرم", continue: "ادامه" }
+      : { registration: "Register", exhibitions: "Exhibits", forms: "Forms", continue: "More" };
 
   const activeIndex = useMemo(() => {
     return Math.min(stageFrames.length - 1, Math.floor(progress * stageFrames.length));
@@ -60,7 +64,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     <section
       id="home"
       ref={rootRef}
-      className="relative h-[560svh] bg-black md:h-[620svh]"
+      className="relative h-[840svh] bg-black md:h-[620svh]"
       aria-label={content.hero.title}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-black">
@@ -83,7 +87,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
                 style={{
                   opacity,
                   transform: `scale(${scale})`,
-                  transition: "opacity 120ms linear, transform 120ms linear",
+                  transition: "opacity 180ms ease-out, transform 260ms ease-out",
                 }}
               />
             );
@@ -109,7 +113,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
                 style={{
                   opacity,
                   transform: `scale(${scale})`,
-                  transition: "opacity 120ms linear, transform 120ms linear",
+                  transition: "opacity 320ms ease-out, transform 520ms ease-out",
                 }}
               />
             );
@@ -154,56 +158,59 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
           ))}
         </div>
 
-        <div dir={content.dir} className="absolute inset-x-3 bottom-3 z-10 md:hidden">
-          <div className="rounded-[1.45rem] border border-white/16 bg-black/48 p-3 text-white shadow-2xl shadow-black/45 backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-3">
-              <span className="font-latin rounded-full border border-cyan-200/22 bg-cyan-200/8 px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.22em] text-[var(--cyan)]">
+        <div
+          dir={content.dir}
+          className="absolute inset-x-3 bottom-[calc(0.55rem+env(safe-area-inset-bottom))] z-10 md:hidden"
+        >
+          <div className="rounded-[1.15rem] border border-white/16 bg-black/46 p-2.5 text-white shadow-2xl shadow-black/45 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-latin rounded-full border border-cyan-200/22 bg-cyan-200/8 px-2.5 py-1 text-[0.55rem] font-black uppercase tracking-[0.18em] text-[var(--cyan)]">
                 {activeStage.label}
               </span>
-              <span className="font-latin text-xs font-black text-white/66">
+              <span className="font-latin text-[0.7rem] font-black text-white/66">
                 {activeIndex + 1}/{mobileStageFrames.length}
               </span>
             </div>
-            <h2 className="mt-3 text-balance text-2xl font-black leading-tight text-white">
+            <h2 className="mt-2 text-balance text-[clamp(1.05rem,5.15vw,1.26rem)] font-black leading-[1.42] text-white">
               {activeStage.title}
             </h2>
-            <p className="mt-2 text-sm font-semibold leading-6 text-white/78">
+            <p className="mt-1.5 overflow-hidden text-[0.74rem] font-bold leading-[1.75] text-white/76 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]">
               {activeStage.body}
             </p>
-            <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/18">
+            <div className="mt-2 h-[3px] overflow-hidden rounded-full bg-white/18">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[var(--cyan)] to-[var(--gold)]"
                 style={{ width: `${Math.max(5, progress * 100)}%` }}
               />
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
               <Link
                 href={`/${content.lang}/registration`}
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-amber-200/32 bg-amber-200/18 px-3 text-xs font-black text-white"
+                className="inline-flex min-h-9 items-center justify-center rounded-xl border border-amber-200/32 bg-amber-200/18 px-1.5 text-[0.62rem] font-black leading-4 text-white"
               >
-                <UserRoundPlus className="me-2" size={16} />
-                {content.hero.primary}
+                <UserRoundPlus className="me-1.5" size={13} />
+                {mobileCtas.registration}
               </Link>
               <Link
                 href={`/${content.lang}/exhibitions`}
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/14 bg-white/8 px-3 text-xs font-black text-white"
+                className="inline-flex min-h-9 items-center justify-center rounded-xl border border-white/14 bg-white/8 px-1.5 text-[0.62rem] font-black leading-4 text-white"
               >
-                <Images className="me-2" size={16} />
-                {content.hero.secondary}
+                <Images className="me-1.5" size={13} />
+                {mobileCtas.exhibitions}
               </Link>
               <Link
                 href={`/${content.lang}/forms`}
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/14 bg-white/8 px-3 text-xs font-black text-white"
+                className="inline-flex min-h-9 items-center justify-center rounded-xl border border-white/14 bg-white/8 px-1.5 text-[0.62rem] font-black leading-4 text-white"
               >
-                <FileDown className="me-2" size={16} />
-                {content.lang === "fa" ? "فرم ها" : "Forms"}
+                <FileDown className="me-1.5" size={13} />
+                {mobileCtas.forms}
               </Link>
               <Link
                 href="#about"
-                className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-cyan-200/28 bg-cyan-200/12 px-3 text-xs font-black text-white"
+                className="inline-flex min-h-9 items-center justify-center rounded-xl border border-cyan-200/28 bg-cyan-200/12 px-1.5 text-[0.62rem] font-black leading-4 text-white"
               >
-                {content.lang === "fa" ? "ادامه" : "Continue"}
-                <ArrowDown className="ms-2" size={16} />
+                {mobileCtas.continue}
+                <ArrowDown className="ms-1.5" size={13} />
               </Link>
             </div>
           </div>
