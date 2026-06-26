@@ -122,14 +122,17 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
   ]) {
     assert.match(boothScenes, new RegExp(file));
   }
-  assert.match(boothHero, /h-\[840svh\]/);
+  assert.match(boothHero, /h-\[1080svh\]/);
   assert.match(boothHero, /md:h-\[620svh\]/);
   assert.match(boothHero, /md:hidden/);
   assert.match(boothHero, /mobileBoothStageFrames/);
   assert.match(boothHero, /mobileCtas/);
+  assert.match(boothHero, /data-mobile-hero-card/);
   assert.match(boothHero, /grid-cols-4/);
-  assert.match(boothHero, /text-\[clamp\(1\.05rem,5\.15vw,1\.26rem\)\]/);
-  assert.match(boothHero, /transition: "opacity 320ms ease-out, transform 520ms ease-out"/);
+  assert.match(boothHero, /text-\[clamp\(0\.92rem,4\.55vw,1\.08rem\)\]/);
+  assert.match(boothHero, /hero-copy-scrim absolute inset-0 hidden md:block/);
+  assert.match(boothHero, /filter: mobile \? "saturate\(1\.08\) contrast\(1\.08\) brightness\(1\.08\)"/);
+  assert.match(boothHero, /opacity 520ms ease-out/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
   assert.match(boothHero, /opacity/);
   assert.doesNotMatch(boothHero, /process-row-inner/);
