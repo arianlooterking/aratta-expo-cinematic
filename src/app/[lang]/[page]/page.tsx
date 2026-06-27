@@ -49,6 +49,7 @@ const canonicalPageSlugs = [
   "equipment",
   "participants",
   "news",
+  "industry-news",
   "gallery",
   "contact",
   "search",
@@ -170,6 +171,7 @@ function pageIntro(content: ReturnType<typeof getContent>, page: PageSlug) {
       ? "فهرست مشارکت کنندگان منتشرشده برای رویدادهای رسمی اَرَت."
       : "Published participant lists for official Aratta events.",
     news: content.news.title,
+    "industry-news": content.news.relatedBody,
     gallery: content.gallery.title,
     contact: content.contact.title,
     search: fa
@@ -235,6 +237,8 @@ function renderPage(content: ReturnType<typeof getContent>, page: PageSlug) {
       return <DownloadsPage content={content} mode="participants" />;
     case "news":
       return <NewsPage content={content} />;
+    case "industry-news":
+      return <RelatedNewsPage content={content} />;
     case "gallery":
       return <GalleryPage content={content} />;
     case "contact":
@@ -431,6 +435,7 @@ function getPageData(content: Content) {
     equipmentFlow,
     galleryGroups,
     newsArchive,
+    relatedNews: content.news.relatedItems,
   };
 }
 
@@ -933,6 +938,99 @@ function NewsPage({ content }: { content: Content }) {
             </div>
           </article>
         ))}
+      </section>
+    </div>
+  );
+}
+
+function RelatedNewsPage({ content }: { content: Content }) {
+  const data = getPageData(content);
+  const fa = content.lang === "fa";
+  const lead = data.relatedNews[0];
+
+  return (
+    <div className="space-y-7">
+      <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="industrial-card rounded-[2rem] p-7">
+          <div className="section-kicker">{content.news.relatedKicker}</div>
+          <h2 className="card-display-title mt-4 font-black text-white">{content.news.relatedTitle}</h2>
+          <p className="site-copy mt-5 text-white/64">{content.news.relatedBody}</p>
+          <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            {(fa
+              ? ["منبع مشخص", "آرشیو صادقانه", "قابل توسعه"]
+              : ["Sourced", "Archive-safe", "Expandable"]
+            ).map((item) => (
+              <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-center text-sm font-black text-white/78">
+                <ShieldCheck className="mx-auto mb-2 text-[var(--cyan)]" size={20} />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <article className="relative min-h-[440px] overflow-hidden rounded-[2rem] border border-white/14">
+          <Image src={lead.image} alt={lead.title} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/38 to-black/8" />
+          <div className="absolute inset-x-6 bottom-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-cyan-200/24 bg-black/40 px-3 py-1 text-xs font-black text-[var(--cyan)] backdrop-blur-xl">
+                {lead.sector}
+              </span>
+              <span className="font-latin rounded-full border border-amber-200/24 bg-amber-200/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[var(--gold)]">
+                {lead.source}
+              </span>
+            </div>
+            <h2 className="card-display-title mt-4 max-w-3xl font-black text-white">{lead.title}</h2>
+            <p className="site-copy mt-4 max-w-2xl text-white/70">{lead.body}</p>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-3">
+        {data.relatedNews.map((item) => (
+          <article key={item.title} className="industrial-card group overflow-hidden rounded-[1.8rem]">
+            <div className="relative aspect-[4/3]">
+              <Image src={item.image} alt={item.title} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/12 to-transparent" />
+              <span className="absolute start-4 top-4 rounded-full border border-white/12 bg-black/44 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-xl">
+                {item.sector}
+              </span>
+            </div>
+            <div className="p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <time className="font-latin text-xs font-bold uppercase tracking-[0.2em] text-[var(--gold)]">
+                  {item.date}
+                </time>
+                <span className="font-latin text-xs font-bold text-white/36">/</span>
+                <span className="font-latin text-xs font-bold text-white/46">{item.source}</span>
+              </div>
+              <h2 className="mt-4 text-2xl font-black leading-tight text-white">{item.title}</h2>
+              <p className="site-copy mt-3 text-white/64">{item.body}</p>
+              {item.href ? (
+                <a href={item.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 font-bold text-[var(--gold)]">
+                  <ArrowUpRight size={18} />
+                  {fa ? "مشاهده منبع" : "Open source"}
+                </a>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="glass rounded-[2rem] p-6 sm:p-7">
+        <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <div className="section-kicker">{fa ? "مسیر مدیریت" : "Management workflow"}</div>
+            <h2 className="card-display-title mt-4 font-black text-white">
+              {fa ? "برای خبرهای بعدی آماده است" : "Ready for future updates"}
+            </h2>
+          </div>
+          <p className="site-copy text-white/62">
+            {fa
+              ? "هر خبر جدید باید تاریخ، منبع، حوزه، تصویر، متن کوتاه و لینک قابل بررسی داشته باشد. پنل مدیریت جدید برای آماده سازی همین داده ها اضافه شده است."
+              : "Every future item should have a date, source, sector, image, concise body, and verifiable link. The new admin panel is built to prepare that data cleanly."}
+          </p>
+        </div>
       </section>
     </div>
   );

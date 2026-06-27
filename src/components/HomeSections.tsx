@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowUpRight,
   CalendarClock,
@@ -6,6 +7,7 @@ import {
   FileDown,
   Mail,
   MapPin,
+  Newspaper,
   Phone,
   ShieldCheck,
 } from "lucide-react";
@@ -29,6 +31,7 @@ export function HomeSections({ content }: HomeSectionsProps) {
       <RegistrationSection content={content} />
       <EquipmentParticipantsSection content={content} />
       <NewsSection content={content} />
+      <RelatedNewsSection content={content} />
       <GallerySection content={content} />
       <ContactSection content={content} />
       <Footer content={content} />
@@ -216,6 +219,68 @@ function NewsSection({ content }: HomeSectionsProps) {
                 ) : null}
               </div>
             </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RelatedNewsSection({ content }: HomeSectionsProps) {
+  const featuredItems = content.news.relatedItems.slice(0, 3);
+  return (
+    <section id="industry-news" className="py-20">
+      <div className="section-shell">
+        <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+          <div>
+            <div className="section-kicker">{content.news.relatedKicker}</div>
+            <h2 className="section-display-title mt-4 font-black text-white">
+              {content.news.relatedTitle}
+            </h2>
+          </div>
+          <div className="industrial-card rounded-[1.6rem] p-5">
+            <div className="flex items-start gap-3">
+              <Newspaper className="mt-1 shrink-0 text-[var(--gold)]" size={22} />
+              <p className="site-copy text-white/66">{content.news.relatedBody}</p>
+            </div>
+            <Link
+              href={`/${content.lang}/industry-news`}
+              className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white transition hover:border-cyan-200/42 hover:bg-cyan-200/12"
+            >
+              <ArrowUpRight size={17} />
+              {content.lang === "fa" ? "مشاهده اخبار مرتبط" : "View related news"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {featuredItems.map((item) => (
+            <Link
+              key={item.title}
+              href={`/${content.lang}/industry-news`}
+              className="industrial-card group overflow-hidden rounded-[1.8rem] transition hover:-translate-y-1 hover:border-cyan-200/34"
+            >
+              <div className="relative aspect-[16/10]">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className="object-cover transition duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
+                <span className="absolute start-4 top-4 rounded-full border border-white/12 bg-black/42 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-xl">
+                  {item.sector}
+                </span>
+              </div>
+              <div className="p-5">
+                <time className="font-latin text-xs font-black uppercase tracking-[0.2em] text-[var(--gold)]">
+                  {item.date}
+                </time>
+                <h3 className="mt-3 text-xl font-black leading-8 text-white">{item.title}</h3>
+                <p className="mt-3 line-clamp-2 text-sm leading-7 text-white/60">{item.body}</p>
+              </div>
+            </Link>
           ))}
         </div>
       </div>

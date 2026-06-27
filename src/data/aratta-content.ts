@@ -12,6 +12,19 @@ export type Exhibition = {
   summary: string;
 };
 
+export type NewsItem = {
+  date: string;
+  title: string;
+  body: string;
+  href?: string;
+};
+
+export type RelatedNewsItem = NewsItem & {
+  source: string;
+  sector: string;
+  image: string;
+};
+
 export type SiteContent = {
   lang: Lang;
   dir: "rtl" | "ltr";
@@ -72,7 +85,11 @@ export type SiteContent = {
   news: {
     kicker: string;
     title: string;
-    items: Array<{ date: string; title: string; body: string; href?: string }>;
+    items: NewsItem[];
+    relatedKicker: string;
+    relatedTitle: string;
+    relatedBody: string;
+    relatedItems: RelatedNewsItem[];
   };
   about: {
     kicker: string;
@@ -209,6 +226,7 @@ const fa: SiteContent = {
     { id: "equipment", label: "اجاره تجهیزات" },
     { id: "participants", label: "مشارکت کنندگان" },
     { id: "news", label: "اخبار" },
+    { id: "industry-news", label: "اخبار مرتبط" },
     { id: "gallery", label: "گالری" },
     { id: "contact", label: "تماس" },
   ],
@@ -385,6 +403,42 @@ const fa: SiteContent = {
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
       },
     ],
+    relatedKicker: "Industry Signals",
+    relatedTitle: "اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین",
+    relatedBody:
+      "این بخش برای خبرهای مکمل و تحلیل های مرتبط با حوزه فعالیت اَرَت طراحی شده است؛ محتوای فعلی از آرشیو رسمی سایت قبلی و رویدادهای صنعتی مرتبط نگهداری شده و با وضعیت منبع مشخص نمایش داده می شود.",
+    relatedItems: [
+      {
+        date: "۴ ژانویه ۲۰۲۴",
+        title: "پایان چهارمین نمایشگاه زنجیره تامین فولاد، مس، انرژی و تجهیزات وابسته",
+        body:
+          "گزارش رسمی از حضور فعالان زنجیره تامین در کرمان؛ برای نمایش ارتباط رویدادهای اَرَت با تامین، انرژی، فولاد و مس در بخش اخبار مرتبط.",
+        href: "https://arattaexpo.ir/%d9%be%d8%a7%db%8c%d8%a7%d9%86-%da%86%d9%87%d8%a7%d8%b1%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81/",
+        source: "arattaexpo.ir",
+        sector: "فولاد، مس و انرژی",
+        image: "/official-archive/steel-supply-news-2024.jpg",
+      },
+      {
+        date: "۷ ژانویه ۲۰۲۴",
+        title: "کارگاه آموزشی راهبردهای نوآورانه در بازاریابی و فروش",
+        body:
+          "موضوع مکمل برای مشارکت کنندگان و غرفه داران؛ تمرکز بر آماده سازی تجاری، فروش نمایشگاهی و ارتباط موثر با مخاطبان صنعتی.",
+        href: "https://arattaexpo.ir/%da%a9%d8%a7%d8%b1%da%af%d8%a7%d9%87-%d8%a2%d9%85%d9%88%d8%b2%d8%b4%db%8c-%d8%b1%d8%a7%d9%87-%d8%a8%d8%b1%d8%af%d9%87%d8%a7%db%8c-%d9%86%d9%88%d8%a2%d9%88%d8%b1%d8%a7%d9%86%d9%87-%d8%af%d8%b1-%d8%a8/",
+        source: "arattaexpo.ir",
+        sector: "بازاریابی نمایشگاهی",
+        image: "/gallery/archive-05.jpg",
+      },
+      {
+        date: "۲۲ سپتامبر ۲۰۲۰",
+        title: "گفتگو و محتوای ویدئویی از فضای نمایشگاهی",
+        body:
+          "آرشیو ویدئویی برای تکمیل روایت رسانه ای اَرَت و استفاده در صفحه اخبار مرتبط، بدون ادعای تازه بودن رویداد.",
+        href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+        source: "arattaexpo.ir",
+        sector: "رسانه و گزارش تصویری",
+        image: "/gallery/archive-06.jpg",
+      },
+    ],
   },
   about: {
     kicker: "About Aratta",
@@ -427,6 +481,7 @@ const en: SiteContent = {
     { id: "equipment", label: "Equipment" },
     { id: "participants", label: "Participants" },
     { id: "news", label: "News" },
+    { id: "industry-news", label: "Related News" },
     { id: "gallery", label: "Gallery" },
     { id: "contact", label: "Contact" },
   ],
@@ -601,6 +656,42 @@ const en: SiteContent = {
         title: "Video - exhibition visit and interview",
         body: "Official video-post link from the previous Aratta website.",
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+      },
+    ],
+    relatedKicker: "Industry Signals",
+    relatedTitle: "Related news for mining, steel, copper, and supply-chain markets",
+    relatedBody:
+      "This dedicated section is built for adjacent industry updates and context around Aratta's exhibition sectors. Current entries are preserved from official archive links and clearly labeled by source and sector.",
+    relatedItems: [
+      {
+        date: "January 4, 2024",
+        title: "4th steel, copper, energy, and equipment supply-chain exhibition concluded",
+        body:
+          "Official archive context connecting Aratta's program to supply-chain, energy, steel, and copper operators in Kerman.",
+        href: "https://arattaexpo.ir/%d9%be%d8%a7%db%8c%d8%a7%d9%86-%da%86%d9%87%d8%a7%d8%b1%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81/",
+        source: "arattaexpo.ir",
+        sector: "Steel, copper, and energy",
+        image: "/official-archive/steel-supply-news-2024.jpg",
+      },
+      {
+        date: "January 7, 2024",
+        title: "Training workshop on innovative marketing and sales strategies",
+        body:
+          "Useful adjacent content for exhibitors preparing sales teams, booth conversations, and professional trade-show follow-up.",
+        href: "https://arattaexpo.ir/%da%a9%d8%a7%d8%b1%da%af%d8%a7%d9%87-%d8%a2%d9%85%d9%88%d8%b2%d8%b4%db%8c-%d8%b1%d8%a7%d9%87-%d8%a8%d8%b1%d8%af%d9%87%d8%a7%db%8c-%d9%86%d9%88%d8%a2%d9%88%d8%b1%d8%a7%d9%86%d9%87-%d8%af%d8%b1-%d8%a8/",
+        source: "arattaexpo.ir",
+        sector: "Exhibition marketing",
+        image: "/gallery/archive-05.jpg",
+      },
+      {
+        date: "September 22, 2020",
+        title: "Exhibition interview and video media archive",
+        body:
+          "Media archive entry that supports Aratta's story without falsely presenting old coverage as current news.",
+        href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+        source: "arattaexpo.ir",
+        sector: "Media and photo reports",
+        image: "/gallery/archive-06.jpg",
       },
     ],
   },
