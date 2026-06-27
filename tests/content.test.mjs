@@ -15,6 +15,13 @@ const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", 
 const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
 const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
 const homeSections = await readFile(new URL("../src/components/HomeSections.tsx", import.meta.url), "utf8");
+const adminPanel = await readFile(new URL("../src/components/AdminPanel.tsx", import.meta.url), "utf8");
+const adminApi = await readFile(new URL("../src/app/api/admin/content/route.ts", import.meta.url), "utf8");
+const adminPage = await readFile(new URL("../src/app/admin/page.tsx", import.meta.url), "utf8");
+const robots = await readFile(new URL("../src/app/robots.ts", import.meta.url), "utf8");
+const sitemap = await readFile(new URL("../src/app/sitemap.ts", import.meta.url), "utf8");
+const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+const envExample = await readFile(new URL("../.env.example", import.meta.url), "utf8");
 const animatedTabs = await readFile(
   new URL("../src/components/AnimatedTabs.tsx", import.meta.url),
   "utf8",
@@ -40,6 +47,7 @@ test("bilingual navigation preserves all current public tabs", () => {
     "equipment",
     "participants",
     "news",
+    "industry-news",
     "gallery",
     "contact",
   ]) {
@@ -85,6 +93,9 @@ test("contact uses real Google Maps data", () => {
   assert.match(content, /8322%2BPQ5/);
   assert.match(content, /maps\.google\.com\/maps/);
   assert.match(content, /google\.com\/maps\/dir/);
+  assert.match(mapPanel, /min-h-\[560px\]/);
+  assert.match(mapPanel, /min-h-\[520px\]/);
+  assert.match(mapPanel, /transparent_72%/);
 });
 
 test("equipment rental route alias stays live", () => {
@@ -122,9 +133,17 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
   ]) {
     assert.match(boothScenes, new RegExp(file));
   }
-  assert.match(boothHero, /h-\[620svh\]/);
+  assert.match(boothHero, /h-\[1080svh\]/);
+  assert.match(boothHero, /md:h-\[620svh\]/);
   assert.match(boothHero, /md:hidden/);
   assert.match(boothHero, /mobileBoothStageFrames/);
+  assert.match(boothHero, /mobileCtas/);
+  assert.match(boothHero, /data-mobile-hero-card/);
+  assert.match(boothHero, /grid-cols-4/);
+  assert.match(boothHero, /text-\[clamp\(0\.92rem,4\.55vw,1\.08rem\)\]/);
+  assert.match(boothHero, /hero-copy-scrim absolute inset-0 hidden md:block/);
+  assert.match(boothHero, /filter: mobile \? "saturate\(1\.08\) contrast\(1\.08\) brightness\(1\.08\)"/);
+  assert.match(boothHero, /opacity 520ms ease-out/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
   assert.match(boothHero, /opacity/);
   assert.doesNotMatch(boothHero, /process-row-inner/);
@@ -134,6 +153,39 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
 
 test("landing page does not render the duplicate build-stage showcase", () => {
   assert.doesNotMatch(homeSections, /BuildStageShowcase/);
+});
+
+test("related industry news is a dedicated bilingual public section", () => {
+  assert.match(content, /relatedTitle/);
+  assert.match(content, /relatedItems/);
+  assert.match(content, /اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین/);
+  assert.match(content, /Related news for mining, steel, copper, and supply-chain markets/);
+  assert.match(routedPage, /"industry-news"/);
+  assert.match(routedPage, /RelatedNewsPage/);
+  assert.match(homeSections, /RelatedNewsSection/);
+  assert.match(homeSections, /href=\{`\/\$\{content\.lang\}\/industry-news`\}/);
+});
+
+test("admin panel exists but production writes require server configuration", () => {
+  assert.match(adminPage, /robots:\s*\{\s*index:\s*false/);
+  assert.match(adminPanel, /Save local draft/);
+  assert.match(adminPanel, /Raw selected-language JSON/);
+  assert.match(adminPanel, /Publish through backend/);
+  assert.match(adminPanel, /<main dir="ltr" lang="en"/);
+  assert.match(adminPanel, /type="password"/);
+  assert.match(adminApi, /ADMIN_WRITE_TOKEN/);
+  assert.match(adminApi, /ADMIN_CONTENT_WEBHOOK_URL/);
+  assert.match(adminApi, /ADMIN_BACKEND_NOT_CONFIGURED/);
+  assert.match(readme, /Admin Publish Backend/);
+  assert.match(envExample, /ADMIN_WRITE_TOKEN=/);
+  assert.match(envExample, /ADMIN_CONTENT_WEBHOOK_URL=/);
+  assert.doesNotMatch(adminPanel, /Production content updated successfully/);
+});
+
+test("robots and sitemap handle admin and public pages correctly", () => {
+  assert.match(robots, /disallow: \["\/admin", "\/api\/admin"\]/);
+  assert.match(sitemap, /"industry-news"/);
+  assert.match(sitemap, /siteUrl/);
 });
 
 test("about section is an animated capability experience", () => {
