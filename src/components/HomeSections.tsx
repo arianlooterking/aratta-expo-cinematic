@@ -1,20 +1,26 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowUpRight,
+  BookOpenText,
   CalendarClock,
   Download,
   FileDown,
   Mail,
   MapPin,
+  Newspaper,
   Phone,
   ShieldCheck,
 } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
 import { AboutExperience } from "@/components/AboutExperience";
 import { AnimatedTabs } from "@/components/AnimatedTabs";
+import { BlogCards } from "@/components/BlogCards";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
 import { InquiryForm } from "@/components/InquiryForm";
+import { ArchiveOverview, ExhibitionNotice } from "@/components/ArchiveSections";
+import { SiteFooter } from "@/components/SiteFooter";
 
 type HomeSectionsProps = {
   content: SiteContent;
@@ -23,15 +29,18 @@ type HomeSectionsProps = {
 export function HomeSections({ content }: HomeSectionsProps) {
   return (
     <>
+      <section className="section-shell py-10"><ExhibitionNotice lang={content.lang}/></section>
       <AboutExperience content={content} />
       <ExhibitionsSection content={content} />
       <AnimatedTabs content={content} />
       <RegistrationSection content={content} />
       <EquipmentParticipantsSection content={content} />
       <NewsSection content={content} />
+      <RelatedNewsSection content={content} />
+      <BlogSection content={content} />
       <GallerySection content={content} />
       <ContactSection content={content} />
-      <Footer content={content} />
+      <SiteFooter content={content} />
     </>
   );
 }
@@ -63,12 +72,13 @@ function ExhibitionsSection({ content }: HomeSectionsProps) {
                   src={event.image}
                   alt={event.title}
                   fill
+                  unoptimized
                   sizes="(min-width: 1024px) 33vw, 100vw"
                   className="object-cover transition duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/22 to-transparent" />
-                <span className="absolute start-4 top-4 rounded-full border border-amber-200/25 bg-black/38 px-3 py-1 text-xs font-bold text-[var(--gold)] backdrop-blur-xl">
-                  Archived
+                <span className="absolute start-4 top-4 max-w-[calc(100%-2rem)] rounded-full border border-amber-200/25 bg-black/58 px-3 py-1 text-xs font-bold text-[var(--gold)] backdrop-blur-xl">
+                  {content.lang === "fa" ? "آرشیو رویداد" : "Event archive"}
                 </span>
               </div>
               <div className="p-6">
@@ -78,10 +88,10 @@ function ExhibitionsSection({ content }: HomeSectionsProps) {
                   <span className="text-white/38">/</span>
                   <span>{event.location}</span>
                 </div>
-                <h3 className="mt-4 min-h-24 text-xl font-black leading-8 text-white">
+                <h3 className="mt-4 text-xl font-black leading-8 text-white lg:min-h-24">
                   {event.title}
                 </h3>
-                <p className="mt-3 min-h-24 text-sm leading-7 text-white/62">{event.summary}</p>
+                <p className="mt-3 text-sm leading-7 text-white/62 lg:min-h-24">{event.summary}</p>
                 <a
                   href={event.href}
                   target="_blank"
@@ -170,8 +180,8 @@ function EquipmentParticipantsSection({ content }: HomeSectionsProps) {
               <h2 className="card-display-title mt-5 font-black text-white">{item.label}</h2>
               <p className="site-copy mt-4 text-white/62">
                 {content.lang === "fa"
-                  ? "مسیر مستقیم به فایل رسمی، بدون لینک مرده و بدون وعده ثبت خودکار."
-                  : "Direct path to the official file, with no dead link and no automated-registration claim."}
+                  ? "اسناد دوره‌های گذشته را دریافت کنید و برای نیازهای نمایشگاه بعدی با دفتر اَرَت هماهنگ شوید."
+                  : "Download past-edition documents and contact the Aratta office to discuss your next exhibition."}
               </p>
               <span className="mt-8 inline-flex items-center gap-2 font-bold text-[var(--gold)]">
                 <Download size={18} />
@@ -189,6 +199,7 @@ function NewsSection({ content }: HomeSectionsProps) {
   return (
     <section id="news" className="py-24">
       <div className="section-shell">
+        <div className="mb-10"><ArchiveOverview lang={content.lang}/></div>
         <div className="section-kicker">{content.news.kicker}</div>
         <h2 className="section-display-title mt-4 font-black text-white">{content.news.title}</h2>
         <div className="mt-10 grid gap-4">
@@ -217,6 +228,108 @@ function NewsSection({ content }: HomeSectionsProps) {
               </div>
             </article>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RelatedNewsSection({ content }: HomeSectionsProps) {
+  const featuredItems = content.news.relatedItems.slice(0, 3);
+  return (
+    <section id="industry-news" className="py-20">
+      <div className="section-shell">
+        <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+          <div>
+            <div className="section-kicker">{content.news.relatedKicker}</div>
+            <h2 className="section-display-title mt-4 font-black text-white">
+              {content.news.relatedTitle}
+            </h2>
+          </div>
+          <div className="industrial-card rounded-[1.6rem] p-5">
+            <div className="flex items-start gap-3">
+              <Newspaper className="mt-1 shrink-0 text-[var(--gold)]" size={22} />
+              <p className="site-copy text-white/66">{content.news.relatedBody}</p>
+            </div>
+            <Link
+              href={`/${content.lang}/industry-news`}
+              className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white transition hover:border-cyan-200/42 hover:bg-cyan-200/12"
+            >
+              <ArrowUpRight size={17} />
+              {content.lang === "fa" ? "مشاهده اخبار مرتبط" : "View related news"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {featuredItems.map((item) => (
+            <Link
+              key={item.title}
+              href={`/${content.lang}/industry-news`}
+              className="industrial-card group overflow-hidden rounded-[1.8rem] transition hover:-translate-y-1 hover:border-cyan-200/34"
+            >
+              <div className="relative aspect-[16/10]">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  unoptimized
+                  sizes="(min-width: 768px) 33vw, 100vw"
+                  className="object-cover transition duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
+                <span className="absolute start-4 top-4 rounded-full border border-white/12 bg-black/42 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-xl">
+                  {item.sector}
+                </span>
+              </div>
+              <div className="p-5">
+                <time className="font-latin text-xs font-black uppercase tracking-[0.2em] text-[var(--gold)]">
+                  {item.date}
+                </time>
+                <h3 className="mt-3 text-xl font-black leading-8 text-white">{item.title}</h3>
+                <p className="mt-3 line-clamp-2 text-sm leading-7 text-white/60">{item.body}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlogSection({ content }: HomeSectionsProps) {
+  const posts = content.blog.posts.filter((post) => post.status === "published");
+  const featuredPosts = [...posts].sort(
+    (left, right) => Number(right.featured) - Number(left.featured),
+  );
+
+  return (
+    <section id="blog" className="py-24">
+      <div className="section-shell">
+        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div>
+            <div className="section-kicker">{content.blog.kicker}</div>
+            <h2 className="section-display-title mt-4 font-black text-white">
+              {content.blog.title}
+            </h2>
+          </div>
+          <div className="industrial-card rounded-[1.6rem] p-5">
+            <div className="flex items-start gap-3">
+              <BookOpenText className="mt-1 shrink-0 text-[var(--gold)]" size={22} />
+              <p className="site-copy text-white/66">{content.blog.body}</p>
+            </div>
+            <Link
+              href={`/${content.lang}/blog`}
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white transition hover:border-cyan-200/42 hover:bg-cyan-200/12"
+            >
+              <ArrowUpRight size={17} />
+              {content.blog.allPostsLabel}
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-9">
+          <BlogCards content={content} posts={featuredPosts} limit={3} />
         </div>
       </div>
     </section>
@@ -287,16 +400,5 @@ function ContactRow({
         <div className="mt-1 leading-8 text-white/72">{children}</div>
       </div>
     </div>
-  );
-}
-
-function Footer({ content }: HomeSectionsProps) {
-  return (
-    <footer className="border-t border-white/10 py-10">
-      <div className="section-shell flex flex-col gap-4 text-sm text-white/52 md:flex-row md:items-center md:justify-between">
-        <p>{content.footer.copyright}</p>
-        <p className="font-latin">{content.footer.credit}</p>
-      </div>
-    </footer>
   );
 }

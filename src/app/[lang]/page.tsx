@@ -85,13 +85,6 @@ export default async function LangPage({ params }: PageProps) {
       addressLocality: lang === "fa" ? "کرمان" : "Kerman",
       streetAddress: content.contact.address,
     },
-    event: content.exhibitions.items.map((event) => ({
-      "@type": "Event",
-      name: event.title,
-      eventStatus: "https://schema.org/EventCompleted",
-      location: event.location,
-      description: event.summary,
-    })),
   };
 
   return (
@@ -102,7 +95,7 @@ export default async function LangPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <SiteChrome content={content} />
-      <main dir={content.dir} lang={content.lang}>
+      <main id="main-content" dir={content.dir} lang={content.lang}>
         <BoothBuildHero content={content} />
         <HomeSections content={content} />
       </main>

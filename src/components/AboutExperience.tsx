@@ -106,6 +106,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
                   src={activeMobileFrame.src}
                   alt=""
                   fill
+                  unoptimized
                   sizes="100vw"
                   className="object-cover"
                 />
@@ -191,6 +192,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
               src={boothStageFrames[5].src}
               alt=""
               fill
+              unoptimized
               sizes="(min-width: 1024px) 58vw, 100vw"
               className="hidden object-cover md:block"
             />
@@ -198,6 +200,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
               src={mobileBoothStageFrames[5].src}
               alt=""
               fill
+              unoptimized
               sizes="100vw"
               className="object-cover md:hidden"
             />

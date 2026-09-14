@@ -35,6 +35,9 @@ import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
 import { InquiryForm } from "@/components/InquiryForm";
 import { SiteChrome } from "@/components/SiteChrome";
+import { SiteFooter } from "@/components/SiteFooter";
+import { ArchiveOverview, ArchiveDownloads, ArchiveGalleryLinks, ExhibitionNotice } from "@/components/ArchiveSections";
+import { localizeSourceLink } from "@/lib/legacy-archive";
 import { getContent } from "@/data/aratta-content";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { getBoothFrameForPage } from "@/lib/booth-scenes";
@@ -49,6 +52,7 @@ const canonicalPageSlugs = [
   "equipment",
   "participants",
   "news",
+  "industry-news",
   "gallery",
   "contact",
   "search",
@@ -126,7 +130,7 @@ export default async function RoutedPage({ params }: PageProps) {
   return (
     <>
       <SiteChrome content={content} />
-      <main dir={content.dir} lang={content.lang} className="min-h-screen pt-32">
+      <main id="main-content" dir={content.dir} lang={content.lang} className="min-h-screen pt-32">
         <section className="section-shell pb-24">
           <PageHeader
             eyebrow={lang === "fa" ? "صفحه رسمی" : "Official page"}
@@ -134,9 +138,14 @@ export default async function RoutedPage({ params }: PageProps) {
             body={pageIntro(content, page)}
             page={page}
           />
+          {['exhibitions','registration','news'].includes(page)&&<div className="mt-8"><ExhibitionNotice lang={lang}/></div>}
           <div className="mt-10">{renderPage(content, page)}</div>
+          {page==='gallery'&&<div className="mt-12"><ArchiveGalleryLinks lang={lang}/></div>}
+          {['forms','participants'].includes(page)&&<ArchiveDownloads lang={lang}/>}
+          {['exhibitions','gallery','news'].includes(page)&&<div className="mt-12"><ArchiveOverview lang={lang} kind={page==='exhibitions'?'exhibition':undefined}/></div>}
         </section>
       </main>
+      <SiteFooter content={content}/>
     </>
   );
 }
@@ -170,6 +179,7 @@ function pageIntro(content: ReturnType<typeof getContent>, page: PageSlug) {
       ? "فهرست مشارکت کنندگان منتشرشده برای رویدادهای رسمی اَرَت."
       : "Published participant lists for official Aratta events.",
     news: content.news.title,
+    "industry-news": content.news.relatedBody,
     gallery: content.gallery.title,
     contact: content.contact.title,
     search: fa
@@ -196,6 +206,7 @@ function PageHeader({
         src={getBoothFrameForPage(page)}
         alt=""
         fill
+        unoptimized
         sizes="(min-width: 1024px) 1180px, 100vw"
         className="absolute inset-0 -z-10 object-cover object-center"
         priority={page === "forms"}
@@ -208,7 +219,7 @@ function PageHeader({
           <div className="section-kicker">{eyebrow}</div>
           <h1 className="page-display-title mt-4 font-black text-white">{title}</h1>
           <p className="font-latin mt-5 inline-flex rounded-full border border-cyan-200/22 bg-black/28 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-[var(--cyan)] backdrop-blur-xl">
-            Aratta Expo / cinematic frame
+            Aratta Expo / Industrial Events
           </p>
         </div>
         <p className="glass site-copy rounded-[1.6rem] p-6 text-base font-semibold text-white/76 sm:text-lg">
@@ -235,6 +246,8 @@ function renderPage(content: ReturnType<typeof getContent>, page: PageSlug) {
       return <DownloadsPage content={content} mode="participants" />;
     case "news":
       return <NewsPage content={content} />;
+    case "industry-news":
+      return <RelatedNewsPage content={content} />;
     case "gallery":
       return <GalleryPage content={content} />;
     case "contact":
@@ -260,7 +273,7 @@ function getPageData(content: Content) {
           [
             "صفحه رسمی، KIMEX 2025 را برای ۱۲ تا ۱۵ مرداد ۱۴۰۴ در کرمان معرفی می کند.",
             "در همان صفحه، اطلاعیه تعلیق موقت نمایشگاه ها از طرف سازمان توسعه تجارت ایران درج شده است.",
-            "مسیر رسمی دریافت فرم PDF نمایشگاه حفظ شده و وضعیت در این نسخه به صورت آرشیو/اطلاعیه نمایش داده می شود.",
+            "فرم رسمی PDF همچنان در دسترس است و رویداد با توجه به تاریخ و اطلاعیه منتشرشده در بخش آرشیو نمایش داده می شود.",
           ],
           [
             "رویداد زنجیره تامین فولاد و مس در سایت اَرَت به عنوان مسیر ثبت نام و اطلاع رسانی منتشر شده است.",
@@ -270,19 +283,19 @@ function getPageData(content: Content) {
           [
             "صفحه رسمی سیرجان، پارک گهر را به عنوان محل برگزاری معرفی می کند.",
             "حامیان اجرایی و صنعتی شامل مجموعه های مرتبط با گل گهر، صنایع معدنی و فولادی منطقه ذکر شده اند.",
-            "شماره های پیگیری منتشرشده در سایت قدیمی شامل ۰۹۱۳۰۶۲۵۹۸۳، ۰۹۰۵۴۰۵۳۳۹۱، ۰۳۴۹۱۰۱۵۹۱۰ و ۰۲۱۹۱۳۰۵۹۱۰ است.",
+            "شماره های پیگیری منتشرشده برای این رویداد شامل ۰۹۱۳۰۶۲۵۹۸۳، ۰۹۰۵۴۰۵۳۳۹۱، ۰۳۴۹۱۰۱۵۹۱۰ و ۰۲۱۹۱۳۰۵۹۱۰ است.",
           ],
         ]
       : [
           [
             "The official page presents KIMEX 2025 for August 3-6, 2025 in Kerman.",
             "The same page includes a temporary exhibition-suspension notice from Iran's Trade Promotion Organization.",
-            "The official PDF participation form remains available, while this redesign marks the event as archived/notice-based.",
+            "The official PDF participation form remains available, and the event is presented in the archive with its published notice and dates.",
           ],
           [
             "The steel and copper supply-chain event is published by Aratta as an information and registration path.",
             "Its scope covers steel, copper, energy, ferrous and non-ferrous metals, and related equipment.",
-            "Because the published date has passed, this redesign presents it as archive content.",
+            "Because the published date has passed, the event is presented as archive content.",
           ],
           [
             "The official Sirjan page names Gohar Park as the venue.",
@@ -312,7 +325,7 @@ function getPageData(content: Content) {
     return {
       event,
       image: images[index] ?? event.image,
-      sourceHref: index === 2 ? eventSourceLinks.sirjan : event.href,
+      sourceHref: localizeSourceLink(index === 2 ? eventSourceLinks.sirjan : event.href,content.lang),
       downloadHref: index === 0 ? content.registration.downloads[0]?.href : undefined,
       officialStatus: fa ? "آرشیو رسمی" : "Official archive",
       details: details[index] ?? [event.summary],
@@ -361,12 +374,12 @@ function getPageData(content: Content) {
     ? [
         { title: "مشاهده لیست", body: "لیست رسمی تجهیزات نمایشگاه به صورت JPG حفظ شده و قابل دانلود است." },
         { title: "تطبیق نیاز غرفه", body: "نوع غرفه، متراژ، برق، مبلمان، تجهیزات صوتی و ملزومات اجرایی بررسی می شود." },
-        { title: "هماهنگی اجرایی", body: "هماهنگی نهایی از طریق تماس یا پیش نویس ایمیل انجام می شود؛ خرید آنلاین جعلی وجود ندارد." },
+        { title: "هماهنگی اجرایی", body: "تیم اَرَت جزئیات تجهیزات، زمان تحویل، هزینه و هماهنگی نهایی را از طریق تماس یا ایمیل پیگیری می کند." },
       ]
     : [
         { title: "Review the list", body: "The official exhibition equipment list is preserved as a downloadable JPG." },
         { title: "Match booth needs", body: "Booth size, power, furniture, AV, and operational requirements are clarified." },
-        { title: "Coordinate execution", body: "Final coordination happens by phone or email draft; no fake online checkout is claimed." },
+        { title: "Coordinate execution", body: "The Aratta team confirms equipment, delivery timing, pricing, and final arrangements by phone or email." },
       ];
 
   const galleryGroups = fa
@@ -431,6 +444,7 @@ function getPageData(content: Content) {
     equipmentFlow,
     galleryGroups,
     newsArchive,
+    relatedNews: content.news.relatedItems,
   };
 }
 
@@ -463,14 +477,14 @@ function AboutPage({ content }: { content: Content }) {
         </div>
 
         <div className="relative min-h-[430px] overflow-hidden rounded-[2rem] border border-white/14">
-          <Image src="/concepts/aratta-hero-concept.png" alt="" fill sizes="40vw" className="object-cover" />
+          <Image src="/concepts/aratta-hero-concept.png" alt="" fill unoptimized sizes="40vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/86 via-black/24 to-transparent" />
           <div className="absolute inset-x-6 bottom-6">
             <p className="font-latin text-xs font-black uppercase tracking-[0.25em] text-[var(--cyan)]">
-              2026+ redesign standard
+              Aratta Expo / Company Profile
             </p>
             <h3 className="card-display-title mt-3 font-black text-white">
-              {fa ? "طراحی دوباره با حفظ واقعیت منبع" : "Redesigned without losing source truth"}
+              {fa ? "تخصص صنعتی، ارتباطات تجاری، اجرای حرفه ای" : "Industry expertise. Business connections. Professional delivery."}
             </h3>
           </div>
         </div>
@@ -530,7 +544,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
       <section className="glass overflow-hidden rounded-[2rem]">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative min-h-[440px]">
-            <Image src={data.deepEvents[0].image} alt={data.deepEvents[0].event.title} fill sizes="50vw" className="object-cover" priority />
+            <Image src={data.deepEvents[0].image} alt={data.deepEvents[0].event.title} fill unoptimized sizes="50vw" className="object-cover" priority />
             <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/18 to-transparent" />
             <div className="absolute bottom-6 start-6 end-6">
               <span className="rounded-full border border-amber-200/32 bg-black/42 px-3 py-1 text-xs font-black text-[var(--gold)] backdrop-blur-xl">
@@ -543,7 +557,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
           </div>
           <div className="p-7">
             <div className="font-latin text-xs font-black uppercase tracking-[0.24em] text-[var(--cyan)]">
-              {fa ? "داده رسمی، طراحی بهتر" : "Official data, better structure"}
+              {fa ? "آرشیو نمایشگاه معدن کرمان" : "Kerman mining exhibition archive"}
             </div>
             <h2 className="card-display-title mt-4 font-black text-white">
               {data.deepEvents[0].event.title}
@@ -577,7 +591,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
         {data.deepEvents.map((item) => (
           <article key={item.event.title} className="industrial-card overflow-hidden rounded-[2rem]">
             <div className="relative aspect-[4/3]">
-              <Image src={item.image} alt={item.event.title} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
+              <Image src={item.image} alt={item.event.title} fill unoptimized sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/82 to-transparent" />
               <span className="absolute start-4 top-4 rounded-full border border-amber-200/25 bg-black/40 px-3 py-1 text-xs font-bold text-[var(--gold)] backdrop-blur-xl">
                 {item.officialStatus}
@@ -599,7 +613,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
               </div>
               <details className="mt-5 rounded-2xl border border-white/10 bg-black/22 p-4">
                 <summary className="cursor-pointer font-bold text-[var(--gold)]">
-                  {fa ? "خلاصه داده اصلی سایت قبل" : "Previous-site source snapshot"}
+                  {fa ? "جزئیات رویداد و اطلاعیه‌ها" : "Event details and notices"}
                 </summary>
                 <ul className="mt-4 grid gap-3 text-sm leading-7 text-white/64">
                   {item.details.map((detail) => (
@@ -676,8 +690,8 @@ function RegistrationPage({ content }: { content: Content }) {
           <p className="mt-3 flex items-start gap-2 leading-8 text-white/60">
             <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={18} />
             {fa
-              ? "اطلاعات در مرورگر پردازش می شود و فقط پیش نویس ایمیل ساخته می شود؛ ثبت نهایی جعلی انجام نمی شود."
-              : "Data is handled in the browser and only an email draft is created; no fake final registration is claimed."}
+              ? "اطلاعات شما فقط برای آماده سازی پیش نویس ایمیل استفاده می شود؛ پیش از ارسال، امکان بررسی و ویرایش کامل دارید."
+              : "Your details are used only to prepare an email draft, which you can fully review and edit before sending."}
           </p>
           <div className="mt-6">
             <InquiryForm content={content} />
@@ -742,7 +756,7 @@ function DownloadsPage({
               <span className="grid h-16 w-16 place-items-center rounded-2xl border border-cyan-200/28 bg-cyan-200/9 text-[var(--cyan)] shadow-[0_0_30px_rgba(125,220,232,0.12)]">
                 <ModeIcon size={29} />
               </span>
-              <div className="section-kicker mt-6">{fa ? "دانلود واقعی" : "Real downloads"}</div>
+              <div className="section-kicker mt-6">{fa ? "مدارک رسمی" : "Official documents"}</div>
               <h2 className="card-display-title mt-4 font-black text-white">{modeCopy.title}</h2>
               <p className="site-copy mt-4 text-base text-white/64">{modeCopy.body}</p>
             </div>
@@ -775,7 +789,7 @@ function DownloadsPage({
       {mode === "equipment" ? (
         <section className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
           <div className="relative min-h-[520px] overflow-hidden rounded-[2rem] border border-white/14 bg-white">
-            <Image src="/official-archive/equipment-list.jpg" alt={fa ? "لیست تجهیزات نمایشگاه" : "Exhibition equipment list"} fill sizes="45vw" className="object-contain p-3" />
+            <Image src="/official-archive/equipment-list.jpg" alt={fa ? "لیست تجهیزات نمایشگاه" : "Exhibition equipment list"} fill unoptimized sizes="45vw" className="object-contain p-3" />
           </div>
           <div className="grid gap-4">
             {data.equipmentFlow.map((step, index) => (
@@ -803,8 +817,8 @@ function DownloadsPage({
               </h2>
               <p className="site-copy mt-4 text-white/62">
                 {fa
-                  ? "این فهرست به صورت فایل PDF از سایت قبلی حفظ شده است. چون تاریخ رویداد گذشته، وضعیت آن آرشیوی است."
-                  : "This list is preserved as a PDF from the previous site. Because the event date has passed, its status is archival."}
+                  ? "فهرست منتشرشده مشارکت‌کنندگان این دوره به صورت PDF در دسترس است. این مدرک آرشیوی است و نشان‌دهنده ثبت‌نام یا تخصیص غرفه در دوره جدید نیست."
+                  : "The published participant list for this edition is available as a PDF. This is an archive document, not confirmation of registration or booth allocation for a new event."}
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -883,7 +897,7 @@ function NewsPage({ content }: { content: Content }) {
     <div className="space-y-7">
       <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
         <article className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-white/14">
-          <Image src={data.newsArchive[0].image} alt={data.newsArchive[0].title} fill sizes="60vw" className="object-cover" />
+          <Image src={data.newsArchive[0].image} alt={data.newsArchive[0].title} fill unoptimized sizes="60vw" className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
           <div className="absolute inset-x-7 bottom-7">
             <span className="rounded-full border border-cyan-200/24 bg-black/38 px-3 py-1 text-xs font-black text-[var(--cyan)]">
@@ -902,8 +916,8 @@ function NewsPage({ content }: { content: Content }) {
           </h2>
           <p className="site-copy mt-4 text-white/62">
             {fa
-              ? "خبرهای سایت قبلی با تصویر، تاریخ، دسته و لینک منبع نگهداری شده اند؛ تاریخ های گذشته به عنوان خبر آرشیوی نمایش داده می شوند."
-              : "Previous-site updates are kept with image, date, category, and source link; past dates are presented as archived news."}
+              ? "خبرها و گزارش های رویداد با تصویر، تاریخ، حوزه و لینک منبع ارائه می شوند؛ مطالب قدیمی به روشنی با وضعیت آرشیوی مشخص شده اند."
+              : "Event news and reports include an image, date, sector, and source link; older coverage is clearly presented as archive content."}
           </p>
         </div>
       </section>
@@ -912,7 +926,7 @@ function NewsPage({ content }: { content: Content }) {
         {data.newsArchive.map((item) => (
           <article key={item.title} className="industrial-card overflow-hidden rounded-[1.8rem]">
             <div className="relative aspect-[16/9]">
-              <Image src={item.image} alt={item.title} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+              <Image src={item.image} alt={item.title} fill unoptimized sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/82 to-transparent" />
               <span className="absolute start-4 top-4 rounded-full border border-white/12 bg-black/38 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-xl">
                 {item.category}
@@ -938,6 +952,97 @@ function NewsPage({ content }: { content: Content }) {
   );
 }
 
+function RelatedNewsPage({ content }: { content: Content }) {
+  const data = getPageData(content);
+  const fa = content.lang === "fa";
+  const lead = data.relatedNews[0];
+
+  return (
+    <div className="space-y-7">
+      <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="industrial-card rounded-[2rem] p-7">
+          <div className="section-kicker">{content.news.relatedKicker}</div>
+          <h2 className="card-display-title mt-4 font-black text-white">{content.news.relatedTitle}</h2>
+          <p className="site-copy mt-5 text-white/64">{content.news.relatedBody}</p>
+          <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            {(fa
+              ? ["منبع مشخص", "آرشیو صادقانه", "قابل توسعه"]
+              : ["Sourced", "Archive-safe", "Expandable"]
+            ).map((item) => (
+              <div key={item} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-center text-sm font-black text-white/78">
+                <ShieldCheck className="mx-auto mb-2 text-[var(--cyan)]" size={20} />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <article className="relative min-h-[440px] overflow-hidden rounded-[2rem] border border-white/14">
+          <Image src={lead.image} alt={lead.title} fill unoptimized sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/38 to-black/8" />
+          <div className="absolute inset-x-6 bottom-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-cyan-200/24 bg-black/40 px-3 py-1 text-xs font-black text-[var(--cyan)] backdrop-blur-xl">
+                {lead.sector}
+              </span>
+              <span className="font-latin rounded-full border border-amber-200/24 bg-amber-200/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-[var(--gold)]">
+                {lead.source}
+              </span>
+            </div>
+            <h2 className="card-display-title mt-4 max-w-3xl font-black text-white">{lead.title}</h2>
+            <p className="site-copy mt-4 max-w-2xl text-white/70">{lead.body}</p>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-5 md:grid-cols-3">
+        {data.relatedNews.map((item) => (
+          <article key={item.title} className="industrial-card group overflow-hidden rounded-[1.8rem]">
+            <div className="relative aspect-[4/3]">
+              <Image src={item.image} alt={item.title} fill unoptimized sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/12 to-transparent" />
+              <span className="absolute start-4 top-4 rounded-full border border-white/12 bg-black/44 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-xl">
+                {item.sector}
+              </span>
+            </div>
+            <div className="p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <time className="font-latin text-xs font-bold uppercase tracking-[0.2em] text-[var(--gold)]">
+                  {item.date}
+                </time>
+                <span className="font-latin text-xs font-bold text-white/36">/</span>
+                <span className="font-latin text-xs font-bold text-white/46">{item.source}</span>
+              </div>
+              <h2 className="mt-4 text-2xl font-black leading-tight text-white">{item.title}</h2>
+              <p className="site-copy mt-3 text-white/64">{item.body}</p>
+              {item.href ? (
+                <a href={item.href} target="_blank" rel="noreferrer" className="mt-5 inline-flex items-center gap-2 font-bold text-[var(--gold)]">
+                  <ArrowUpRight size={18} />
+                  {fa ? "مشاهده منبع" : "Open source"}
+                </a>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section className="glass rounded-[2rem] p-6 sm:p-7">
+        <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div>
+            <div className="section-kicker">{fa ? "آرشیو رسمی" : "Official archive"}</div>
+            <h2 className="card-display-title mt-4 font-black text-white">
+              {fa ? "گزارش‌ها و اطلاعیه‌های اَرَت" : "Reports and announcements from Aratta"}
+            </h2>
+          </div>
+          <Link href={`/${content.lang}/archive`} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 px-6 py-3 text-[var(--gold)] hover:bg-white/10">
+            {fa ? "جستجو در همه خبرها، تصاویر و نمایشگاه‌ها" : "Search all news, photographs and exhibitions"}
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function GalleryPage({ content }: { content: Content }) {
   const data = getPageData(content);
   const fa = content.lang === "fa";
@@ -948,12 +1053,12 @@ function GalleryPage({ content }: { content: Content }) {
         <div className="industrial-card rounded-[2rem] p-7">
           <BookOpen className="text-[var(--gold)]" size={30} />
           <h2 className="card-display-title mt-5 font-black text-white">
-            {fa ? "آرشیو تصویری سایت قبلی، بازسازی شده" : "Previous-site image archive, rebuilt"}
+            {fa ? "آرشیو تصویری رویدادهای اَرَت" : "Aratta event photo archive"}
           </h2>
           <p className="site-copy mt-4 text-white/62">
             {fa
-              ? "تصاویر رسمی قدیمی از Caprrex و Simex در کنار گالری فعلی قرار گرفته اند تا صفحه گالری فقط یک شبکه عکس ساده نباشد."
-              : "Older official Caprrex and Simex media now sits beside the current gallery so the page is more than a simple image grid."}
+              ? "گزارش‌های تصویری رویدادهای اَرَت؛ از غرفه‌ها و نشست‌های تخصصی تا دیدارهای تجاری. هر تصویر را برای مشاهده کامل باز کنید."
+              : "Aratta event photographs, from exhibition booths and specialist sessions to business meetings. Open any photograph to view it in full."}
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -982,7 +1087,7 @@ function GalleryPage({ content }: { content: Content }) {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {group.images.map((src, index) => (
                 <div key={src} className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-white/12 bg-black/30">
-                  <Image src={src} alt={`${group.title} ${index + 1}`} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition duration-700 group-hover:scale-105" />
+                  <Image src={src} alt={`${group.title} ${index + 1}`} fill unoptimized sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/48 to-transparent opacity-0 transition group-hover:opacity-100" />
                 </div>
               ))}
@@ -1048,8 +1153,8 @@ function ContactPage({ content }: { content: Content }) {
           </h2>
           <p className="site-copy mt-4 text-white/62">
             {fa
-              ? "برای امنیت و صداقت، فرم یک پیش نویس ایمیل می سازد و چیزی را به صورت مخفی یا جعلی ارسال نمی کند."
-              : "For safety and honesty, the form creates an email draft and does not silently submit or fake a backend action."}
+              ? "فرم، پیش نویس ایمیل را برای بررسی شما آماده می کند؛ ارسال نهایی فقط پس از تایید خودتان انجام می شود."
+              : "The form prepares an email draft for your review; nothing is sent until you approve and send it yourself."}
           </p>
         </div>
         <div className="glass rounded-[2rem] p-7">
@@ -1067,10 +1172,8 @@ function SearchPage({ content }: { content: Content }) {
   return (
     <div className="space-y-7">
       <section className="industrial-card rounded-[2rem] p-6">
-        <div className="flex items-center gap-3 rounded-full border border-white/12 bg-black/28 px-5 py-4 text-white/62">
-          <Search size={20} />
-          <span>{fa ? "مسیرهای قابل جستجو" : "Searchable site paths"}</span>
-        </div>
+        <form action={`/${content.lang}/archive`} role="search" className="flex flex-col gap-3 sm:flex-row"><label className="grid min-w-0 flex-1 gap-2"><span className="text-sm text-white/75">{fa?'جستجو در خبرها و نمایشگاه‌ها':'Search news and exhibitions'}</span><input name="q" className="min-h-12 rounded-2xl border border-white/20 bg-black/30 px-5 text-white" placeholder={fa?'نام شرکت، رویداد یا موضوع…':'Company, event or topic…'}/></label><button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 self-end rounded-2xl bg-[var(--gold)] px-6 text-black"><Search size={20}/>{fa?'جستجو':'Search'}</button></form>
+        <h2 className="mt-8 font-bold">{fa?'دسترسی سریع به بخش‌های سایت':'Quick access to site sections'}</h2>
         <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {links.map((item) => (
             <Link key={item.id} href={`/${content.lang}/${item.id}`} className="rounded-2xl border border-white/10 bg-white/[0.035] p-5 font-bold text-white transition hover:bg-white/[0.075]">

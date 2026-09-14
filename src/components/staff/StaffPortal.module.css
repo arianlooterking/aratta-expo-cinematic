@@ -1,0 +1,328 @@
+.portal {
+  --portal-ink: #10211d;
+  --portal-muted: #65726d;
+  --portal-line: rgba(18, 49, 42, 0.13);
+  --portal-surface: rgba(255, 255, 252, 0.9);
+  --portal-canvas: #eef1eb;
+  --portal-sidebar: #071713;
+  --portal-sidebar-soft: #0d2821;
+  --portal-gold: #b78936;
+  --portal-cyan: #198ba0;
+  min-height: 100svh;
+  overflow-x: clip;
+  color: var(--portal-ink);
+  background:
+    radial-gradient(circle at 86% 4%, rgba(183, 137, 54, 0.12), transparent 28rem),
+    #f1efe8;
+}
+
+.portal[data-theme="dark"] {
+  --portal-line: rgba(184, 221, 209, 0.16);
+  color-scheme: dark;
+  background:
+    radial-gradient(circle at 84% 2%, rgba(183, 137, 54, 0.22), transparent 30rem),
+    radial-gradient(circle at 12% 82%, rgba(25, 139, 160, 0.14), transparent 34rem),
+    #07110f;
+}
+
+.portal[data-theme="dark"] .workspace {
+  background: linear-gradient(180deg, rgba(5, 18, 15, 0.46), rgba(7, 17, 15, 0.82));
+}
+
+/* Floating view introductions sit on the dark workspace, not a light card. */
+.portal[data-theme="dark"] [data-portal-intro] :is(h1, h2) {
+  color: #e8f4ed;
+}
+
+.portal[data-theme="dark"] [data-portal-intro] p {
+  color: #b5c9bf;
+}
+
+.portal[data-theme="dark"] [data-portal-intro] p:first-child {
+  color: #e3bd77;
+}
+
+.portal[data-theme="dark"] .surface {
+  border-color: rgba(184, 221, 209, 0.16);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 22px 54px rgba(0, 0, 0, 0.22);
+}
+
+.shell {
+  display: grid;
+  min-height: 100svh;
+  grid-template-columns: 17.5rem minmax(0, 1fr);
+  transition: grid-template-columns 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shellCollapsed {
+  grid-template-columns: 5.25rem minmax(0, 1fr);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  height: 100svh;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  color: rgba(255, 255, 255, 0.88);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(183, 137, 54, 0.16), transparent 18rem),
+    linear-gradient(180deg, #061511, #081d18 58%, #05120f);
+  border-inline-end: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 18px 0 58px rgba(6, 21, 17, 0.12);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  overflow-x: hidden;
+}
+
+.workspace {
+  min-width: 0;
+  padding: 1.15rem clamp(1rem, 2vw, 2rem) 2rem;
+}
+
+.surface {
+  border: 1px solid var(--portal-line);
+  background: var(--portal-surface);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 46px rgba(19, 40, 35, 0.06);
+  backdrop-filter: blur(16px) saturate(115%);
+}
+
+.blueprint {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(22, 70, 59, 0.038) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 70, 59, 0.038) 1px, transparent 1px),
+    linear-gradient(rgba(22, 70, 59, 0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 70, 59, 0.065) 1px, transparent 1px),
+    var(--portal-canvas);
+  background-position: center;
+  background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px, auto;
+}
+
+.blueprint::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 50% 46%, transparent 22%, rgba(12, 32, 27, 0.04) 100%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.32), transparent 30%);
+}
+
+.mapViewport {
+  position: relative;
+  display: grid;
+  min-height: clamp(31rem, 63vh, 46rem);
+  place-items: center;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.mapViewport:active {
+  cursor: grabbing;
+}
+
+.mapSheet {
+  width: min(96%, 92rem);
+  transform-origin: center;
+  filter: drop-shadow(0 24px 34px rgba(18, 49, 42, 0.13));
+  will-change: transform;
+}
+
+.mapSheet svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.booth {
+  cursor: pointer;
+  outline: none;
+}
+
+.booth rect {
+  transition:
+    filter 160ms ease,
+    stroke-width 160ms ease,
+    opacity 160ms ease;
+}
+
+.booth:hover rect,
+.booth:focus-visible rect {
+  filter: brightness(1.04) drop-shadow(0 5px 8px rgba(14, 43, 36, 0.18));
+  stroke-width: 4;
+}
+
+.boothSelected rect {
+  filter: brightness(1.04) drop-shadow(0 0 0.35rem rgba(183, 137, 54, 0.38));
+  stroke-width: 5;
+}
+
+.pulseDot {
+  position: relative;
+}
+
+.pulseDot::after {
+  position: absolute;
+  inset: -0.22rem;
+  content: "";
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  animation: portal-pulse 2.2s ease-out infinite;
+}
+
+.hideScrollbar {
+  scrollbar-width: none;
+}
+
+.hideScrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.thinScrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 33, 29, 0.2) transparent;
+}
+
+.mobileDialog {
+  width: min(90vw, 21rem);
+  height: 100svh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+}
+
+[dir="rtl"] .mobileDialog {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+.mobileDialog::backdrop {
+  background: rgba(3, 13, 10, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.mobileDialog[open] {
+  animation: portal-drawer-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.mobileDialogPanel {
+  height: 100%;
+  overflow-y: auto;
+  color: rgba(255, 255, 255, 0.9);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(183, 137, 54, 0.16), transparent 18rem),
+    linear-gradient(180deg, #061511, #081d18 58%, #05120f);
+}
+
+.desktopOnly {
+  display: block;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+@keyframes portal-pulse {
+  from {
+    opacity: 0.6;
+    transform: scale(0.72);
+  }
+  70%,
+  to {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+@keyframes portal-drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+}
+
+[dir="rtl"] .mobileDialog[open] {
+  animation-name: portal-drawer-in-rtl;
+}
+
+@keyframes portal-drawer-in-rtl {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+}
+
+@media (max-width: 1023px) {
+  .shell {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .workspace {
+    padding: 0.8rem 0.8rem 6.25rem;
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  .portal :where(button, input:not([type="file"]), select, textarea) {
+    min-height: 44px;
+  }
+
+  .portal button {
+    min-width: 44px;
+  }
+
+  .mapViewport {
+    min-height: 30rem;
+  }
+
+  .mapSheet {
+    width: 96%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell {
+    transition: none;
+  }
+
+  .pulseDot::after,
+  .mobileDialog[open] {
+    animation: none !important;
+  }
+
+  .booth rect {
+    transition-duration: 1ms !important;
+  }
+}

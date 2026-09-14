@@ -16,6 +16,11 @@
 # next.js
 /.next/
 /out/
+/dist/
+/output/
+/assets/hero-masters-16k/**/*.jpg
+/.vinext/
+/.wrangler/
 
 # production
 /build
@@ -34,9 +39,13 @@ qa/
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
+
+# netlify local deployment state and generated adapters
+.netlify
 
 # typescript
 *.tsbuildinfo

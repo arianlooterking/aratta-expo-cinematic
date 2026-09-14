@@ -2,22 +2,22 @@ import type { Lang } from "@/lib/lang";
 
 export const brandAssets = {
   fa: {
-    logo: "/brand/aratta-logo-fa-lockup-dark.png",
-    logoLight: "/brand/aratta-logo-fa-lockup.png",
-    fullLogo: "/brand/aratta-logo-fa.png",
-    tab: "/brand/aratta-tab-fa-dark.png",
-    tabLight: "/brand/aratta-tab-fa.png",
-    pin: "/brand/aratta-pin-fa-dark.png",
-    pinLight: "/brand/aratta-pin-fa.png",
+    logo: "/brand-v2/aratta-tab.png",
+    logoLight: "/brand-v2/aratta-tab.png",
+    fullLogo: "/brand-v2/aratta-logo-en-horizontal.png",
+    tab: "/brand-v2/aratta-tab.png",
+    tabLight: "/brand-v2/aratta-tab.png",
+    pin: "/brand-v2/aratta-tab.png",
+    pinLight: "/brand-v2/aratta-tab.png",
   },
   en: {
-    logo: "/brand/aratta-logo-en-lockup-dark.png",
-    logoLight: "/brand/aratta-logo-en-lockup.png",
-    fullLogo: "/brand/aratta-logo-en.png",
-    tab: "/brand/aratta-tab-en-dark.png",
-    tabLight: "/brand/aratta-tab-en.png",
-    pin: "/brand/aratta-pin-en-dark.png",
-    pinLight: "/brand/aratta-pin-en.png",
+    logo: "/brand-v2/aratta-tab.png",
+    logoLight: "/brand-v2/aratta-tab.png",
+    fullLogo: "/brand-v2/aratta-logo-en-horizontal.png",
+    tab: "/brand-v2/aratta-tab.png",
+    tabLight: "/brand-v2/aratta-tab.png",
+    pin: "/brand-v2/aratta-tab.png",
+    pinLight: "/brand-v2/aratta-tab.png",
   },
 } as const;
 

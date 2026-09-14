@@ -1,9 +1,21 @@
 import type { NextConfig } from "next";
-import path from "node:path";
-
+import { legacyRedirectRules } from "./src/lib/legacy-redirects";
 const nextConfig: NextConfig = {
+  async redirects() {
+    // Sources include Persian and Latin filenames. Both the Next and Sites runtimes
+    // receive URI-encoded paths; explicit aliases retain old external bookmarks.
+    return legacyRedirectRules.flatMap((rule) => {
+      const encoded = encodeURI(rule.source);
+      return encoded === rule.source
+        ? [rule]
+        : [rule, { ...rule, source: encoded }];
+    });
+  },
+  images: {
+    unoptimized: true,
+  },
   turbopack: {
-    root: path.resolve(__dirname),
+    root: process.cwd(),
   },
 };
 

@@ -1,53 +1,53 @@
 export const boothStageFrames = [
   {
-    src: "/hero/hq-stage-01-logo-hall.png",
+    src: "/hero-v6/desktop/stage-01.webp",
     key: "clean-hall",
   },
   {
-    src: "/hero/hq-stage-02-blueprint.png",
+    src: "/hero-v6/desktop/stage-02.webp",
     key: "blueprint",
   },
   {
-    src: "/hero/hq-stage-03-assembly.png",
+    src: "/hero-v6/desktop/stage-03.webp",
     key: "assembly",
   },
   {
-    src: "/hero/hq-stage-04-structure.png",
+    src: "/hero-v6/desktop/stage-04.webp",
     key: "structure",
   },
   {
-    src: "/hero/hq-stage-05-branding.png",
+    src: "/hero-v6/desktop/stage-05.webp",
     key: "identity",
   },
   {
-    src: "/hero/hq-stage-06-live-booth.png",
+    src: "/hero-v6/desktop/stage-06.webp",
     key: "final",
   },
 ] as const;
 
 export const mobileBoothStageFrames = [
   {
-    src: "/hero/mobile-stage-01.png",
+    src: "/hero-v6/mobile/stage-01.webp",
     key: "mobile-clean-hall",
   },
   {
-    src: "/hero/mobile-stage-02.png",
+    src: "/hero-v6/mobile/stage-02.webp",
     key: "mobile-blueprint",
   },
   {
-    src: "/hero/mobile-stage-03.png",
+    src: "/hero-v6/mobile/stage-03.webp",
     key: "mobile-assembly",
   },
   {
-    src: "/hero/mobile-stage-04.png",
+    src: "/hero-v6/mobile/stage-04.webp",
     key: "mobile-structure",
   },
   {
-    src: "/hero/mobile-stage-05.png",
+    src: "/hero-v6/mobile/stage-05.webp",
     key: "mobile-identity",
   },
   {
-    src: "/hero/mobile-stage-06.png",
+    src: "/hero-v6/mobile/stage-06.webp",
     key: "mobile-final",
   },
 ] as const;

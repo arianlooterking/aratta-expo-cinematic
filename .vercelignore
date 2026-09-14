@@ -1,0 +1,18 @@
+# Upload application source only. Never transfer local credentials or drafts.
+.env*
+.openai/
+.codex/
+.git/
+.netlify/
+.next/
+.wrangler/
+node_modules/
+dist/
+assets/
+outputs/
+qa/
+*.log
+*.tsbuildinfo
+docs/
+scripts/
+netlify.toml

@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/lang";
+import { localizeSourceLink } from "@/lib/legacy-archive";
 
 export type ExhibitionStatus = "archived";
 
@@ -10,6 +11,38 @@ export type Exhibition = {
   image: string;
   href: string;
   summary: string;
+};
+
+export type NewsItem = {
+  date: string;
+  title: string;
+  body: string;
+  href?: string;
+};
+
+export type RelatedNewsItem = NewsItem & {
+  source: string;
+  sector: string;
+  image: string;
+};
+
+export type BlogPostStatus = "draft" | "published";
+
+export type BlogPost = {
+  slug: string;
+  status: BlogPostStatus;
+  featured: boolean;
+  title: string;
+  excerpt: string;
+  body: string[];
+  category: string;
+  publishedAt: string;
+  readTime: string;
+  author: string;
+  coverImage: string;
+  coverAlt: string;
+  seoTitle: string;
+  seoDescription: string;
 };
 
 export type SiteContent = {
@@ -72,7 +105,21 @@ export type SiteContent = {
   news: {
     kicker: string;
     title: string;
-    items: Array<{ date: string; title: string; body: string; href?: string }>;
+    items: NewsItem[];
+    relatedKicker: string;
+    relatedTitle: string;
+    relatedBody: string;
+    relatedItems: RelatedNewsItem[];
+  };
+  blog: {
+    kicker: string;
+    title: string;
+    body: string;
+    emptyLabel: string;
+    readMoreLabel: string;
+    allPostsLabel: string;
+    featuredLabel: string;
+    posts: BlogPost[];
   };
   about: {
     kicker: string;
@@ -132,7 +179,7 @@ const faExhibitions: Exhibition[] = [
     date: "۱۲ تا ۱۵ مرداد ۱۴۰۴",
     location: "کرمان",
     status: "archived",
-    image: "/official/kimex-2025-poster.jpg",
+    image: "/archive-covers/mining-machinery-archive.webp",
     href: "https://arattaexpo.ir/%d9%86%d9%87%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%a8%db%8c%d9%86-%d8%a7%d9%84%d9%85%d9%84%d9%84%db%8c-%d9%85%d8%b9%d8%af%d9%86%d8%8c-%d8%b5%d9%86%d8%a7%db%8c%d8%b9/",
     summary:
       "رویداد رسمی حوزه معدن و ماشین آلات که بر اساس تاریخ منتشرشده اکنون به عنوان آرشیو نمایش داده می شود.",
@@ -143,7 +190,7 @@ const faExhibitions: Exhibition[] = [
     date: "۸ تا ۱۱ بهمن ۱۴۰۳",
     location: "کرمان",
     status: "archived",
-    image: "/official/steel-chain-poster.jpg",
+    image: "/archive-covers/steel-copper-energy-archive.webp",
     href: "https://arattaexpo.ir/%d9%be%d9%86%d8%ac%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81%d9%88%d9%84%d8%a7%d8%af%d8%8c-%d9%85/",
     summary:
       "نمایشگاه تخصصی زنجیره فولاد و مس با تمرکز بر تامین، تجهیزات، انرژی و شبکه سازی صنعتی.",
@@ -153,7 +200,7 @@ const faExhibitions: Exhibition[] = [
     date: "۱۹ تا ۲۲ آبان ۱۴۰۳",
     location: "سیرجان",
     status: "archived",
-    image: "/official/mining-poster-2024.jpg",
+    image: "/archive-covers/mineral-production-archive.webp",
     href: "https://arattaexpo.ir/%d8%af%d9%88%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d9%86%d9%87%d8%b6%d8%aa-%d8%aa%d9%88%d9%84%db%8c%d8%af-%d8%af%d8%b1-%d9%85%d8%b9%d8%af%d9%86%d8%8c-%d8%b5%d9%86%d8%a7/",
     summary:
       "رویداد معدنی سیرجان با حضور فعالان فولاد، مس و صنایع معدنی منطقه.",
@@ -167,7 +214,7 @@ const enExhibitions: Exhibition[] = [
     date: "August 3-6, 2025",
     location: "Kerman",
     status: "archived",
-    image: "/official/kimex-2025-poster.jpg",
+    image: "/archive-covers/mining-machinery-archive.webp",
     href: faExhibitions[0].href,
     summary:
       "Official mining and machinery event shown as archive because the published date has already passed.",
@@ -178,7 +225,7 @@ const enExhibitions: Exhibition[] = [
     date: "January 27-30, 2025",
     location: "Kerman",
     status: "archived",
-    image: "/official/steel-chain-poster.jpg",
+    image: "/archive-covers/steel-copper-energy-archive.webp",
     href: faExhibitions[1].href,
     summary:
       "Specialized supply-chain event for steel, copper, energy, equipment, and industrial networking.",
@@ -189,7 +236,7 @@ const enExhibitions: Exhibition[] = [
     date: "November 9-12, 2024",
     location: "Sirjan",
     status: "archived",
-    image: "/official/mining-poster-2024.jpg",
+    image: "/archive-covers/mineral-production-archive.webp",
     href: faExhibitions[2].href,
     summary:
       "Sirjan mining event connecting steel, copper, mineral-industry operators and regional partners.",
@@ -209,13 +256,15 @@ const fa: SiteContent = {
     { id: "equipment", label: "اجاره تجهیزات" },
     { id: "participants", label: "مشارکت کنندگان" },
     { id: "news", label: "اخبار" },
+    { id: "industry-news", label: "اخبار مرتبط" },
+    { id: "blog", label: "مجله اَرَت" },
     { id: "gallery", label: "گالری" },
     { id: "contact", label: "تماس" },
   ],
   hero: {
-    title: "ساختن امروز، توسعه فردا",
+    title: "نمایشگاه‌های صنعت و معدن",
     subtitle:
-      "برگزارکننده تخصصی نمایشگاه های بین المللی صنایع معدنی، فلزات، فولاد و مس.",
+      "رویدادهای حرفه‌ای برای معرفی توانمندی‌ها، توسعه ارتباطات و شکل‌گیری همکاری‌های تجاری.",
     primary: "ثبت درخواست",
     secondary: "مشاهده نمایشگاه ها",
     stages: [
@@ -251,22 +300,22 @@ const fa: SiteContent = {
       },
     ],
     metrics: [
-      { value: "۱۵+", label: "سال تجربه حرفه ای" },
-      { value: "۴۲+", label: "نمایشگاه بین المللی" },
-      { value: "۲۸,۵۰۰+", label: "مشارکت کننده" },
-      { value: "۳۵+", label: "کشور مشارکت کننده" },
+      { value: "۱۰۰+", label: "غرفه در SIMEX 2020" },
+      { value: "۸۰", label: "شرکت در SICE 2023" },
+      { value: "۸,۰۰۰", label: "مترمربع فضای SIMEX 2020" },
+      { value: "۶", label: "کشور حاضر در SIMEX 2020" },
     ],
   },
   exhibitions: {
     kicker: "Archive / نمایشگاه ها",
-    title: "رویدادهای منتشرشده، با وضعیت واقعی",
+    title: "رویدادهای تخصصی اَرَت",
     note:
-      "تاریخ رویدادهای فعلی سایت رسمی قبل از امروز است؛ بنابراین تا دریافت تقویم تازه، همه به صورت آرشیو نمایش داده می شوند.",
+      "رویدادهای منتشرشده در این صفحه برگزار شده اند یا تاریخ اعلام شده آنها گذشته است. برای دریافت تقویم جدید، با دفتر اَرَت تماس بگیرید.",
     items: faExhibitions,
   },
   services: {
-    kicker: "Operating System",
-    title: "از برنامه ریزی نمایشگاه تا تجربه غرفه",
+    kicker: "خدمات نمایشگاهی",
+    title: "از برنامه ریزی رویداد تا حضور حرفه ای در نمایشگاه",
     items: [
       {
         title: "طراحی و سازماندهی رویداد",
@@ -288,9 +337,9 @@ const fa: SiteContent = {
   },
   registration: {
     kicker: "Registration",
-    title: "درخواست ثبت نام، بدون ادعای اتوماسیون جعلی",
+    title: "آغاز فرآیند حضور در نمایشگاه",
     body:
-      "این نسخه فرم رسمی و مسیر تماس را شفاف می کند. ارسال نهایی از طریق پیش نویس ایمیل انجام می شود تا بدون بک اند واقعی، هیچ ثبت نامی به صورت جعلی تایید نشود.",
+      "فرم های رسمی را دانلود کنید یا اطلاعات درخواست غرفه را آماده سازید. درخواست شما به صورت پیش نویس ایمیل آماده می شود و پس از ارسال، تیم اَرَت ادامه فرآیند را هماهنگ می کند.",
     formTitle: "پیش نویس درخواست غرفه",
     fields: {
       name: "نام و نام خانوادگی",
@@ -300,8 +349,8 @@ const fa: SiteContent = {
       interest: "موضوع درخواست",
       message: "شرح درخواست",
       submit: "ساخت پیش نویس ایمیل",
-      success: "پیش نویس ایمیل باز شد. ارسال نهایی با شماست.",
-      error: "نام، ایمیل معتبر و شرح درخواست را کامل کنید.",
+      success: "درخواست باز کردن برنامه ایمیل انجام شد. اگر باز نشد، متن درخواست را کپی کنید و به info@arattaexpo.ir بفرستید. پیامی خودکار ارسال نشده است.",
+      error: "نام، ایمیل معتبر و شرح درخواست با حداقل ۱۲ نویسه را وارد کنید.",
       honeypot: "این فیلد را خالی بگذارید",
     },
     downloads: [
@@ -361,6 +410,12 @@ const fa: SiteContent = {
     title: "آخرین خبرهای رسمی در قالب آرشیو",
     items: [
       {
+        date: "۱۲ مه ۲۰۲۵",
+        title: "نهمین نمایشگاه بین المللی معدن، صنایع معدنی و ماشین آلات وابسته",
+        body: "اطلاعیه و مدارک منتشرشده برای رویداد کرمان، همراه با یادداشت تعلیق موقت نمایشگاه های تجاری در زمان انتشار.",
+        href: faExhibitions[0].href,
+      },
+      {
         date: "۱۵ دسامبر ۲۰۲۴",
         title: "پنجمین نمایشگاه زنجیره تامین فولاد، مس، انرژی و تجهیزات وابسته",
         body: "خبر رسمی رویداد زنجیره تامین با مسیر مستقیم به ثبت درخواست و فرم های نمایشگاه.",
@@ -381,8 +436,128 @@ const fa: SiteContent = {
       {
         date: "۲۲ سپتامبر ۲۰۲۰",
         title: "ویدئو - بازدید و گفتگوی نمایشگاهی",
-        body: "لینک رسمی محتوای ویدئویی منتشرشده در سایت قبلی اَرَت.",
+        body: "گفتگو و گزارش ویدئویی از فضای نمایشگاه و فعالان صنعتی حاضر در رویداد.",
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+      },
+    ],
+    relatedKicker: "Industry Signals",
+    relatedTitle: "اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین",
+    relatedBody:
+      "گزارش ها، گفتگوها و مطالب آموزشی مرتبط با بازارهای معدن، فولاد، مس و زنجیره تامین؛ هر مطلب با تاریخ، حوزه و لینک منبع نمایش داده می شود.",
+    relatedItems: [
+      {
+        date: "۴ ژانویه ۲۰۲۴",
+        title: "پایان چهارمین نمایشگاه زنجیره تامین فولاد، مس، انرژی و تجهیزات وابسته",
+        body:
+          "گزارش رسمی از حضور فعالان زنجیره تامین در کرمان؛ برای نمایش ارتباط رویدادهای اَرَت با تامین، انرژی، فولاد و مس در بخش اخبار مرتبط.",
+        href: "https://arattaexpo.ir/%d9%be%d8%a7%db%8c%d8%a7%d9%86-%da%86%d9%87%d8%a7%d8%b1%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81/",
+        source: "arattaexpo.ir",
+        sector: "فولاد، مس و انرژی",
+        image: "/official-archive/steel-supply-news-2024.jpg",
+      },
+      {
+        date: "۷ ژانویه ۲۰۲۴",
+        title: "کارگاه آموزشی راهبردهای نوآورانه در بازاریابی و فروش",
+        body:
+          "موضوع مکمل برای مشارکت کنندگان و غرفه داران؛ تمرکز بر آماده سازی تجاری، فروش نمایشگاهی و ارتباط موثر با مخاطبان صنعتی.",
+        href: "https://arattaexpo.ir/%da%a9%d8%a7%d8%b1%da%af%d8%a7%d9%87-%d8%a2%d9%85%d9%88%d8%b2%d8%b4%db%8c-%d8%b1%d8%a7%d9%87-%d8%a8%d8%b1%d8%af%d9%87%d8%a7%db%8c-%d9%86%d9%88%d8%a2%d9%88%d8%b1%d8%a7%d9%86%d9%87-%d8%af%d8%b1-%d8%a8/",
+        source: "arattaexpo.ir",
+        sector: "بازاریابی نمایشگاهی",
+        image: "/gallery/archive-05.jpg",
+      },
+      {
+        date: "۲۲ سپتامبر ۲۰۲۰",
+        title: "گفتگو و محتوای ویدئویی از فضای نمایشگاهی",
+        body:
+          "آرشیو ویدئویی برای تکمیل روایت رسانه ای اَرَت و استفاده در صفحه اخبار مرتبط، بدون ادعای تازه بودن رویداد.",
+        href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+        source: "arattaexpo.ir",
+        sector: "رسانه و گزارش تصویری",
+        image: "/gallery/archive-06.jpg",
+      },
+    ],
+  },
+  blog: {
+    kicker: "Aratta Journal / مجله اَرَت",
+    title: "راهنمای عملی برای ساخت و مدیریت نمایشگاه",
+    body:
+      "مقاله‌های کوتاه و اجرایی برای تیم‌های برگزارکننده، غرفه‌داران و مدیران عملیات؛ از برنامه‌ریزی سالن تا تحویل تجهیزات و پیگیری تجاری.",
+    emptyLabel: "هنوز مقاله منتشرشده‌ای وجود ندارد.",
+    readMoreLabel: "مطالعه مقاله",
+    allPostsLabel: "مشاهده همه مقاله‌ها",
+    featuredLabel: "پیشنهاد سردبیر",
+    posts: [
+      {
+        slug: "exhibition-booth-readiness-checklist",
+        status: "published",
+        featured: true,
+        title: "چک‌لیست آماده‌سازی غرفه پیش از باز شدن درهای نمایشگاه",
+        excerpt:
+          "یک مسیر روشن برای کنترل سازه، برق، تجهیزات، مدارک و مسئول تحویل؛ پیش از آن‌که بازدیدکنندگان وارد سالن شوند.",
+        body: [
+          "آماده بودن غرفه فقط به پایان ساخت سازه محدود نمی‌شود. مسئول سالن باید بتواند در یک نگاه وضعیت برق، نور، تجهیزات درخواستی، علائم ایمنی و دسترسی غرفه‌دار را بررسی کند.",
+          "کنترل را از موارد ثابت آغاز کنید: شماره غرفه، ابعاد نهایی، محل در و ستون، مسیر عبور و ظرفیت برق. هر مغایرت باید همان لحظه ثبت شود تا به یک پیام شفاهی گم‌شدنی تبدیل نشود.",
+          "در مرحله تجهیزات، تعداد تحویل‌شده را با درخواست مقایسه کنید. اگر هشت صندلی ثبت شده اما هفت عدد در محل وجود دارد، کسری باید با وضعیت هشدار، مسئول پیگیری و زمان اقدام بعدی مشخص شود.",
+          "پیش از تحویل غرفه، وضعیت مالی و استثناهای تاییدشده را نیز بررسی کنید. دسترسی نباید فقط بر اساس حافظه افراد یا پیام‌های پراکنده انجام شود.",
+          "در پایان، یک بازبینی کوتاه با نام مسئول، ساعت کنترل و عکس مرجع ثبت کنید. این سابقه در زمان جمع‌آوری تجهیزات و حل اختلاف‌ها بسیار ارزشمند است.",
+        ],
+        category: "راهنمای اجرا",
+        publishedAt: "۱۵ ژوئیه ۲۰۲۶",
+        readTime: "۷ دقیقه",
+        author: "تیم عملیات اَرَت",
+        coverImage: "/hero-v6/desktop/stage-06.webp",
+        coverAlt: "غرفه نمایشگاهی تکمیل‌شده و آماده بهره‌برداری",
+        seoTitle: "چک‌لیست آماده‌سازی غرفه نمایشگاهی | مجله اَرَت",
+        seoDescription:
+          "چک‌لیست عملی کنترل سازه، تجهیزات، برق، تحویل و وضعیت مالی غرفه پیش از آغاز نمایشگاه.",
+      },
+      {
+        slug: "equipment-logistics-without-shortages",
+        status: "published",
+        featured: true,
+        title: "چطور تجهیزات نمایشگاه را بدون کسری و دوباره‌کاری مدیریت کنیم؟",
+        excerpt:
+          "از موجودی اکسل تا تخصیص غرفه، تحویل و جمع‌آوری؛ روشی ساده برای اینکه صندلی، تلویزیون و تجهیزات در مسیر گم نشوند.",
+        body: [
+          "موجودی نمایشگاه باید یک منبع واحد و قابل اعتماد داشته باشد. نام تجهیز، مدل، اندازه، تعداد کل، تعداد تخصیص‌یافته و تعداد باقی‌مانده حداقل اطلاعات لازم هستند.",
+          "هر تجهیز را با یک نام و کد ثابت ثبت کنید. تلویزیون ۳۵ اینچ و ۵۵ اینچ دو قلم مستقل‌اند و نباید فقط با عنوان عمومی تلویزیون گزارش شوند.",
+          "زمان تخصیص، سامانه باید بلافاصله موجودی باقی‌مانده را محاسبه کند. اگر درخواست جدید از ظرفیت واقعی عبور می‌کند، هشدار باید پیش از وعده دادن به غرفه‌دار نمایش داده شود.",
+          "تحویل و جمع‌آوری دو رویداد جدا هستند. تعداد جمع‌آوری‌شده را مستقل ثبت کنید تا کسری، خرابی یا جابه‌جایی به غرفه دیگر قابل پیگیری باشد.",
+          "در پایان هر شیفت، اقلام دارای کسری، اقلام آماده تحویل و اقلام جمع‌آوری‌نشده را در یک صف اقدام کوتاه به تیم بعدی تحویل دهید.",
+        ],
+        category: "تجهیزات و لجستیک",
+        publishedAt: "۱۰ ژوئیه ۲۰۲۶",
+        readTime: "۶ دقیقه",
+        author: "تیم لجستیک اَرَت",
+        coverImage: "/gallery/expo-floor-02.jpg",
+        coverAlt: "مسیر غرفه‌ها و تجهیزات در سالن نمایشگاه",
+        seoTitle: "مدیریت تجهیزات و موجودی نمایشگاه | مجله اَرَت",
+        seoDescription:
+          "راهنمای عملی کنترل موجودی، تخصیص، تحویل و جمع‌آوری تجهیزات غرفه‌های نمایشگاهی.",
+      },
+      {
+        slug: "from-lead-to-booth-handover",
+        status: "published",
+        featured: false,
+        title: "از اولین تماس تا تحویل غرفه؛ یک مسیر واحد برای فروش و عملیات",
+        excerpt:
+          "چگونه سرنخ، مذاکره، قرارداد، پرداخت و تحویل غرفه را به یک جریان قابل پیگیری تبدیل کنیم.",
+        body: [
+          "فرآیند نمایشگاه ماه‌ها پیش از ساخت سالن آغاز می‌شود. هر شرکت بالقوه باید با مسئول پیگیری، مرحله فروش، آخرین تماس و اقدام بعدی مشخص ثبت شود.",
+          "پس از توافق اولیه، اطلاعات تجاری باید به عملیات متصل شود: متراژ غرفه، سالن، تجهیزات درخواستی، مبلغ قرارداد و برنامه پرداخت.",
+          "پرداخت ناقص معمولاً مانع تحویل غرفه است، اما استثناها باید با دلیل مکتوب و تایید مسئول مجاز ثبت شوند. استثنای شفاهی قابل اتکا نیست.",
+          "وقتی فروش و عملیات از یک پرونده مشترک استفاده کنند، تیم سالن می‌داند چه چیزی وعده داده شده و تیم مالی می‌بیند تحویل در چه مرحله‌ای قرار دارد.",
+          "پس از نمایشگاه نیز همان پرونده برای جمع‌آوری تجهیزات، ثبت رضایت، پیگیری فرصت بعدی و برنامه‌ریزی رویداد آینده استفاده می‌شود.",
+        ],
+        category: "فروش و CRM",
+        publishedAt: "۵ ژوئیه ۲۰۲۶",
+        readTime: "۵ دقیقه",
+        author: "تیم تجاری اَرَت",
+        coverImage: "/gallery/simex-2020-01.jpg",
+        coverAlt: "گفت‌وگوی تجاری در فضای نمایشگاهی",
+        seoTitle: "مسیر فروش تا تحویل غرفه نمایشگاهی | مجله اَرَت",
+        seoDescription:
+          "راهنمای اتصال سرنخ، مذاکره، پرداخت، تخصیص و تحویل غرفه در یک جریان کاری نمایشگاهی.",
       },
     ],
   },
@@ -390,7 +565,7 @@ const fa: SiteContent = {
     kicker: "About Aratta",
     title: "زیرساخت قابل اعتماد برای رویدادهای تخصصی صنعتی",
     body:
-      "شرکت توسعه تجارت اَرَت در حوزه برگزاری نمایشگاه های صنعتی و معدنی فعالیت می کند. این بازطراحی، محتوای فعلی را با زبان اجرایی روشن، تجربه بصری حرفه ای و مسیرهای تماس قابل اتکا بازسازی می کند.",
+      "شرکت توسعه تجارت اَرَت برگزارکننده رویدادهای تخصصی در حوزه معدن، صنایع معدنی، فولاد، مس و زنجیره تامین است؛ بستری برای معرفی توانمندی ها، ارتباط تامین کنندگان با صنایع و شکل گیری همکاری های تجاری.",
     proof: ["معدن و صنایع معدنی", "فولاد و مس", "ماشین آلات و تجهیزات", "رسانه و مشارکت"],
   },
   contact: {
@@ -410,7 +585,7 @@ const fa: SiteContent = {
   },
   footer: {
     copyright: "کلیه محتوای این وبسایت متعلق به شرکت توسعه تجارت اَرَت است.",
-    credit: "نسخه سینمایی مستقل برای بازطراحی حرفه ای",
+    credit: "Aratta Expo — Exhibition, Trade Fair & Event",
   },
 };
 
@@ -427,13 +602,15 @@ const en: SiteContent = {
     { id: "equipment", label: "Equipment" },
     { id: "participants", label: "Participants" },
     { id: "news", label: "News" },
+    { id: "industry-news", label: "Related News" },
+    { id: "blog", label: "Blog" },
     { id: "gallery", label: "Gallery" },
     { id: "contact", label: "Contact" },
   ],
   hero: {
-    title: "Build today. Empower tomorrow.",
+    title: "Industry & mining exhibitions",
     subtitle:
-      "International exhibitions organizer for mining, metals, steel and copper industries.",
+      "Professional events designed to connect capabilities, decision-makers and commercial opportunities.",
     primary: "Register Interest",
     secondary: "View Exhibitions",
     stages: [
@@ -469,22 +646,22 @@ const en: SiteContent = {
       },
     ],
     metrics: [
-      { value: "15+", label: "years of experience" },
-      { value: "42+", label: "international exhibitions" },
-      { value: "28,500+", label: "participants" },
-      { value: "35+", label: "participating countries" },
+      { value: "100+", label: "booths at SIMEX 2020" },
+      { value: "80", label: "companies at SICE 2023" },
+      { value: "8,000", label: "sqm at SIMEX 2020" },
+      { value: "6", label: "countries at SIMEX 2020" },
     ],
   },
   exhibitions: {
     kicker: "Archive / Exhibitions",
-    title: "Published events with honest status",
+    title: "Aratta's specialized events",
     note:
-      "The dates currently published on the official site are before today, so they are shown as archived until a fresh calendar is provided.",
+      "The events shown here have concluded or their published dates have passed. Contact the Aratta office for the next confirmed calendar.",
     items: enExhibitions,
   },
   services: {
-    kicker: "Operating System",
-    title: "From exhibition planning to booth experience",
+    kicker: "Exhibition Services",
+    title: "From event planning to a professional exhibition presence",
     items: [
       {
         title: "Event organization",
@@ -506,9 +683,9 @@ const en: SiteContent = {
   },
   registration: {
     kicker: "Registration",
-    title: "Inquiry-first registration without fake automation",
+    title: "Start your exhibition participation inquiry",
     body:
-      "This version exposes official forms and creates a structured email draft. It does not pretend to complete registration without a configured production backend.",
+      "Download the official documents or prepare a structured booth inquiry. Your request opens as an email draft, and the Aratta team coordinates the next steps after you send it.",
     formTitle: "Booth inquiry draft",
     fields: {
       name: "Full name",
@@ -518,8 +695,8 @@ const en: SiteContent = {
       interest: "Inquiry topic",
       message: "Request details",
       submit: "Create email draft",
-      success: "Email draft opened. Final sending remains under your control.",
-      error: "Please complete your name, a valid email, and request details.",
+      success: "Your email app was requested. If it did not open, copy the inquiry and email info@arattaexpo.ir. No message has been sent automatically.",
+      error: "Enter your name, a valid email and at least 12 characters of request details.",
       honeypot: "Leave this field empty",
     },
     downloads: [
@@ -532,7 +709,7 @@ const en: SiteContent = {
         size: "1.0 MB",
         category: "form",
         description:
-          "Official KIMEX 2025 participation form, mirrored locally for direct download.",
+          "Official KIMEX 2025 participation form, available as a direct download.",
       },
       {
         label: "KIMEX 2025 participant list",
@@ -579,6 +756,12 @@ const en: SiteContent = {
     title: "Official updates presented as an archive",
     items: [
       {
+        date: "May 12, 2025",
+        title: "9th international mining, mineral industries, and machinery exhibition",
+        body: "Published notice and participation documents for the Kerman event, including the temporary trade-event suspension announced at the time.",
+        href: enExhibitions[0].href,
+      },
+      {
         date: "December 15, 2024",
         title: "5th steel, copper, energy, and equipment supply chain exhibition",
         body: "Official event update with direct paths to inquiry and exhibition form downloads.",
@@ -599,8 +782,128 @@ const en: SiteContent = {
       {
         date: "September 22, 2020",
         title: "Video - exhibition visit and interview",
-        body: "Official video-post link from the previous Aratta website.",
+        body: "Video interview and field coverage featuring industrial leaders and the exhibition environment.",
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+      },
+    ],
+    relatedKicker: "Industry Signals",
+    relatedTitle: "Related news for mining, steel, copper, and supply-chain markets",
+    relatedBody:
+      "Reports, interviews, and practical insights for mining, steel, copper, and supply-chain markets, with a visible date, sector, and source link for every item.",
+    relatedItems: [
+      {
+        date: "January 4, 2024",
+        title: "4th steel, copper, energy, and equipment supply-chain exhibition concluded",
+        body:
+          "Official archive context connecting Aratta's program to supply-chain, energy, steel, and copper operators in Kerman.",
+        href: "https://arattaexpo.ir/%d9%be%d8%a7%db%8c%d8%a7%d9%86-%da%86%d9%87%d8%a7%d8%b1%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81/",
+        source: "arattaexpo.ir",
+        sector: "Steel, copper, and energy",
+        image: "/official-archive/steel-supply-news-2024.jpg",
+      },
+      {
+        date: "January 7, 2024",
+        title: "Training workshop on innovative marketing and sales strategies",
+        body:
+          "Useful adjacent content for exhibitors preparing sales teams, booth conversations, and professional trade-show follow-up.",
+        href: "https://arattaexpo.ir/%da%a9%d8%a7%d8%b1%da%af%d8%a7%d9%87-%d8%a2%d9%85%d9%88%d8%b2%d8%b4%db%8c-%d8%b1%d8%a7%d9%87-%d8%a8%d8%b1%d8%af%d9%87%d8%a7%db%8c-%d9%86%d9%88%d8%a2%d9%88%d8%b1%d8%a7%d9%86%d9%87-%d8%af%d8%b1-%d8%a8/",
+        source: "arattaexpo.ir",
+        sector: "Exhibition marketing",
+        image: "/gallery/archive-05.jpg",
+      },
+      {
+        date: "September 22, 2020",
+        title: "Exhibition interview and video media archive",
+        body:
+          "Media archive entry that supports Aratta's story without falsely presenting old coverage as current news.",
+        href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
+        source: "arattaexpo.ir",
+        sector: "Media and photo reports",
+        image: "/gallery/archive-06.jpg",
+      },
+    ],
+  },
+  blog: {
+    kicker: "Aratta Journal",
+    title: "Practical guidance for building and operating exhibitions",
+    body:
+      "Short, field-ready articles for organizers, exhibitors, and operations teams—from hall planning to equipment handover and commercial follow-up.",
+    emptyLabel: "No articles have been published yet.",
+    readMoreLabel: "Read article",
+    allPostsLabel: "View all articles",
+    featuredLabel: "Editor’s pick",
+    posts: [
+      {
+        slug: "exhibition-booth-readiness-checklist",
+        status: "published",
+        featured: true,
+        title: "The booth-readiness checklist before exhibition doors open",
+        excerpt:
+          "A clear control path for structure, power, equipment, documents, and handover ownership before visitors enter the hall.",
+        body: [
+          "A booth is not ready simply because construction has finished. The hall lead must be able to verify power, lighting, requested equipment, safety signs, and exhibitor access in one short review.",
+          "Begin with fixed facts: booth number, final dimensions, doors and columns, circulation clearance, and electrical capacity. Record every mismatch immediately so it does not disappear into a verbal message.",
+          "For equipment, compare the delivered count with the request. If eight chairs were assigned but only seven are present, record the shortage, owner, and next action as a visible exception.",
+          "Before handover, review payment status and any approved exception. Access decisions should never depend on individual memory or scattered messages.",
+          "Close the check with the responsible person, inspection time, and a reference photo. That record becomes valuable during collection and dispute resolution.",
+        ],
+        category: "Field operations",
+        publishedAt: "July 15, 2026",
+        readTime: "7 min read",
+        author: "Aratta Operations Team",
+        coverImage: "/hero-v6/desktop/stage-06.webp",
+        coverAlt: "Completed exhibition booth ready for operation",
+        seoTitle: "Exhibition booth readiness checklist | Aratta Journal",
+        seoDescription:
+          "A practical checklist for booth structure, equipment, power, handover, and payment controls before an exhibition opens.",
+      },
+      {
+        slug: "equipment-logistics-without-shortages",
+        status: "published",
+        featured: true,
+        title: "How to manage exhibition equipment without shortages or rework",
+        excerpt:
+          "From spreadsheet inventory to booth allocation, delivery, and collection—a simple system for keeping every item accountable.",
+        body: [
+          "Exhibition inventory needs one reliable source of truth. Item name, model, size, total quantity, allocated quantity, and remaining quantity are the minimum useful fields.",
+          "Use a stable name and code for every material. A 35-inch television and a 55-inch television are separate items and should never be reported under one generic television label.",
+          "When an item is assigned, remaining stock should update immediately. If a new request exceeds real capacity, the warning must appear before a promise is made to the exhibitor.",
+          "Delivery and collection are separate events. Record the collected count independently so shortages, damage, and transfers between booths remain traceable.",
+          "At the end of every shift, hand over a short action queue covering shortages, items ready for delivery, and equipment still waiting for collection.",
+        ],
+        category: "Equipment and logistics",
+        publishedAt: "July 10, 2026",
+        readTime: "6 min read",
+        author: "Aratta Logistics Team",
+        coverImage: "/gallery/expo-floor-02.jpg",
+        coverAlt: "Booth and equipment routes inside an exhibition hall",
+        seoTitle: "Exhibition equipment and inventory management | Aratta Journal",
+        seoDescription:
+          "A practical guide to inventory, allocation, delivery, and collection for exhibition booth equipment.",
+      },
+      {
+        slug: "from-lead-to-booth-handover",
+        status: "published",
+        featured: false,
+        title: "From first lead to booth handover: one commercial and operations path",
+        excerpt:
+          "Connect leads, negotiations, contracts, payments, and booth handover in one traceable exhibition workflow.",
+        body: [
+          "Exhibition delivery starts months before hall construction. Every prospective company needs an owner, sales stage, latest contact, and clear next action.",
+          "After initial agreement, commercial details must connect to operations: booth area, hall, requested equipment, contract value, and payment plan.",
+          "An unpaid balance normally blocks handover, while exceptions require a written reason and approval from an authorized manager. Verbal exceptions are not auditable.",
+          "When sales and operations share one account record, the hall team knows what was promised and finance can see how far delivery has progressed.",
+          "After the exhibition, the same record supports equipment collection, satisfaction follow-up, the next opportunity, and planning for future events.",
+        ],
+        category: "Sales and CRM",
+        publishedAt: "July 5, 2026",
+        readTime: "5 min read",
+        author: "Aratta Commercial Team",
+        coverImage: "/gallery/simex-2020-01.jpg",
+        coverAlt: "Commercial conversation on the exhibition floor",
+        seoTitle: "From exhibition lead to booth handover | Aratta Journal",
+        seoDescription:
+          "A guide to connecting leads, negotiations, payments, booth allocation, and operational handover.",
       },
     ],
   },
@@ -608,7 +911,7 @@ const en: SiteContent = {
     kicker: "About Aratta",
     title: "Trusted infrastructure for specialized industrial events",
     body:
-      "Aratta Trade Development Company organizes industrial and mining exhibitions. This redesign rebuilds the current public content with clearer operations language, premium visuals, and reliable contact paths.",
+      "Aratta Trade Development Company organizes specialized events for mining, mineral industries, steel, copper, and supply chains—connecting industrial capabilities, suppliers, decision-makers, and new commercial opportunities.",
     proof: ["Mining industries", "Steel and copper", "Machinery and equipment", "Media and participation"],
   },
   contact: {
@@ -628,12 +931,29 @@ const en: SiteContent = {
   },
   footer: {
     copyright: "All website content belongs to Aratta Trade Development Company.",
-    credit: "Independent cinematic redesign build",
+    credit: "Aratta Expo — Exhibition, Trade Fair & Event",
   },
 };
 
-export const contentByLang: Record<Lang, SiteContent> = { fa, en };
+function connectArchive(content: SiteContent): SiteContent {
+  const local = (href: string) => localizeSourceLink(href, content.lang);
+  return {...content,
+    exhibitions: {...content.exhibitions, items: content.exhibitions.items.map(item=>({...item,href:local(item.href)}))},
+    news: {...content.news, items: content.news.items.map(item=>({...item,href:item.href?local(item.href):undefined})),relatedItems:content.news.relatedItems.map(item=>({...item,href:item.href?local(item.href):undefined}))},
+    registration: {...content.registration, downloads:content.registration.downloads.map(item=>({...item,sourceHref:local(item.sourceHref)}))},
+  };
+}
+
+export const contentByLang: Record<Lang, SiteContent> = { fa:connectArchive(fa), en:connectArchive(en) };
 
 export function getContent(lang: Lang) {
   return contentByLang[lang];
+}
+
+export function getPublishedBlogPosts(lang: Lang) {
+  return contentByLang[lang].blog.posts.filter((post) => post.status === "published");
+}
+
+export function getPublishedBlogPost(lang: Lang, slug: string) {
+  return getPublishedBlogPosts(lang).find((post) => post.slug === slug);
 }

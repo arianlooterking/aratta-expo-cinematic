@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Send } from "lucide-react";
+import { Copy, Mail, Send } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
 
@@ -32,6 +32,7 @@ const initialState: FormState = {
 export function InquiryForm({ content, compact = false }: InquiryFormProps) {
   const [form, setForm] = useState<FormState>(initialState);
   const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
+  const [copyStatus, setCopyStatus] = useState("");
   const fields = content.registration.fields;
 
   const mailto = useMemo(() => {
@@ -62,7 +63,12 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const hasValidEmail = /\S+@\S+\.\S+/.test(form.email);
-    if (form.website || !form.name.trim() || !hasValidEmail || form.message.trim().length < 12) {
+    if (
+      form.website ||
+      !form.name.trim() ||
+      !hasValidEmail ||
+      form.message.trim().length < 12
+    ) {
       setStatus("error");
       return;
     }
@@ -122,7 +128,9 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
         onChange={(value) => update("interest", value)}
       />
       <label className="grid gap-2">
-        <span className="text-sm font-semibold text-white/82">{fields.message}</span>
+        <span className="text-sm font-semibold text-white/82">
+          {fields.message}
+        </span>
         <textarea
           required
           minLength={12}
@@ -142,6 +150,34 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
       </button>
 
       <div aria-live="polite" className="min-h-6">
+        <button
+          type="button"
+          className="mb-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm text-white/85"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(
+                decodeURIComponent(mailto.split("&body=")[1] || ""),
+              );
+              setCopyStatus(
+                content.lang === "fa"
+                  ? "متن درخواست کپی شد."
+                  : "Inquiry copied.",
+              );
+            } catch {
+              setCopyStatus(
+                content.lang === "fa"
+                  ? "کپی خودکار در این مرورگر مجاز نیست؛ متن فرم را انتخاب و کپی کنید."
+                  : "Clipboard access is unavailable. Select and copy your form text.",
+              );
+            }
+          }}
+        >
+          <Copy size={17} />
+          {content.lang === "fa" ? "کپی متن درخواست" : "Copy inquiry text"}
+        </button>
+        {copyStatus && (
+          <p className="mb-3 text-sm text-white/75">{copyStatus}</p>
+        )}
         {status === "error" ? (
           <p className="text-sm text-[var(--danger)]">{fields.error}</p>
         ) : null}

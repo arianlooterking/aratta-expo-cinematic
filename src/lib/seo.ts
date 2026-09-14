@@ -1,9 +1,11 @@
 import type { Lang } from "@/lib/lang";
 
-export const siteUrl = "https://aratta-expo-cinematic.vercel.app";
+// Switch to the owned domain only after DNS, mail routing and TLS are verified.
+// A separate host can set its public URL without changing the existing Sites build.
+export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://arattaexpo.arianai.chatgpt.site").replace(/\/+$/, "");
 
 export const socialPreviewImage = {
-  url: "/og/aratta-expo-booth-preview.png",
+  url: "/og/aratta-expo-booth-preview-v2.png",
   width: 1672,
   height: 941,
 } as const;

@@ -55,6 +55,7 @@ export function BuildStageShowcase({ content }: BuildStageShowcaseProps) {
                 src={frame.src}
                 alt=""
                 fill
+                unoptimized
                 sizes="(min-width: 1024px) 1120px, 100vw"
                 priority={index === 0}
                 className={`stage-frame object-cover object-center transition-opacity duration-700 ${

@@ -150,6 +150,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
               src={activeMeta.frame}
               alt={current.title}
               fill
+              unoptimized
               sizes="(min-width: 1024px) 62vw, 100vw"
               className="object-cover"
               priority={false}
