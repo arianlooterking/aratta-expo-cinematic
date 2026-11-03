@@ -118,3 +118,39 @@ export function equipmentPatch(
   if (step === "deliver") return { stage: "delivered" as const, delivered_qty: o.quantity, delivered_at: at, ...(people.length ? { delivered_by: people } : {}) };
   return { stage: "collected" as const, collected_qty: Math.max(0, o.delivered_qty - o.damaged_qty), collected_at: at, ...(people.length ? { collected_by: people } : {}) };
 }
+
+export type CountAction =
+  | { kind: "insert"; quantity: number }
+  | { kind: "update"; id: string; quantity: number; stage?: OrderLine["stage"] }
+  | { kind: "remove"; id: string }
+  | { kind: "none" }
+  /** Pieces already at the booth can't be taken off the list; they have to be collected. */
+  | { kind: "blocked"; min: number };
+
+/**
+ * What to change so a booth has `target` pieces of one item, counting every line of it.
+ * Only the line still open for changes moves. Lines already collected stay as history.
+ */
+export function setItemCount(lines: readonly OrderLine[], target: number): CountAction {
+  const live = lines.filter((o) => o.stage !== "cancelled");
+  const open = live.find(quantityEditable);
+  const fixed = live.reduce((s, o) => (o === open ? s : s + o.quantity), 0);
+  const want = Math.max(0, Math.floor(target)) - fixed;
+  if (!open) {
+    if (want > 0) return { kind: "insert", quantity: want };
+    return want < 0 ? { kind: "blocked", min: fixed } : { kind: "none" };
+  }
+  if (want === open.quantity) return { kind: "none" };
+  if (want <= 0 && removable(open)) return { kind: "remove", id: open.id };
+  const min = minQuantity(open);
+  if (want < min && open.quantity <= min) return { kind: "blocked", min: fixed + min };
+  const patch = quantityPatch(open, Math.max(want, min));
+  return patch ? { kind: "update", id: open.id, ...patch } : { kind: "none" };
+}
+
+/** A typed count: Persian or Arabic digits are fine, anything else is ignored. Null when there is no number. */
+export function parseCount(text: string) {
+  const latin = text.replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0)).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+  const digits = latin.replace(/[^\d]/g, "");
+  return digits ? Math.min(9999, Number(digits)) : null;
+}
