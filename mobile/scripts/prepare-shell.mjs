@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const url = (process.env.ARATTA_APP_URL ?? "https://aratta-expo-cinematic.vercel.app").replace(/\/+$/, "");
+const url = (process.env.ARATTA_APP_URL?.trim() || "https://aratta-expo-cinematic.vercel.app").replace(/\/+$/, "");
 new URL(url); // throws on a malformed value
 
 writeFileSync(

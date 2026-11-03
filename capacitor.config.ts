@@ -10,7 +10,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * Point a build at another deployment with ARATTA_APP_URL, e.g.
  *   ARATTA_APP_URL=https://staging.example.com npx cap sync
  */
-const appUrl = (process.env.ARATTA_APP_URL ?? "https://aratta-expo-cinematic.vercel.app").replace(/\/+$/, "");
+const appUrl = (process.env.ARATTA_APP_URL?.trim() || "https://aratta-expo-cinematic.vercel.app").replace(/\/+$/, "");
 const host = new URL(appUrl).host;
 
 const config: CapacitorConfig = {
