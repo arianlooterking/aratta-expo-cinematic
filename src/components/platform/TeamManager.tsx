@@ -10,7 +10,7 @@ import {
   removeStaff,
   updateStaff,
   type TeamActionState,
-} from "@/app/[lang]/staff/team/actions";
+} from "@/app/[lang]/staff/(portal)/team/actions";
 
 type StaffRow = Pick<
   Tables<"staff_members">,

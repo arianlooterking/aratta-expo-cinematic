@@ -20,6 +20,36 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  /* Staff portal tokens; values live in src/app/portal.css (light + dark). */
+  --color-p-bg: var(--p-bg);
+  --color-p-surface: var(--p-surface);
+  --color-p-surface-2: var(--p-surface-2);
+  --color-p-sunken: var(--p-sunken);
+  --color-p-line: var(--p-line);
+  --color-p-line-strong: var(--p-line-strong);
+  --color-p-ink: var(--p-ink);
+  --color-p-ink-2: var(--p-ink-2);
+  --color-p-ink-3: var(--p-ink-3);
+  --color-p-brand: var(--p-brand);
+  --color-p-brand-ink: var(--p-brand-ink);
+  --color-p-brand-soft: var(--p-brand-soft);
+  --color-p-gold: var(--p-gold);
+  --color-p-gold-soft: var(--p-gold-soft);
+  --color-p-ok: var(--p-ok);
+  --color-p-ok-soft: var(--p-ok-soft);
+  --color-p-warn: var(--p-warn);
+  --color-p-warn-soft: var(--p-warn-soft);
+  --color-p-danger: var(--p-danger);
+  --color-p-danger-soft: var(--p-danger-soft);
+  --color-p-info: var(--p-info);
+  --color-p-info-soft: var(--p-info-soft);
+  --color-p-violet: var(--p-violet);
+  --color-p-violet-soft: var(--p-violet-soft);
+  --color-p-side: var(--p-side);
+  --color-p-side-ink: var(--p-side-ink);
+  --color-p-side-muted: var(--p-side-muted);
+  --color-p-side-hover: var(--p-side-hover);
 }
 
 * {
@@ -88,7 +118,8 @@ body::before {
   color: #ffffff;
 }
 
-a {
+/* Portal links take their colour from utility classes (see portal.css). */
+a:not(.portal a) {
   color: inherit;
 }
 
