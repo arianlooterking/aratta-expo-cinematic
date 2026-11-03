@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="dark" />
+  <title>Aratta Staff</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #071713; color: #e8f4ed;
+      font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif; }
+    main { min-height: 100%; display: grid; place-items: center; text-align: center;
+      padding: calc(env(safe-area-inset-top) + 24px) 24px calc(env(safe-area-inset-bottom) + 24px); }
+    .card { max-width: 22rem; display: grid; gap: 14px; justify-items: center; }
+    img { width: 72px; height: 72px; border-radius: 18px; }
+    h1 { margin: 6px 0 0; font-size: 1.25rem; }
+    p { margin: 0; color: #b5c9bf; line-height: 1.7; font-size: .95rem; }
+    p[lang="en"] { direction: ltr; font-size: .85rem; color: #8ea59b; }
+    button { margin-top: 8px; border: 0; border-radius: 14px; padding: 12px 22px; font: inherit;
+      font-weight: 600; color: #071713; background: #e3bd77; min-width: 11rem; }
+    button:active { transform: scale(.98); }
+    .status { min-height: 1.4em; font-size: .85rem; color: #8ea59b; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <img src="icon.png" alt="" />
+      <h1>اتصال برقرار نیست</h1>
+      <p>برای کار با پورتال کارکنان اَرَتَ به اینترنت نیاز است. پس از اتصال، برنامه خودش دوباره باز می شود.</p>
+      <p lang="en">You're offline. Aratta Staff needs a connection and will reopen as soon as you're back online.</p>
+      <button type="button" id="retry">تلاش دوباره · Try again</button>
+      <div class="status" id="status" aria-live="polite"></div>
+    </div>
+  </main>
+  <script src="config.js"></script>
+  <script>
+    (function () {
+      var config = window.ARATTA_APP || {};
+      // Android serves this page from the portal's own origin, iOS from the app bundle.
+      var base = location.protocol === "https:" ? "" : (config.url || "");
+      var target = base + (config.startPath || "/fa/staff");
+      var status = document.getElementById("status");
+      var busy = false;
+      function retry() {
+        if (busy) return;
+        busy = true;
+        status.textContent = "در حال اتصال… · Connecting…";
+        location.replace(target);
+        setTimeout(function () { busy = false; status.textContent = ""; }, 8000);
+      }
+      document.getElementById("retry").addEventListener("click", retry);
+      window.addEventListener("online", retry);
+    })();
+  </script>
+</body>
+</html>

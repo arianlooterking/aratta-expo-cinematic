@@ -12,9 +12,21 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "test:db": "scripts/db-test.sh",
-    "import:workbook": "node scripts/workbook/cli.mjs"
+    "import:workbook": "node scripts/workbook/cli.mjs",
+    "mobile:prepare": "node mobile/scripts/prepare-shell.mjs",
+    "mobile:sync": "npm run mobile:prepare && cap sync",
+    "mobile:icons": "capacitor-assets generate --assetPath mobile/assets --ios --android --iconBackgroundColor '#0b1112' --iconBackgroundColorDark '#0b1112' --splashBackgroundColor '#071713' --splashBackgroundColorDark '#071713'",
+    "mobile:android": "npm run mobile:sync && cap open android",
+    "mobile:ios": "npm run mobile:sync && cap open ios"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/push-notifications": "^8.1.3",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "framer-motion": "^12.40.0",
@@ -27,6 +39,10 @@
     "server-only": "^0.0.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
     "@cloudflare/vite-plugin": "^1.37.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

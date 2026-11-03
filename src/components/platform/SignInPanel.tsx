@@ -6,6 +6,7 @@ import { AlertTriangle, Loader2, LogOut, ShieldCheck } from "lucide-react";
 import type { Lang } from "@/lib/lang";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { isNativeApp, startNativeSignIn } from "@/lib/native/app";
 
 type Provider = "google" | "apple";
 
@@ -98,6 +99,17 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
     }
     setBusy(provider);
     setLocalError(null);
+    if (isNativeApp()) {
+      // In the iOS / Android app, sign-in runs in the system browser and
+      // returns through the app's link (see NativeBridge).
+      try {
+        await startNativeSignIn(provider, next, () => setBusy(null));
+      } catch {
+        setBusy(null);
+        setLocalError(t.providerError);
+      }
+      return;
+    }
     const redirectTo = new URL("/auth/callback", window.location.origin);
     redirectTo.searchParams.set("next", next);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -111,7 +123,7 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
   }
 
   return (
-    <main className="min-h-dvh bg-[#071713] text-[#e8f4ed]">
+    <main className="min-h-dvh bg-[#071713] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-[#e8f4ed]">
       <div className="mx-auto grid min-h-dvh max-w-6xl content-center items-center gap-8 px-4 py-8 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-[1.1fr_minmax(0,28rem)] lg:gap-16">
         <section className="space-y-6 sm:space-y-8">
           <div className="flex items-center gap-3">

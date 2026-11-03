@@ -235,14 +235,14 @@ function Shell({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side lg:block print:hidden">{sidebar}</aside>
+      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side pt-[env(safe-area-inset-top)] lg:block print:hidden">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {drawer ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="animate-fade absolute inset-0 bg-black/50" onClick={closeDrawer} aria-hidden />
-          <aside className="animate-sheet absolute inset-y-0 start-0 w-[84%] max-w-80 bg-p-side shadow-2xl">
-            <IconButton label={t(lang, "close")} className="absolute end-2 top-3 text-p-side-muted" onClick={closeDrawer}>
+          <aside className="animate-sheet absolute inset-y-0 start-0 w-[84%] max-w-80 bg-p-side pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-2xl">
+            <IconButton label={t(lang, "close")} className="absolute end-2 top-[calc(env(safe-area-inset-top)+0.75rem)] text-p-side-muted" onClick={closeDrawer}>
               <X className="size-5" />
             </IconButton>
             {sidebar}
@@ -251,7 +251,7 @@ function Shell({
       ) : null}
 
       <div className={cn("flex flex-col lg:ps-64 print:ps-0", isMap ? "h-dvh" : "min-h-dvh")}>
-        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 backdrop-blur-md print:hidden">
+        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md print:hidden">
           <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
             <IconButton label={t(lang, "menu")} className="lg:hidden" onClick={() => setDrawer(true)}>
               <Menu className="size-5" />
@@ -290,7 +290,7 @@ function Shell({
           {mode === "demo" ? <DemoBanner /> : null}
         </header>
 
-        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-16 lg:pb-0" : "pb-24 lg:pb-10 print:pb-0")}>{children}</main>
+        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" : "pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10 print:pb-0")}>{children}</main>
 
         {/* Mobile tab bar */}
         <nav
@@ -326,7 +326,7 @@ function Shell({
 
       <SearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 print:hidden">
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 print:hidden">
         {toasts.map((toast) => (
           <button
             key={toast.id}
