@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title:
       lang === "fa"
-        ? "آرشیو اخبار و نمایشگاه‌ها | اَرَت"
+        ? "آرشیو اخبار و نمایشگاه‌ها | اَرَتَ"
         : "News & exhibition archive | Aratta",
     alternates: {
       canonical: `/${lang}/archive`,
@@ -84,14 +84,14 @@ export default async function ArchivePage({ params, searchParams }: Props) {
         className="section-shell min-h-screen pb-20 pt-36"
       >
         <Link href={`/${lang}/news`} className="text-sm text-[var(--gold)]">
-          {fa ? "اخبار اَرَت" : "Aratta news"}
+          {fa ? "اخبار اَرَتَ" : "Aratta news"}
         </Link>
         <h1 className="mt-4 text-3xl font-bold sm:text-5xl">
           {fa ? "آرشیو اخبار و نمایشگاه‌ها" : "News & exhibition archive"}
         </h1>
         <p className="mt-5 max-w-3xl leading-8 text-white/65">
           {fa
-            ? "گزارش‌ها، اطلاعیه‌ها و تصاویر رسمی اَرَت را بر اساس موضوع، سال یا نام شرکت پیدا کنید. تاریخ هر مطلب، تاریخ انتشار آن است؛ نه زمان ثبت‌نام جدید."
+            ? "گزارش‌ها، اطلاعیه‌ها و تصاویر رسمی اَرَتَ را بر اساس موضوع، سال یا نام شرکت پیدا کنید. تاریخ هر مطلب، تاریخ انتشار آن است؛ نه زمان ثبت‌نام جدید."
             : "Find Aratta reports, notices and photographs by topic, year or company. Dates indicate original publication, not new registration availability. Original articles are preserved in Persian."}
         </p>
         <div className="my-8">

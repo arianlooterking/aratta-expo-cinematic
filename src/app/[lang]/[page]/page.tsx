@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const seo = getLanguageSeo(rawLang);
   const description =
     rawLang === "fa"
-      ? `${label} در سامانه نمایشگاهی اَرَت؛ مسیر رسمی برای اطلاعات، فرم ها، گالری و ارتباط قابل بررسی.`
+      ? `${label} در سامانه نمایشگاهی اَرَتَ؛ مسیر رسمی برای اطلاعات، فرم ها، گالری و ارتباط قابل بررسی.`
       : `${label} in the Aratta Expo platform, with official information, forms, galleries, and verified contact paths.`;
   const title = `${label} | ${seo.shortTitle}`;
 
@@ -176,7 +176,7 @@ function pageIntro(content: ReturnType<typeof getContent>, page: PageSlug) {
       ? "مسیر دریافت لیست تجهیزات نمایشگاه و شروع هماهنگی اجرایی."
       : "Equipment list access and the start of operational coordination.",
     participants: fa
-      ? "فهرست مشارکت کنندگان منتشرشده برای رویدادهای رسمی اَرَت."
+      ? "فهرست مشارکت کنندگان منتشرشده برای رویدادهای رسمی اَرَتَ."
       : "Published participant lists for official Aratta events.",
     news: content.news.title,
     "industry-news": content.news.relatedBody,
@@ -276,7 +276,7 @@ function getPageData(content: Content) {
             "فرم رسمی PDF همچنان در دسترس است و رویداد با توجه به تاریخ و اطلاعیه منتشرشده در بخش آرشیو نمایش داده می شود.",
           ],
           [
-            "رویداد زنجیره تامین فولاد و مس در سایت اَرَت به عنوان مسیر ثبت نام و اطلاع رسانی منتشر شده است.",
+            "رویداد زنجیره تامین فولاد و مس در سایت اَرَتَ به عنوان مسیر ثبت نام و اطلاع رسانی منتشر شده است.",
             "این رویداد روی فولاد، مس، انرژی، فلزات آهنی و غیرآهنی و تجهیزات وابسته تمرکز دارد.",
             "به دلیل عبور تاریخ منتشرشده، کارت رویداد با وضعیت آرشیو نمایش داده می شود.",
           ],
@@ -361,7 +361,7 @@ function getPageData(content: Content) {
         "انتخاب رویداد و بررسی وضعیت آرشیو یا اطلاعیه رسمی",
         "دریافت فرم PDF رسمی و آماده سازی اطلاعات شرکت",
         "ثبت درخواست از طریق پیش نویس ایمیل یا تماس مستقیم",
-        "پیگیری نهایی فقط از مسیر دفتر اَرَت و شماره های رسمی",
+        "پیگیری نهایی فقط از مسیر دفتر اَرَتَ و شماره های رسمی",
       ]
     : [
         "Choose the event and verify its archive or official-notice status",
@@ -374,7 +374,7 @@ function getPageData(content: Content) {
     ? [
         { title: "مشاهده لیست", body: "لیست رسمی تجهیزات نمایشگاه به صورت JPG حفظ شده و قابل دانلود است." },
         { title: "تطبیق نیاز غرفه", body: "نوع غرفه، متراژ، برق، مبلمان، تجهیزات صوتی و ملزومات اجرایی بررسی می شود." },
-        { title: "هماهنگی اجرایی", body: "تیم اَرَت جزئیات تجهیزات، زمان تحویل، هزینه و هماهنگی نهایی را از طریق تماس یا ایمیل پیگیری می کند." },
+        { title: "هماهنگی اجرایی", body: "تیم اَرَتَ جزئیات تجهیزات، زمان تحویل، هزینه و هماهنگی نهایی را از طریق تماس یا ایمیل پیگیری می کند." },
       ]
     : [
         { title: "Review the list", body: "The official exhibition equipment list is preserved as a downloadable JPG." },
@@ -638,7 +638,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
           <div>
             <div className="section-kicker">{fa ? "آرشیو رویدادها" : "Event archive"}</div>
             <h2 className="card-display-title mt-3 font-black text-white">
-              {fa ? "رویدادهای قدیمی منتشرشده در سایت اَرَت" : "Older events published on Aratta"}
+              {fa ? "رویدادهای قدیمی منتشرشده در سایت اَرَتَ" : "Older events published on Aratta"}
             </h2>
           </div>
           <span className="rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-sm text-white/58">
@@ -726,7 +726,7 @@ function DownloadsPage({
       icon: FileText,
       title: fa ? "کتابخانه فرم ها و فایل های رسمی" : "Official forms and file library",
       body: fa
-        ? "همه فایل ها به مسیرهای رسمی سایت اَرَت وصل هستند. این صفحه فقط دانلود و آماده سازی را ساده می کند."
+        ? "همه فایل ها به مسیرهای رسمی سایت اَرَتَ وصل هستند. این صفحه فقط دانلود و آماده سازی را ساده می کند."
         : "Every file remains linked to Aratta's official source. This page only improves discovery and preparation.",
     },
     equipment: {
@@ -1031,7 +1031,7 @@ function RelatedNewsPage({ content }: { content: Content }) {
           <div>
             <div className="section-kicker">{fa ? "آرشیو رسمی" : "Official archive"}</div>
             <h2 className="card-display-title mt-4 font-black text-white">
-              {fa ? "گزارش‌ها و اطلاعیه‌های اَرَت" : "Reports and announcements from Aratta"}
+              {fa ? "گزارش‌ها و اطلاعیه‌های اَرَتَ" : "Reports and announcements from Aratta"}
             </h2>
           </div>
           <Link href={`/${content.lang}/archive`} className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 px-6 py-3 text-[var(--gold)] hover:bg-white/10">
@@ -1053,11 +1053,11 @@ function GalleryPage({ content }: { content: Content }) {
         <div className="industrial-card rounded-[2rem] p-7">
           <BookOpen className="text-[var(--gold)]" size={30} />
           <h2 className="card-display-title mt-5 font-black text-white">
-            {fa ? "آرشیو تصویری رویدادهای اَرَت" : "Aratta event photo archive"}
+            {fa ? "آرشیو تصویری رویدادهای اَرَتَ" : "Aratta event photo archive"}
           </h2>
           <p className="site-copy mt-4 text-white/62">
             {fa
-              ? "گزارش‌های تصویری رویدادهای اَرَت؛ از غرفه‌ها و نشست‌های تخصصی تا دیدارهای تجاری. هر تصویر را برای مشاهده کامل باز کنید."
+              ? "گزارش‌های تصویری رویدادهای اَرَتَ؛ از غرفه‌ها و نشست‌های تخصصی تا دیدارهای تجاری. هر تصویر را برای مشاهده کامل باز کنید."
               : "Aratta event photographs, from exhibition booths and specialist sessions to business meetings. Open any photograph to view it in full."}
           </p>
         </div>

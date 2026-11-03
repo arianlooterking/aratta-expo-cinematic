@@ -301,7 +301,7 @@ const crmCompanies: CrmCompany[] = [
 
 export const staffPortalSeed: PortalState = {
   version: 3,
-  eventName: text("الگوی عملیاتی نمایشگاه صنعتی اَرَت", "Aratta Industrial Expo Operations Template"),
+  eventName: text("الگوی عملیاتی نمایشگاه صنعتی اَرَتَ", "Aratta Industrial Expo Operations Template"),
   eventStatus: "archived-template",
   activeExhibitionId: "exhibition-industrial-demo",
   activeHallId: hallA.id,

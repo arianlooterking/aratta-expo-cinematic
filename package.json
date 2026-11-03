@@ -10,16 +10,21 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "test:db": "scripts/db-test.sh",
+    "import:workbook": "node scripts/workbook/cli.mjs"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
     "framer-motion": "^12.40.0",
     "gsap": "^3.15.0",
     "lucide-react": "^1.16.0",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "read-excel-file": "^9.3.1"
+    "read-excel-file": "^9.3.1",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.37.1",
@@ -31,7 +36,9 @@
     "@vitejs/plugin-rsc": "^0.5.26",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "exceljs": "^4.4.0",
     "parse5": "8.0.0",
+    "pg": "^8.23.1",
     "react-server-dom-webpack": "19.2.8",
     "tailwindcss": "^4",
     "typescript": "^5",

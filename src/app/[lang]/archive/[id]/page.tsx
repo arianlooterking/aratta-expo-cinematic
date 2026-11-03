@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, id } = await params;
   const item = archiveEntries.find((e) => e.slug === id);
   if (!item || !isLang(lang)) return {};
-  const title = `${item.title} | اَرَت`;
+  const title = `${item.title} | اَرَتَ`;
   const description =
     item.paragraphs.find((p) => p.length > 60)?.slice(0, 180) || item.title;
   return {
@@ -78,7 +78,7 @@ export default async function ArchiveArticle({ params }: Props) {
           <Link href={`/${lang}`}>{fa ? "خانه" : "Home"}</Link>
           <span>/</span>
           <Link href={`/${lang}/archive`}>
-            {fa ? "آرشیو اَرَت" : "Aratta archive"}
+            {fa ? "آرشیو اَرَتَ" : "Aratta archive"}
           </Link>
         </nav>
         <article className="mx-auto max-w-5xl">
@@ -100,14 +100,14 @@ export default async function ArchiveArticle({ params }: Props) {
             <p className="mt-6 rounded-2xl border border-white/15 bg-white/[0.035] p-4 text-sm leading-7 text-white/65">
               {entry.kind === "catalogue"
                 ? fa
-                  ? "معرفی کتاب از آرشیو رسمی اَرَت. فروش و پرداخت آنلاین در این وبسایت فعال نیست؛ برای دسترسی به کتاب و شرایط تهیه آن با دفتر اَرَت تماس بگیرید."
+                  ? "معرفی کتاب از آرشیو رسمی اَرَتَ. فروش و پرداخت آنلاین در این وبسایت فعال نیست؛ برای دسترسی به کتاب و شرایط تهیه آن با دفتر اَرَتَ تماس بگیرید."
                   : "A book listing from the official Aratta archive. Online purchases and payments are not enabled here. Contact the Aratta office for access and current availability. Original Persian descriptions are preserved below."
                 : entry.id === 5807
                 ? fa
                   ? "اطلاعیه رسمی؛ تاریخ جدید هنوز در منبع اعلام نشده است."
                   : "Official notice; the source has not announced a new date."
                 : fa
-                  ? "این مطلب از آرشیو رسمی اَرَت است. تاریخ‌ها، شرایط و اطلاعات آن مربوط به زمان انتشار است و به معنی باز بودن ثبت‌نام یا تأیید برنامه جدید نیست."
+                  ? "این مطلب از آرشیو رسمی اَرَتَ است. تاریخ‌ها، شرایط و اطلاعات آن مربوط به زمان انتشار است و به معنی باز بودن ثبت‌نام یا تأیید برنامه جدید نیست."
                   : "Original Aratta archive. Dates, conditions and details reflect the time of publication and do not indicate open registration or a confirmed new event. The complete original Persian text is preserved below."}
             </p>
           </header>

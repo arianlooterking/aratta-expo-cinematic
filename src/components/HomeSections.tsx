@@ -180,7 +180,7 @@ function EquipmentParticipantsSection({ content }: HomeSectionsProps) {
               <h2 className="card-display-title mt-5 font-black text-white">{item.label}</h2>
               <p className="site-copy mt-4 text-white/62">
                 {content.lang === "fa"
-                  ? "اسناد دوره‌های گذشته را دریافت کنید و برای نیازهای نمایشگاه بعدی با دفتر اَرَت هماهنگ شوید."
+                  ? "اسناد دوره‌های گذشته را دریافت کنید و برای نیازهای نمایشگاه بعدی با دفتر اَرَتَ هماهنگ شوید."
                   : "Download past-edition documents and contact the Aratta office to discuss your next exhibition."}
               </p>
               <span className="mt-8 inline-flex items-center gap-2 font-bold text-[var(--gold)]">
