@@ -17,6 +17,7 @@ export type PortalTable =
   | "equipment_orders"
   | "tasks"
   | "staff_members"
+  | "teams"
   | "notifications";
 
 export type Row<T extends PortalTable> = Tables<T>;
@@ -39,6 +40,18 @@ export type EquipmentOrder = Row<"equipment_orders">;
 export type Task = Row<"tasks">;
 export type StaffMember = Row<"staff_members">;
 export type Notification = Row<"notifications">;
+export type Team = Row<"teams">;
+
+/** One entry of the change history (audit_log). */
+export type AuditEntry = {
+  id: string;
+  occurred_at: string;
+  table_name: string;
+  row_id: string | null;
+  action: "insert" | "update" | "delete";
+  actor_id: string | null;
+  changes: Record<string, unknown>;
+};
 
 export type BoothStatus = Enums<"booth_status">;
 export type DealStage = Enums<"deal_stage">;

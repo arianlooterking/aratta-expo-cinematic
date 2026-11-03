@@ -44,6 +44,14 @@ function permissionsFor(user: PortalUser): Permissions {
   };
 }
 
+const staffNotices: Record<string, Record<Lang, string>> = {
+  "self-role": { fa: "نقش یا وضعیت خودتان را نمی توانید تغییر دهید", en: "You can't change your own role or status" },
+  "self-remove": { fa: "دسترسی خودتان را نمی توانید حذف کنید", en: "You can't remove your own access" },
+  "owner-only": { fa: "فقط مالک می تواند دسترسی مالک را بدهد یا تغییر دهد", en: "Only an owner can grant or change owner access" },
+  "last-owner": { fa: "دست کم یک مالک فعال لازم است", en: "At least one active owner is required" },
+  "email-locked": { fa: "ایمیل همکاری که وارد شده قابل تغییر نیست", en: "A signed-in colleague's email can't be changed" },
+};
+
 type Toast = { id: number; tone: "error" | "info"; text: string };
 
 type PortalContextValue = {
@@ -102,7 +110,9 @@ export function PortalProvider({
                 ? lang === "fa"
                   ? "این مورد قبلا ثبت شده است"
                   : "That already exists"
-                : `${lang === "fa" ? "ذخیره نشد" : "Not saved"}: ${notice.message}`;
+                : staffNotices[notice.message]
+                  ? staffNotices[notice.message][lang]
+                  : `${lang === "fa" ? "ذخیره نشد" : "Not saved"}: ${notice.message}`;
         toast(text, "error");
       }),
     [store, lang, toast],

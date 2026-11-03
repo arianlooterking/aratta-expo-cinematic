@@ -290,4 +290,62 @@ select test_helpers.expect_error(
 select test_helpers.expect(
   (select display_name from public.update_my_profile('Arian', null, null, 'en')) = 'Arian', 'profile self-service');
 
+-- Profiles and teams --------------------------------------------------------
+select test_helpers.expect(
+  (select bio from public.update_my_profile(null, '', null, null, 'Runs the halls', array['Persian', ' Persian ', 'English'])) = 'Runs the halls',
+  'profile self-service keeps bio');
+select test_helpers.as_service();
+select test_helpers.expect(
+  (select job_title is null and cardinality(skills) = 2 from public.staff_members where email = 'owner@example.test'),
+  'empty string clears a field and skills are de-duplicated');
+select test_helpers.expect_error(
+  $$update public.staff_members set email = 'other@example.test' where email = 'seller@example.test'$$,
+  'signed-in email is locked');
+
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a3');
+insert into public.teams (id, name_fa, lead_id, member_ids) values
+  ('20000000-0000-0000-0000-0000000000b1', 'فروش', '00000000-0000-0000-0000-0000000000a4',
+   array['00000000-0000-0000-0000-0000000000a5', '00000000-0000-0000-0000-0000000000a5']::uuid[]);
+select test_helpers.expect(
+  (select member_ids from public.teams where id = '20000000-0000-0000-0000-0000000000b1')
+    = array['00000000-0000-0000-0000-0000000000a4', '00000000-0000-0000-0000-0000000000a5']::uuid[],
+  'lead is first, members de-duplicated');
+select test_helpers.expect(
+  (select created_by from public.teams where id = '20000000-0000-0000-0000-0000000000b1') = '00000000-0000-0000-0000-0000000000a3',
+  'team remembers who made it');
+select test_helpers.expect_error(
+  $$insert into public.teams (name_fa, member_ids) values ('x', array['99999999-0000-0000-0000-000000000000']::uuid[])$$,
+  'unknown members are refused');
+
+-- The lead (a member) can change who is on the team, but not give it away.
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a4');
+update public.teams set member_ids = array['00000000-0000-0000-0000-0000000000a4']::uuid[]
+  where id = '20000000-0000-0000-0000-0000000000b1';
+select test_helpers.expect(
+  (select cardinality(member_ids) from public.teams where id = '20000000-0000-0000-0000-0000000000b1') = 1,
+  'lead edits members');
+select test_helpers.expect_error(
+  $$update public.teams set lead_id = '00000000-0000-0000-0000-0000000000a5' where id = '20000000-0000-0000-0000-0000000000b1'$$,
+  'lead cannot hand the team away');
+select test_helpers.expect_error(
+  $$insert into public.teams (name_fa) values ('y')$$, 'members cannot create teams');
+-- A member who does not lead the team changes nothing.
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a5');
+update public.teams set name_fa = 'hack' where id = '20000000-0000-0000-0000-0000000000b1';
+select test_helpers.expect(
+  (select name_fa from public.teams where id = '20000000-0000-0000-0000-0000000000b1') = 'فروش', 'non-lead cannot edit');
+select test_helpers.expect((select count(*) from public.teams) = 1, 'every staff member sees teams');
+
+-- Removing someone takes them off their teams.
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a3');
+update public.teams set member_ids = array['00000000-0000-0000-0000-0000000000a4', '00000000-0000-0000-0000-0000000000a5']::uuid[]
+  where id = '20000000-0000-0000-0000-0000000000b1';
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a2');
+delete from public.staff_members where id = '00000000-0000-0000-0000-0000000000a5';
+select test_helpers.expect(
+  (select member_ids from public.teams where id = '20000000-0000-0000-0000-0000000000b1') = array['00000000-0000-0000-0000-0000000000a4']::uuid[],
+  'removed colleague leaves the team');
+select test_helpers.expect(
+  (select count(*) from public.audit_log where table_name = 'teams') >= 3, 'team changes are in the history');
+
 rollback;

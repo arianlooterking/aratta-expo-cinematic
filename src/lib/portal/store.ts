@@ -2,7 +2,7 @@
 // and an in-browser demo. Screens subscribe to "collections" (a table with an
 // optional equality filter). Edits show up instantly (optimistic) and roll
 // back if the server refuses them.
-import type { CollectionState, Filter, Insert, MutationResult, Patch, PortalTable, Row } from "./types";
+import type { AuditEntry, CollectionState, Filter, Insert, MutationResult, Patch, PortalTable, Row } from "./types";
 
 export type AnyRow = { id: string } & Record<string, unknown>;
 
@@ -131,12 +131,19 @@ export abstract class PortalStore {
   abstract markNotificationsRead(ids?: string[]): Promise<void>;
   /** The signed-in person's own picture: "preset:<n>" for a built-in one, or an uploaded file path. */
   abstract setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>>;
+  /** The signed-in person's own profile details (anyone can edit their own). */
+  abstract updateMyProfile(staffId: string, patch: MyProfilePatch): Promise<MutationResult<Row<"staff_members">>>;
+  /** Recent changes from the history, newest first. Managers and above. */
+  abstract history(query: HistoryQuery): Promise<{ ok: true; entries: AuditEntry[] } | { ok: false; error: string }>;
   /** Upload a file and return a path the store can turn into a URL. */
   abstract uploadFile(bucket: "hall-plans" | "documents", path: string, file: File): Promise<{ ok: true; path: string } | { ok: false; error: string }>;
   abstract fileUrl(bucket: "hall-plans" | "documents", path: string): Promise<string | null>;
 }
 
 export type { Collection, Filter };
+
+export type MyProfilePatch = Partial<Pick<Row<"staff_members">, "display_name" | "job_title" | "phone" | "locale" | "bio" | "skills">>;
+export type HistoryQuery = { tables: string[]; rowId?: string; limit?: number };
 
 export function newId() {
   return crypto.randomUUID();
