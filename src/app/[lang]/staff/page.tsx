@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { StaffPortal } from "@/components/staff/StaffPortal";
 import { isLang, languages, type Lang } from "@/lib/lang";
+import { getStaffSession } from "@/lib/platform/session";
 
 type StaffPageProps = {
   params: Promise<{ lang: string }>;
@@ -49,6 +50,13 @@ export async function generateMetadata({ params }: StaffPageProps): Promise<Meta
 export default async function StaffPage({ params }: StaffPageProps) {
   const { lang } = await params;
   if (!isLang(lang)) notFound();
+
+  // Without Supabase settings the portal stays a local, browser-only demo.
+  // Once connected, only active staff members get past this point.
+  const session = await getStaffSession();
+  if (session.state === "signed-out" || session.state === "pending") {
+    redirect(`/${lang}/staff/sign-in`);
+  }
 
   return <StaffPortal initialLocale={lang} />;
 }
