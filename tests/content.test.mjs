@@ -103,7 +103,7 @@ test("link previews use localized professional metadata and booth image", () => 
   assert.match(seo, /aratta-expo-booth-preview-v2\.png/);
   assert.match(seo, /width: 1672/);
   assert.match(seo, /height: 941/);
-  assert.match(seo, /شرکت توسعه تجارت اَرَت \| سامانه نمایشگاه های صنعتی/);
+  assert.match(seo, /شرکت توسعه تجارت اَرَتَ \| سامانه نمایشگاه های صنعتی/);
   assert.match(seo, /Aratta Expo \| Industrial & Mining Exhibition Systems/);
   assert.match(rootLayout, /metadataBase: new URL\(siteUrl\)/);
   assert.match(langPage, /twitter:\s*\{/);

@@ -156,6 +156,21 @@ select test_helpers.expect(
   (select balance from public.deal_balances where deal_id = '40000000-0000-0000-0000-000000000002') = 1524500000,
   'deal balance');
 
+-- Finance can take a line off a draft invoice, but not off an issued one.
+insert into public.invoices (id, exhibition_id, company_id, deal_id, status)
+values ('50000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001',
+        '40000000-0000-0000-0000-000000000001', '40000000-0000-0000-0000-000000000002', 'draft');
+insert into public.invoice_lines (id, invoice_id, service, quantity, unit, unit_price)
+values ('50000000-0000-0000-0000-000000000003', '50000000-0000-0000-0000-000000000002', 'equipment', 2, 'unit', 1000);
+delete from public.invoice_lines where id = '50000000-0000-0000-0000-000000000003';
+select test_helpers.expect(
+  not exists (select 1 from public.invoice_lines where id = '50000000-0000-0000-0000-000000000003'),
+  'finance removes a line from a draft');
+delete from public.invoice_lines where invoice_id = '50000000-0000-0000-0000-000000000001';
+select test_helpers.expect(
+  (select count(*) from public.invoice_lines where invoice_id = '50000000-0000-0000-0000-000000000001') = 1,
+  'lines of an issued invoice stay');
+
 -- Operations member outside sales/finance cannot touch money.
 select test_helpers.as_user('10000000-0000-0000-0000-0000000000a5');
 select test_helpers.expect_error(
@@ -174,6 +189,40 @@ select test_helpers.expect(
    from public.equipment_orders where id = '60000000-0000-0000-0000-000000000002'),
   'delivery stamps time and quantity and inherits the booth deal');
 select test_helpers.expect(
+  (select delivered_by = array['00000000-0000-0000-0000-0000000000a5'::uuid] and handled_by = '00000000-0000-0000-0000-0000000000a5'
+   from public.equipment_orders where id = '60000000-0000-0000-0000-000000000002'),
+  'a delivery with nobody named is credited to whoever saved it');
+update public.equipment_orders
+set delivered_by = array['00000000-0000-0000-0000-0000000000a4', '00000000-0000-0000-0000-0000000000a5', '00000000-0000-0000-0000-0000000000a4']::uuid[]
+where id = '60000000-0000-0000-0000-000000000002';
+select test_helpers.expect(
+  (select delivered_by = array['00000000-0000-0000-0000-0000000000a4', '00000000-0000-0000-0000-0000000000a5']::uuid[]
+   from public.equipment_orders where id = '60000000-0000-0000-0000-000000000002'),
+  'several people can be named for one handover, in order, without repeats');
+select test_helpers.expect_error(
+  $$update public.equipment_orders set delivered_by = array['99999999-0000-0000-0000-000000000000']::uuid[]
+    where id = '60000000-0000-0000-0000-000000000002'$$,
+  'only real staff can be named on a handover');
+
+-- Booth managers: staff only, order kept, repeats dropped.
+update public.booths
+set manager_ids = array['00000000-0000-0000-0000-0000000000a5', '00000000-0000-0000-0000-0000000000a4', '00000000-0000-0000-0000-0000000000a5']::uuid[]
+where id = '30000000-0000-0000-0000-000000000001';
+select test_helpers.expect(
+  (select manager_ids = array['00000000-0000-0000-0000-0000000000a5', '00000000-0000-0000-0000-0000000000a4']::uuid[]
+   from public.booths where id = '30000000-0000-0000-0000-000000000001'),
+  'booth managers keep their order without repeats');
+select test_helpers.expect_error(
+  $$update public.booths set manager_ids = array[gen_random_uuid()] where id = '30000000-0000-0000-0000-000000000001'$$,
+  'booth managers must be staff');
+
+-- Avatars: staff pick their own, from the set or an uploaded file, nothing else.
+select public.set_my_avatar('preset:7');
+select test_helpers.expect(
+  (select avatar_url = 'preset:7' from public.staff_members where id = '00000000-0000-0000-0000-0000000000a5'),
+  'staff choose their own avatar');
+select test_helpers.expect_error($$select public.set_my_avatar('https://example.test/x.png')$$, 'avatars come from the set or the avatars folder');
+select test_helpers.expect(
   (select available = 8 and awaiting_collection = 2 from public.inventory_allocation
    where item_id = '60000000-0000-0000-0000-000000000001'
      and exhibition_id = '20000000-0000-0000-0000-000000000001'),
@@ -184,6 +233,10 @@ select test_helpers.expect(
    where item_id = '60000000-0000-0000-0000-000000000001'
      and exhibition_id = '20000000-0000-0000-0000-000000000001'),
   'collection returns stock');
+select test_helpers.expect(
+  (select collected_by = array['00000000-0000-0000-0000-0000000000a5'::uuid]
+   from public.equipment_orders where id = '60000000-0000-0000-0000-000000000002'),
+  'collection is credited too');
 
 -- Tasks and notifications ------------------------------------------------
 select test_helpers.as_user('10000000-0000-0000-0000-0000000000a3');

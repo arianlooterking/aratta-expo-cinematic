@@ -157,6 +157,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           deal_id: string | null;
+          manager_ids: string[];
         };
         Insert: {
           id?: string;
@@ -181,6 +182,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           deal_id?: string | null;
+          manager_ids?: string[];
         };
         Update: {
           id?: string;
@@ -204,6 +206,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           deal_id?: string | null;
+          manager_ids?: string[];
         };
         Relationships: [
           { foreignKeyName: "booths_deal_id_fkey"; columns: ["deal_id"]; isOneToOne: false; referencedRelation: "deals"; referencedColumns: ["id"] },
@@ -491,6 +494,8 @@ export type Database = {
           delivered_at: string | null;
           collected_at: string | null;
           handled_by: string | null;
+          delivered_by: string[];
+          collected_by: string[];
           notes: string | null;
           import_key: string | null;
           created_at: string;
@@ -513,6 +518,8 @@ export type Database = {
           delivered_at?: string | null;
           collected_at?: string | null;
           handled_by?: string | null;
+          delivered_by?: string[];
+          collected_by?: string[];
           notes?: string | null;
           import_key?: string | null;
           created_at?: string;
@@ -535,6 +542,8 @@ export type Database = {
           delivered_at?: string | null;
           collected_at?: string | null;
           handled_by?: string | null;
+          delivered_by?: string[];
+          collected_by?: string[];
           notes?: string | null;
           import_key?: string | null;
           created_at?: string;
@@ -1285,6 +1294,7 @@ export type Database = {
       in_department: { Args: { dept: Database["public"]["Enums"]["department"] }; Returns: boolean };
       can_manage_finance: { Args: Record<PropertyKey, never>; Returns: boolean };
       mark_notifications_read: { Args: { p_ids?: string[] }; Returns: number };
+      set_my_avatar: { Args: { p_avatar: string | null }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
       update_my_profile: { Args: { p_display_name?: string; p_job_title?: string; p_phone?: string; p_locale?: string }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
     };
     Enums: {

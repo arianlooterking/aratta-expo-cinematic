@@ -47,7 +47,7 @@ export async function inviteStaff(_prev: TeamActionState, form: FormData): Promi
   });
   if (error) return { ok: false, message: friendly(error.message) };
 
-  revalidatePath("/[lang]/staff/team", "page");
+  revalidatePath("/[lang]/staff/(portal)/team", "page");
   return { ok: true, message: "invited" };
 }
 
@@ -70,7 +70,7 @@ export async function updateStaff(_prev: TeamActionState, form: FormData): Promi
   if (error) return { ok: false, message: friendly(error.message) };
   if (!data?.length) return { ok: false, message: "forbidden" };
 
-  revalidatePath("/[lang]/staff/team", "page");
+  revalidatePath("/[lang]/staff/(portal)/team", "page");
   return { ok: true, message: "saved" };
 }
 
@@ -83,6 +83,6 @@ export async function removeStaff(_prev: TeamActionState, form: FormData): Promi
   if (error) return { ok: false, message: friendly(error.message) };
   if (!data?.length) return { ok: false, message: "forbidden" };
 
-  revalidatePath("/[lang]/staff/team", "page");
+  revalidatePath("/[lang]/staff/(portal)/team", "page");
   return { ok: true, message: "removed" };
 }

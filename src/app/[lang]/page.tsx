@@ -74,7 +74,7 @@ export default async function LangPage({ params }: PageProps) {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: lang === "fa" ? "شرکت توسعه تجارت اَرَت" : "Aratta Trade Development Company",
+    name: lang === "fa" ? "شرکت توسعه تجارت اَرَتَ" : "Aratta Trade Development Company",
     alternateName: "Aratta Expo",
     url: "https://arattaexpo.ir",
     email: "info@arattaexpo.ir",

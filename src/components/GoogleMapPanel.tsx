@@ -16,7 +16,7 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
     <div className={compact ? "glass grid min-h-[390px] overflow-hidden rounded-[2rem] p-3 sm:p-4" : "glass grid min-h-[560px] overflow-hidden rounded-[2rem] p-3 sm:p-5"}>
       <div className={compact ? "relative min-h-[360px] overflow-hidden rounded-[1.5rem] border border-white/12 bg-black/25" : "relative min-h-[520px] overflow-hidden rounded-[1.5rem] border border-white/12 bg-black/25"}>
         <iframe
-          title={fa ? "نقشه گوگل دفتر اَرَت در کرمان" : "Google map for Aratta office in Kerman"}
+          title={fa ? "نقشه گوگل دفتر اَرَتَ در کرمان" : "Google map for Aratta office in Kerman"}
           src={content.contact.mapEmbedUrl}
           className="absolute inset-0 h-full w-full border-0"
           loading="lazy"

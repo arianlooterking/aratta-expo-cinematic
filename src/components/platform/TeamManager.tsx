@@ -2,7 +2,9 @@
 
 import { useActionState } from "react";
 import { Check, Loader2, Mail, Trash2, UserPlus } from "lucide-react";
+import { AvatarArt } from "@/components/portal/people";
 import type { Lang } from "@/lib/lang";
+import { avatarPhoto, avatarPreset } from "@/lib/portal/avatar";
 import { Constants, type Tables } from "@/lib/platform/database.types";
 import { departmentLabels, roleDescriptions, roleLabels, staffStatusLabels } from "@/lib/platform/labels";
 import {
@@ -10,7 +12,7 @@ import {
   removeStaff,
   updateStaff,
   type TeamActionState,
-} from "@/app/[lang]/staff/team/actions";
+} from "@/app/[lang]/staff/(portal)/team/actions";
 
 type StaffRow = Pick<
   Tables<"staff_members">,
@@ -205,17 +207,16 @@ function MemberRow({
   const roles = Constants.public.Enums.staff_role.filter(
     (r) => canGrantOwner || r !== "owner" || member.role === "owner",
   );
-  const initials = (member.display_name ?? member.email).trim().slice(0, 1).toUpperCase();
 
   return (
     <li className="rounded-3xl border border-[#10211d]/10 bg-white p-4 shadow-sm sm:p-5">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[#10211d] text-sm font-bold text-[#e3bd77]">
-          {member.avatar_url ? (
+        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-[#10211d]/5">
+          {avatarPhoto(member.avatar_url) ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={member.avatar_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+            <img src={avatarPhoto(member.avatar_url)!} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
           ) : (
-            initials
+            <AvatarArt preset={avatarPreset(member)} className="h-full w-full" />
           )}
         </span>
         <div className="min-w-0 flex-1">

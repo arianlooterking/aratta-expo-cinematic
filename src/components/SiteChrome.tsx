@@ -142,7 +142,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
                 )}
               >
                 {isFa
-                  ? "شرکت توسعه تجارت اَرَت"
+                  ? "شرکت توسعه تجارت اَرَتَ"
                   : "Exhibition | Trade Fair | Event"}
               </span>
             </span>
