@@ -34,6 +34,11 @@ import {
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
 import { InquiryForm } from "@/components/InquiryForm";
+import { BoothRequestBuilder, EquipmentRequestBuilder } from "@/components/RequestBuilders";
+import { ExhibitorJourney, FaqList } from "@/components/SiteGuides";
+import { UpcomingExhibitions } from "@/components/UpcomingExhibitions";
+import { toCards, type CalendarCard } from "@/lib/public-calendar";
+import { getUpcomingExhibitions } from "@/lib/public-calendar-source";
 import { SiteChrome } from "@/components/SiteChrome";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ArchiveOverview, ArchiveDownloads, ArchiveGalleryLinks, ExhibitionNotice } from "@/components/ArchiveSections";
@@ -42,7 +47,7 @@ import { getContent } from "@/data/aratta-content";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { getBoothFrameForPage } from "@/lib/booth-scenes";
 import { isLang, languages, type Lang } from "@/lib/lang";
-import { getLanguageSeo, siteName, socialPreviewImage } from "@/lib/seo";
+import { getLanguageSeo, siteName, siteUrl, socialPreviewImage } from "@/lib/seo";
 
 const canonicalPageSlugs = [
   "about",
@@ -63,6 +68,7 @@ const pageSlugs = [...canonicalPageSlugs, "equipment-rental"] as const;
 type PageSlug = (typeof canonicalPageSlugs)[number];
 type RoutePageSlug = (typeof pageSlugs)[number];
 type Content = ReturnType<typeof getContent>;
+type Calendar = { items: CalendarCard[]; live: boolean };
 
 type PageProps = {
   params: Promise<{ lang: string; page: string }>;
@@ -82,7 +88,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const seo = getLanguageSeo(rawLang);
   const description =
     rawLang === "fa"
-      ? `${label} در سامانه نمایشگاهی اَرَتَ؛ مسیر رسمی برای اطلاعات، فرم ها، گالری و ارتباط قابل بررسی.`
+      ? `${label} در سامانه نمایشگاهی اَرَتَ؛ مسیر رسمی برای اطلاعات، فرم‌ها، گالری و ارتباط قابل بررسی.`
       : `${label} in the Aratta Expo platform, with official information, forms, galleries, and verified contact paths.`;
   const title = `${label} | ${seo.shortTitle}`;
 
@@ -126,6 +132,8 @@ export default async function RoutedPage({ params }: PageProps) {
   const lang = rawLang as Lang;
   const page = canonicalPage(rawPage);
   const content = getContent(lang);
+  const source = await getUpcomingExhibitions(lang);
+  const calendar: Calendar = { items: toCards(source.items, lang, `${siteUrl}/${lang}/exhibitions`), live: source.live };
 
   return (
     <>
@@ -138,8 +146,8 @@ export default async function RoutedPage({ params }: PageProps) {
             body={pageIntro(content, page)}
             page={page}
           />
-          {['exhibitions','registration','news'].includes(page)&&<div className="mt-8"><ExhibitionNotice lang={lang}/></div>}
-          <div className="mt-10">{renderPage(content, page)}</div>
+          {['registration','news'].includes(page)&&<div className="mt-8"><ExhibitionNotice lang={lang}/></div>}
+          <div className="mt-10">{renderPage(content, page, calendar)}</div>
           {page==='gallery'&&<div className="mt-12"><ArchiveGalleryLinks lang={lang}/></div>}
           {['forms','participants'].includes(page)&&<ArchiveDownloads lang={lang}/>}
           {['exhibitions','gallery','news'].includes(page)&&<div className="mt-12"><ArchiveOverview lang={lang} kind={page==='exhibitions'?'exhibition':undefined}/></div>}
@@ -167,23 +175,25 @@ function pageIntro(content: ReturnType<typeof getContent>, page: PageSlug) {
   const fa = content.lang === "fa";
   const copy: Record<PageSlug, string> = {
     about: content.about.body,
-    exhibitions: content.exhibitions.note,
+    exhibitions: fa
+      ? "تقویم رویدادهای پیش روی اَرَتَ و همه دوره‌های برگزارشده، با اطلاعیه‌ها، فایل‌ها و تاریخ‌ها به محض اعلام رسمی."
+      : "Aratta's upcoming events and every edition held, with notices, files and dates as soon as they are officially announced.",
     registration: content.registration.body,
     forms: fa
-      ? "همه فایل های رسمی قابل دانلود در یک مسیر روشن و قابل بررسی."
+      ? "همه فایل‌های رسمی قابل دانلود در یک مسیر روشن و قابل بررسی."
       : "All official downloadable files in one clear, verifiable path.",
     equipment: fa
       ? "مسیر دریافت لیست تجهیزات نمایشگاه و شروع هماهنگی اجرایی."
       : "Equipment list access and the start of operational coordination.",
     participants: fa
-      ? "فهرست مشارکت کنندگان منتشرشده برای رویدادهای رسمی اَرَتَ."
+      ? "فهرست مشارکت‌کنندگان منتشرشده برای رویدادهای رسمی اَرَتَ."
       : "Published participant lists for official Aratta events.",
     news: content.news.title,
     "industry-news": content.news.relatedBody,
     gallery: content.gallery.title,
     contact: content.contact.title,
     search: fa
-      ? "جستجوی سریع در مسیرهای کلیدی سایت، فرم ها، اخبار، گالری و تماس."
+      ? "جستجوی سریع در مسیرهای کلیدی سایت، فرم‌ها، اخبار، گالری و تماس."
       : "Quick access across key site paths, forms, news, gallery, and contact.",
   };
   return copy[page];
@@ -230,18 +240,19 @@ function PageHeader({
   );
 }
 
-function renderPage(content: ReturnType<typeof getContent>, page: PageSlug) {
+function renderPage(content: ReturnType<typeof getContent>, page: PageSlug, calendar: Calendar) {
+  const eventNames = calendar.items.map((item) => item.name);
   switch (page) {
     case "about":
       return <AboutPage content={content} />;
     case "exhibitions":
-      return <ExhibitionsPage content={content} />;
+      return <ExhibitionsPage content={content} calendar={calendar} />;
     case "registration":
-      return <RegistrationPage content={content} />;
+      return <RegistrationPage content={content} eventNames={eventNames} />;
     case "forms":
       return <DownloadsPage content={content} mode="forms" />;
     case "equipment":
-      return <DownloadsPage content={content} mode="equipment" />;
+      return <DownloadsPage content={content} mode="equipment" eventNames={eventNames} />;
     case "participants":
       return <DownloadsPage content={content} mode="participants" />;
     case "news":
@@ -271,19 +282,19 @@ function getPageData(content: Content) {
     const details = fa
       ? [
           [
-            "صفحه رسمی، KIMEX 2025 را برای ۱۲ تا ۱۵ مرداد ۱۴۰۴ در کرمان معرفی می کند.",
-            "در همان صفحه، اطلاعیه تعلیق موقت نمایشگاه ها از طرف سازمان توسعه تجارت ایران درج شده است.",
-            "فرم رسمی PDF همچنان در دسترس است و رویداد با توجه به تاریخ و اطلاعیه منتشرشده در بخش آرشیو نمایش داده می شود.",
+            "صفحه رسمی، KIMEX 2025 را برای ۱۲ تا ۱۵ مرداد ۱۴۰۴ در کرمان معرفی می‌کند.",
+            "در همان صفحه، اطلاعیه تعلیق موقت نمایشگاه‌ها از طرف سازمان توسعه تجارت ایران درج شده است.",
+            "فرم رسمی PDF همچنان در دسترس است و رویداد با توجه به تاریخ و اطلاعیه منتشرشده در بخش آرشیو نمایش داده می‌شود.",
           ],
           [
             "رویداد زنجیره تامین فولاد و مس در سایت اَرَتَ به عنوان مسیر ثبت نام و اطلاع رسانی منتشر شده است.",
             "این رویداد روی فولاد، مس، انرژی، فلزات آهنی و غیرآهنی و تجهیزات وابسته تمرکز دارد.",
-            "به دلیل عبور تاریخ منتشرشده، کارت رویداد با وضعیت آرشیو نمایش داده می شود.",
+            "به دلیل عبور تاریخ منتشرشده، کارت رویداد با وضعیت آرشیو نمایش داده می‌شود.",
           ],
           [
-            "صفحه رسمی سیرجان، پارک گهر را به عنوان محل برگزاری معرفی می کند.",
-            "حامیان اجرایی و صنعتی شامل مجموعه های مرتبط با گل گهر، صنایع معدنی و فولادی منطقه ذکر شده اند.",
-            "شماره های پیگیری منتشرشده برای این رویداد شامل ۰۹۱۳۰۶۲۵۹۸۳، ۰۹۰۵۴۰۵۳۳۹۱، ۰۳۴۹۱۰۱۵۹۱۰ و ۰۲۱۹۱۳۰۵۹۱۰ است.",
+            "صفحه رسمی سیرجان، پارک گهر را به عنوان محل برگزاری معرفی می‌کند.",
+            "حامیان اجرایی و صنعتی شامل مجموعه‌های مرتبط با گل گهر، صنایع معدنی و فولادی منطقه ذکر شده‌اند.",
+            "شماره‌های پیگیری منتشرشده برای این رویداد شامل ۰۹۱۳۰۶۲۵۹۸۳، ۰۹۰۵۴۰۵۳۳۹۱، ۰۳۴۹۱۰۱۵۹۱۰ و ۰۲۱۹۱۳۰۵۹۱۰ است.",
           ],
         ]
       : [
@@ -312,9 +323,9 @@ function getPageData(content: Content) {
 
     const highlights = fa
       ? [
-          ["معدن و صنایع معدنی", "ماشین آلات راه سازی", "تجهیزات وابسته", "فرم رسمی KIMEX"],
+          ["معدن و صنایع معدنی", "ماشین‌آلات راه‌سازی", "تجهیزات وابسته", "فرم رسمی KIMEX"],
           ["فولاد و مس", "انرژی", "فلزات آهنی و غیرآهنی", "زنجیره تامین"],
-          ["معدن و صنایع معدنی", "زنجیره فولاد و مس", "پارک گهر سیرجان", "شبکه سازی منطقه ای"],
+          ["معدن و صنایع معدنی", "زنجیره فولاد و مس", "پارک گهر سیرجان", "شبکه‌سازی منطقه‌ای"],
         ]
       : [
           ["Mining industries", "Road machinery", "Related equipment", "Official KIMEX form"],
@@ -340,7 +351,7 @@ function getPageData(content: Content) {
 
   const archiveEvents = fa
     ? [
-        { title: "هشتمین نمایشگاه بین المللی معدن و صنایع معدنی", date: "۱۹ تا ۲۲ خرداد ۱۴۰۳", place: "کرمان", sector: "معدن و تجهیزات" },
+        { title: "هشتمین نمایشگاه بین‌المللی معدن و صنایع معدنی", date: "۱۹ تا ۲۲ خرداد ۱۴۰۳", place: "کرمان", sector: "معدن و تجهیزات" },
         { title: "چهارمین نمایشگاه زنجیره تامین فولاد، مس، انرژی و تجهیزات", date: "۲ تا ۵ دی ۱۴۰۲", place: "کرمان", sector: "فولاد و مس" },
         { title: "نمایشگاه نهضت تولید در معدن، صنایع معدنی و زنجیره فولاد و مس", date: "۱۴ تا ۱۷ اسفند ۱۳۹۹", place: "سیرجان", sector: "زنجیره تولید" },
         { title: "نمایشگاه تخصصی زنجیره تامین شرکت ملی صنایع مس ایران Caprrex 2020", date: "۱۴ تا ۱۶ تیر ۱۳۹۹", place: "کرمان", sector: "مس" },
@@ -359,9 +370,9 @@ function getPageData(content: Content) {
   const registrationSteps = fa
     ? [
         "انتخاب رویداد و بررسی وضعیت آرشیو یا اطلاعیه رسمی",
-        "دریافت فرم PDF رسمی و آماده سازی اطلاعات شرکت",
-        "ثبت درخواست از طریق پیش نویس ایمیل یا تماس مستقیم",
-        "پیگیری نهایی فقط از مسیر دفتر اَرَتَ و شماره های رسمی",
+        "دریافت فرم PDF رسمی و آماده‌سازی اطلاعات شرکت",
+        "ثبت درخواست از طریق پیش‌نویس ایمیل یا تماس مستقیم",
+        "پیگیری نهایی فقط از مسیر دفتر اَرَتَ و شماره‌های رسمی",
       ]
     : [
         "Choose the event and verify its archive or official-notice status",
@@ -373,8 +384,8 @@ function getPageData(content: Content) {
   const equipmentFlow = fa
     ? [
         { title: "مشاهده لیست", body: "لیست رسمی تجهیزات نمایشگاه به صورت JPG حفظ شده و قابل دانلود است." },
-        { title: "تطبیق نیاز غرفه", body: "نوع غرفه، متراژ، برق، مبلمان، تجهیزات صوتی و ملزومات اجرایی بررسی می شود." },
-        { title: "هماهنگی اجرایی", body: "تیم اَرَتَ جزئیات تجهیزات، زمان تحویل، هزینه و هماهنگی نهایی را از طریق تماس یا ایمیل پیگیری می کند." },
+        { title: "تطبیق نیاز غرفه", body: "نوع غرفه، متراژ، برق، مبلمان، تجهیزات صوتی و ملزومات اجرایی بررسی می‌شود." },
+        { title: "هماهنگی اجرایی", body: "تیم اَرَتَ جزئیات تجهیزات، زمان تحویل، هزینه و هماهنگی نهایی را از طریق تماس یا ایمیل پیگیری می‌کند." },
       ]
     : [
         { title: "Review the list", body: "The official exhibition equipment list is preserved as a downloadable JPG." },
@@ -484,7 +495,7 @@ function AboutPage({ content }: { content: Content }) {
               Aratta Expo / Company Profile
             </p>
             <h3 className="card-display-title mt-3 font-black text-white">
-              {fa ? "تخصص صنعتی، ارتباطات تجاری، اجرای حرفه ای" : "Industry expertise. Business connections. Professional delivery."}
+              {fa ? "تخصص صنعتی، ارتباطات تجاری، اجرای حرفه‌ای" : "Industry expertise. Business connections. Professional delivery."}
             </h3>
           </div>
         </div>
@@ -535,12 +546,14 @@ function AboutPage({ content }: { content: Content }) {
   );
 }
 
-function ExhibitionsPage({ content }: { content: Content }) {
+function ExhibitionsPage({ content, calendar }: { content: Content; calendar: Calendar }) {
   const data = getPageData(content);
   const fa = content.lang === "fa";
 
   return (
     <div className="space-y-8">
+      <UpcomingExhibitions lang={content.lang} items={calendar.items} live={calendar.live} />
+      <div className="section-kicker pt-4">{fa ? "دوره‌های برگزارشده" : "Editions held"}</div>
       <section className="glass overflow-hidden rounded-[2rem]">
         <div className="grid lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative min-h-[440px]">
@@ -642,7 +655,7 @@ function ExhibitionsPage({ content }: { content: Content }) {
             </h2>
           </div>
           <span className="rounded-full border border-white/12 bg-white/[0.04] px-4 py-2 text-sm text-white/58">
-            {fa ? "همه به عنوان آرشیو نمایش داده می شوند" : "All shown as archived"}
+            {fa ? "همه به عنوان آرشیو نمایش داده می‌شوند" : "All shown as archived"}
           </span>
         </div>
         <div className="mt-7 grid gap-3">
@@ -660,12 +673,28 @@ function ExhibitionsPage({ content }: { content: Content }) {
   );
 }
 
-function RegistrationPage({ content }: { content: Content }) {
+function RegistrationPage({ content, eventNames }: { content: Content; eventNames: string[] }) {
   const data = getPageData(content);
   const fa = content.lang === "fa";
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
+      <section id="booth-request" className="scroll-mt-32">
+        <div className="mb-6 grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div>
+            <div className="section-kicker">{fa ? "درخواست غرفه" : "Booth request"}</div>
+            <h2 className="card-display-title mt-3 font-black text-white">{content.registration.formTitle}</h2>
+          </div>
+          <p className="flex items-start gap-2 leading-8 text-white/60">
+            <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={18} />
+            {fa
+              ? "در سه قدم نیاز غرفه را مشخص کنید. نتیجه یک پیش‌نویس ایمیل است که پیش از ارسال کامل می‌بینید؛ رزرو قطعی پس از قرارداد انجام می‌شود."
+              : "Describe your booth in three steps. The result is an email draft you see in full before sending; a booking is only confirmed by contract."}
+          </p>
+        </div>
+        <BoothRequestBuilder lang={content.lang} exhibitions={eventNames} />
+      </section>
+
       <section className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
         <div className="industrial-card rounded-[2rem] p-7">
           <div className="flex items-center gap-3 text-[var(--gold)]">
@@ -686,12 +715,11 @@ function RegistrationPage({ content }: { content: Content }) {
           </ol>
         </div>
         <div className="glass rounded-[2rem] p-7">
-          <h2 className="card-display-title font-black text-white">{content.registration.formTitle}</h2>
-          <p className="mt-3 flex items-start gap-2 leading-8 text-white/60">
-            <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={18} />
+          <h2 className="text-2xl font-black text-white">{fa ? "پیام آزاد به دفتر" : "A free-form message"}</h2>
+          <p className="mt-3 leading-8 text-white/60">
             {fa
-              ? "اطلاعات شما فقط برای آماده سازی پیش نویس ایمیل استفاده می شود؛ پیش از ارسال، امکان بررسی و ویرایش کامل دارید."
-              : "Your details are used only to prepare an email draft, which you can fully review and edit before sending."}
+              ? "برای حمایت مالی، همکاری رسانه‌ای یا هر درخواست دیگری که در فرم غرفه نمی‌گنجد."
+              : "For sponsorship, media partnership or anything else that does not fit the booth request."}
           </p>
           <div className="mt-6">
             <InquiryForm content={content} />
@@ -699,7 +727,19 @@ function RegistrationPage({ content }: { content: Content }) {
         </div>
       </section>
 
+      <section className="industrial-card rounded-[2rem] p-6 sm:p-8">
+        <ExhibitorJourney lang={content.lang} />
+      </section>
+
       <DownloadsPage content={content} mode="forms" compact />
+
+      <section className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
+        <div>
+          <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Frequent questions"}</div>
+          <h2 className="card-display-title mt-3 font-black text-white">{fa ? "پیش از ثبت درخواست" : "Before you send a request"}</h2>
+        </div>
+        <FaqList lang={content.lang} />
+      </section>
     </div>
   );
 }
@@ -708,10 +748,12 @@ function DownloadsPage({
   content,
   mode,
   compact = false,
+  eventNames = [],
 }: {
   content: Content;
   mode: "forms" | "equipment" | "participants";
   compact?: boolean;
+  eventNames?: string[];
 }) {
   const data = getPageData(content);
   const fa = content.lang === "fa";
@@ -724,23 +766,23 @@ function DownloadsPage({
   const modeCopy = {
     forms: {
       icon: FileText,
-      title: fa ? "کتابخانه فرم ها و فایل های رسمی" : "Official forms and file library",
+      title: fa ? "کتابخانه فرم‌ها و فایل‌های رسمی" : "Official forms and file library",
       body: fa
-        ? "همه فایل ها به مسیرهای رسمی سایت اَرَتَ وصل هستند. این صفحه فقط دانلود و آماده سازی را ساده می کند."
+        ? "همه فایل‌ها به مسیرهای رسمی سایت اَرَتَ وصل هستند. این صفحه فقط دانلود و آماده‌سازی را ساده می‌کند."
         : "Every file remains linked to Aratta's official source. This page only improves discovery and preparation.",
     },
     equipment: {
       icon: Wrench,
-      title: fa ? "اجاره تجهیزات و آماده سازی غرفه" : "Equipment rental and booth readiness",
+      title: fa ? "اجاره تجهیزات و آماده‌سازی غرفه" : "Equipment rental and booth readiness",
       body: fa
-        ? "لیست رسمی تجهیزات در کنار روند هماهنگی نمایش داده می شود تا درخواست اجرایی دقیق تر ثبت شود."
+        ? "لیست رسمی تجهیزات در کنار روند هماهنگی نمایش داده می‌شود تا درخواست اجرایی دقیق‌تر ثبت شود."
         : "The official equipment list is paired with a coordination workflow so operational requests are clearer.",
     },
     participants: {
       icon: Users,
-      title: fa ? "فهرست مشارکت کنندگان و مسیر بررسی" : "Participants list and review path",
+      title: fa ? "فهرست مشارکت‌کنندگان و مسیر بررسی" : "Participants list and review path",
       body: fa
-        ? "فهرست منتشرشده KIMEX 2025 به صورت PDF حفظ شده و با توضیح وضعیت آرشیو نمایش داده می شود."
+        ? "فهرست منتشرشده KIMEX 2025 به صورت PDF حفظ شده و با توضیح وضعیت آرشیو نمایش داده می‌شود."
         : "The published KIMEX 2025 participant PDF is preserved and shown with clear archive context.",
     },
   }[mode];
@@ -764,7 +806,7 @@ function DownloadsPage({
               {[
                 { label: fa ? "فایل محلی" : "Local file", value: `${downloads.length}` },
                 { label: fa ? "منبع رسمی" : "Official source", value: "Aratta" },
-                { label: fa ? "فرمت ها" : "Formats", value: Array.from(new Set(downloads.map((item) => item.type))).join(" / ") },
+                { label: fa ? "فرمت‌ها" : "Formats", value: Array.from(new Set(downloads.map((item) => item.type))).join(" / ") },
               ].map((item) => (
                 <div key={item.label} className="rounded-[1.4rem] border border-white/10 bg-black/24 p-5">
                   <div className="font-latin text-2xl font-black text-white">{item.value}</div>
@@ -776,7 +818,7 @@ function DownloadsPage({
                   <ShieldCheck className="mt-1 shrink-0 text-[var(--gold)]" size={20} />
                   <p className="site-copy text-white/70">
                     {fa
-                      ? "دکمه اصلی، فایل واقعی همین سایت را دانلود می کند؛ لینک منبع رسمی هم جدا نگه داشته شده است."
+                      ? "دکمه اصلی، فایل واقعی همین سایت را دانلود می‌کند؛ لینک منبع رسمی هم جدا نگه داشته شده است."
                       : "The primary action downloads the real mirrored file from this site; the official source link is kept separately."}
                   </p>
                 </div>
@@ -807,13 +849,30 @@ function DownloadsPage({
         </section>
       ) : null}
 
+      {mode === "equipment" ? (
+        <section id="equipment-request" className="scroll-mt-32">
+          <div className="mb-6">
+            <div className="section-kicker">{fa ? "فهرست درخواست" : "Request list"}</div>
+            <h2 className="card-display-title mt-3 font-black text-white">
+              {fa ? "تجهیزات غرفه خود را انتخاب کنید" : "Choose your booth equipment"}
+            </h2>
+            <p className="site-copy mt-3 max-w-3xl text-white/60">
+              {fa
+                ? "تعداد هر قلم را مشخص کنید. دفتر اَرَتَ موجودی، هزینه و زمان تحویل را در پاسخ تایید می‌کند."
+                : "Set a quantity for each item. The Aratta office confirms availability, cost and delivery time in reply."}
+            </p>
+          </div>
+          <EquipmentRequestBuilder lang={content.lang} exhibitions={eventNames} />
+        </section>
+      ) : null}
+
       {mode === "participants" ? (
         <section className="industrial-card rounded-[2rem] p-7">
           <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
               <div className="section-kicker">{fa ? "PDF رسمی" : "Official PDF"}</div>
               <h2 className="card-display-title mt-3 font-black text-white">
-                {fa ? "مشارکت کنندگان KIMEX 2025" : "KIMEX 2025 participants"}
+                {fa ? "مشارکت‌کنندگان KIMEX 2025" : "KIMEX 2025 participants"}
               </h2>
               <p className="site-copy mt-4 text-white/62">
                 {fa
@@ -916,7 +975,7 @@ function NewsPage({ content }: { content: Content }) {
           </h2>
           <p className="site-copy mt-4 text-white/62">
             {fa
-              ? "خبرها و گزارش های رویداد با تصویر، تاریخ، حوزه و لینک منبع ارائه می شوند؛ مطالب قدیمی به روشنی با وضعیت آرشیوی مشخص شده اند."
+              ? "خبرها و گزارش‌های رویداد با تصویر، تاریخ، حوزه و لینک منبع ارائه می‌شوند؛ مطالب قدیمی به روشنی با وضعیت آرشیوی مشخص شده‌اند."
               : "Event news and reports include an image, date, sector, and source link; older coverage is clearly presented as archive content."}
           </p>
         </div>
@@ -1153,13 +1212,32 @@ function ContactPage({ content }: { content: Content }) {
           </h2>
           <p className="site-copy mt-4 text-white/62">
             {fa
-              ? "فرم، پیش نویس ایمیل را برای بررسی شما آماده می کند؛ ارسال نهایی فقط پس از تایید خودتان انجام می شود."
+              ? "فرم، پیش‌نویس ایمیل را برای بررسی شما آماده می‌کند؛ ارسال نهایی فقط پس از تایید خودتان انجام می‌شود."
               : "The form prepares an email draft for your review; nothing is sent until you approve and send it yourself."}
           </p>
         </div>
         <div className="glass rounded-[2rem] p-7">
           <InquiryForm content={content} />
         </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
+        <div>
+          <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Frequent questions"}</div>
+          <h2 className="card-display-title mt-3 font-black text-white">{fa ? "شاید پاسخ اینجا باشد" : "The answer may be here"}</h2>
+          <div className="mt-6 grid gap-2">
+            <Link href={`/${content.lang}/registration#booth-request`} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 font-bold text-white/80 hover:bg-white/[0.07]">
+              {fa ? "ساخت درخواست غرفه" : "Build a booth request"}
+            </Link>
+            <Link href={`/${content.lang}/equipment#equipment-request`} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 font-bold text-white/80 hover:bg-white/[0.07]">
+              {fa ? "فهرست اجاره تجهیزات" : "Equipment rental list"}
+            </Link>
+            <Link href={`/${content.lang}/exhibitions`} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 font-bold text-white/80 hover:bg-white/[0.07]">
+              {fa ? "تقویم نمایشگاه‌ها" : "Exhibition calendar"}
+            </Link>
+          </div>
+        </div>
+        <FaqList lang={content.lang} />
       </section>
     </div>
   );
@@ -1186,7 +1264,7 @@ function SearchPage({ content }: { content: Content }) {
       <section className="grid gap-5 lg:grid-cols-3">
         <div className="glass rounded-[1.8rem] p-6">
           <Factory className="text-[var(--gold)]" size={26} />
-          <h2 className="mt-4 text-2xl font-black text-white">{fa ? "نمایشگاه ها" : "Exhibitions"}</h2>
+          <h2 className="mt-4 text-2xl font-black text-white">{fa ? "نمایشگاه‌ها" : "Exhibitions"}</h2>
           <div className="mt-5 grid gap-3">
             {data.deepEvents.map((item) => (
               <Link key={item.event.title} href={`/${content.lang}/exhibitions`} className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm font-bold leading-6 text-white/78">

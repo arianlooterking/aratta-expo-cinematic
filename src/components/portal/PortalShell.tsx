@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   Building2,
+  CalendarDays,
   Check,
   ChevronDown,
   CircleHelp,
@@ -103,6 +104,7 @@ function Shell({
         label: fa ? "عملیات" : "Operations",
         items: [
           { href: base, label: t(lang, "overview"), icon: <LayoutDashboard className={icon} />, match: (p) => p === base },
+          { href: `${base}/upcoming`, label: fa ? "کارهای پیش رو" : "Upcoming", icon: <CalendarDays className={icon} />, match: (p) => p.startsWith(`${base}/upcoming`) },
           { href: `${base}/map`, label: t(lang, "map"), icon: <MapIcon className={icon} />, match: (p) => p.startsWith(`${base}/map`) },
           { href: `${base}/handover`, label: t(lang, "handover"), icon: <PackageCheck className={icon} />, match: (p) => p.startsWith(`${base}/handover`) },
         ],
@@ -144,7 +146,7 @@ function Shell({
     return out;
   }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue]);
   const nav = groups.flatMap((g) => g.items);
-  const tabs: NavItem[] = [nav[0], nav[1], nav.find((n) => n.href === `${base}/crm/pipeline`)!, nav.find((n) => n.href === `${base}/tasks`)!];
+  const tabs: NavItem[] = [nav[0], nav.find((n) => n.href === `${base}/map`)!, nav.find((n) => n.href === `${base}/crm/pipeline`)!, nav.find((n) => n.href === `${base}/tasks`)!];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

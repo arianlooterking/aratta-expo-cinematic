@@ -463,3 +463,13 @@ dt {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Horizontal card rails on phones: swipeable, no visible scrollbar. */
+.card-rail {
+  scrollbar-width: none;
+  scroll-padding-inline: 1.25rem;
+  overscroll-behavior-x: contain;
+}
+.card-rail::-webkit-scrollbar {
+  display: none;
+}

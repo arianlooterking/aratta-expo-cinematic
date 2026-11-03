@@ -3,14 +3,17 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   BookOpenText,
-  CalendarClock,
   Download,
   FileDown,
+  Images,
+  LayoutGrid,
   Mail,
   MapPin,
+  Navigation,
   Newspaper,
   Phone,
   ShieldCheck,
+  Wrench,
 } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
 import { AboutExperience } from "@/components/AboutExperience";
@@ -18,178 +21,121 @@ import { AnimatedTabs } from "@/components/AnimatedTabs";
 import { BlogCards } from "@/components/BlogCards";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
-import { InquiryForm } from "@/components/InquiryForm";
-import { ArchiveOverview, ExhibitionNotice } from "@/components/ArchiveSections";
+import { ArchiveOverview } from "@/components/ArchiveSections";
+import { ExhibitorJourney, FaqList, QuickActions } from "@/components/SiteGuides";
 import { SiteFooter } from "@/components/SiteFooter";
+import { UpcomingExhibitions } from "@/components/UpcomingExhibitions";
+import type { CalendarCard } from "@/lib/public-calendar";
 
 type HomeSectionsProps = {
   content: SiteContent;
 };
 
-export function HomeSections({ content }: HomeSectionsProps) {
+type HomeProps = HomeSectionsProps & {
+  upcoming: { items: CalendarCard[]; live: boolean };
+};
+
+export function HomeSections({ content, upcoming }: HomeProps) {
   return (
     <>
-      <section className="section-shell py-10"><ExhibitionNotice lang={content.lang}/></section>
+      <section className="section-shell relative z-10 -mt-px pt-10 sm:pt-14">
+        <QuickActions lang={content.lang} />
+      </section>
+      <UpcomingSection content={content} upcoming={upcoming} />
       <AboutExperience content={content} />
-      <ExhibitionsSection content={content} />
       <AnimatedTabs content={content} />
+      <section id="journey" className="py-20 sm:py-24">
+        <div className="section-shell">
+          <ExhibitorJourney lang={content.lang} />
+        </div>
+      </section>
       <RegistrationSection content={content} />
-      <EquipmentParticipantsSection content={content} />
       <NewsSection content={content} />
       <RelatedNewsSection content={content} />
       <BlogSection content={content} />
       <GallerySection content={content} />
+      <FaqSection content={content} />
       <ContactSection content={content} />
       <SiteFooter content={content} />
     </>
   );
 }
 
-function ExhibitionsSection({ content }: HomeSectionsProps) {
+function UpcomingSection({ content, upcoming }: HomeProps) {
   return (
-    <section id="exhibitions" className="py-24">
+    <section id="exhibitions" className="py-16 sm:py-20">
       <div className="section-shell">
-        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <div>
-            <div className="section-kicker">{content.exhibitions.kicker}</div>
-            <h2 className="section-display-title mt-4 font-black text-white">
-              {content.exhibitions.title}
-            </h2>
-          </div>
-          <p className="industrial-card site-copy rounded-[1.5rem] p-5 text-white/68">
-            {content.exhibitions.note}
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          {content.exhibitions.items.map((event) => (
-            <article
-              key={event.title}
-              className="industrial-card group overflow-hidden rounded-[2rem]"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={event.image}
-                  alt={event.title}
-                  fill
-                  unoptimized
-                  sizes="(min-width: 1024px) 33vw, 100vw"
-                  className="object-cover transition duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/22 to-transparent" />
-                <span className="absolute start-4 top-4 max-w-[calc(100%-2rem)] rounded-full border border-amber-200/25 bg-black/58 px-3 py-1 text-xs font-bold text-[var(--gold)] backdrop-blur-xl">
-                  {content.lang === "fa" ? "آرشیو رویداد" : "Event archive"}
-                </span>
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-sm text-[var(--cyan)]">
-                  <CalendarClock size={16} />
-                  <span>{event.date}</span>
-                  <span className="text-white/38">/</span>
-                  <span>{event.location}</span>
-                </div>
-                <h3 className="mt-4 text-xl font-black leading-8 text-white lg:min-h-24">
-                  {event.title}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-white/62 lg:min-h-24">{event.summary}</p>
-                <a
-                  href={event.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[var(--gold)] hover:text-white"
-                >
-                  <ArrowUpRight size={17} />
-                  {content.lang === "fa" ? "جزئیات رسمی" : "Official details"}
-                </a>
-              </div>
-            </article>
-          ))}
-        </div>
+        <UpcomingExhibitions lang={content.lang} items={upcoming.items} live={upcoming.live} />
       </div>
     </section>
   );
 }
 
 function RegistrationSection({ content }: HomeSectionsProps) {
+  const fa = content.lang === "fa";
+  const base = `/${content.lang}`;
   return (
-    <section id="registration" className="py-24">
-      <div className="section-shell grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+    <section id="registration" className="py-20 sm:py-24">
+      <div className="section-shell grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="glass relative isolate min-w-0 overflow-hidden rounded-[2rem] p-6 sm:p-8">
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_8%,rgba(125,220,232,0.14),transparent_22rem),radial-gradient(circle_at_90%_90%,rgba(214,174,101,0.14),transparent_20rem)]" />
           <div className="section-kicker">{content.registration.kicker}</div>
           <h2 className="card-display-title mt-4 font-black text-white">{content.registration.title}</h2>
-          <p className="site-copy mt-5 text-lg text-white/70">{content.registration.body}</p>
-          <div className="mt-8 grid gap-3">
+          <p className="site-copy mt-4 text-white/68">{content.registration.body}</p>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            <Link href={`${base}/registration#booth-request`} className="liquid-button flex items-center gap-3 rounded-2xl p-4 text-white">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-black/25"><LayoutGrid size={20} /></span>
+              <span>
+                <span className="block font-black">{fa ? "ساخت درخواست غرفه" : "Build a booth request"}</span>
+                <span className="block text-xs text-white/70">{fa ? "نوع، متراژ، موقعیت و خدمات" : "Type, size, position and services"}</span>
+              </span>
+            </Link>
+            <Link href={`${base}/equipment#equipment-request`} className="flex items-center gap-3 rounded-2xl border border-white/14 bg-white/[0.05] p-4 text-white transition hover:border-cyan-200/35">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-black/25 text-[var(--cyan)]"><Wrench size={20} /></span>
+              <span>
+                <span className="block font-black">{fa ? "فهرست اجاره تجهیزات" : "Equipment rental list"}</span>
+                <span className="block text-xs text-white/60">{fa ? "مبلمان، تلویزیون، برق و پذیرایی" : "Furniture, screens, power, refreshments"}</span>
+              </span>
+            </Link>
+          </div>
+          <p className="mt-5 flex items-start gap-2 text-sm leading-7 text-white/52">
+            <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={17} />
+            {fa
+              ? "هر دو مسیر فقط پیش‌نویس ایمیل می‌سازند. هیچ پرداخت یا رزرو خودکاری در سایت انجام نمی‌شود."
+              : "Both only prepare an email draft. The website never takes payments or makes automatic bookings."}
+          </p>
+        </div>
+
+        <div className="industrial-card min-w-0 rounded-[2rem] p-6 sm:p-7">
+          <h3 className="text-xl font-black text-white">{fa ? "فایل‌های رسمی" : "Official files"}</h3>
+          <div className="mt-5 grid gap-3">
             {content.registration.downloads.map((download) => (
               <a
                 key={download.href}
                 href={download.href}
                 download={download.fileName}
-                className="group flex items-center justify-between gap-4 rounded-3xl border border-white/12 bg-white/[0.045] p-4 transition hover:border-cyan-200/38 hover:bg-cyan-200/8"
+                className="group flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-white/12 bg-white/[0.045] p-3.5 transition hover:border-cyan-200/38 hover:bg-cyan-200/8"
               >
-                <span className="flex items-center gap-3">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-black/28 text-[var(--cyan)]">
-                    <FileDown size={22} />
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-black/28 text-[var(--cyan)]">
+                    <FileDown size={20} />
                   </span>
-                  <span>
-                    <span className="block font-bold text-white">{download.label}</span>
-                    <span className="font-latin mt-1 block text-xs uppercase tracking-[0.2em] text-white/42">
-                      {download.type}
+                  <span className="min-w-0">
+                    <span className="line-clamp-2 block font-bold leading-6 text-white">{download.label}</span>
+                    <span className="font-latin mt-0.5 block text-xs uppercase tracking-[0.18em] text-white/42">
+                      {download.type} · {download.size}
                     </span>
                   </span>
                 </span>
-                <Download className="shrink-0 text-[var(--gold)]" size={20} />
+                <Download className="shrink-0 text-[var(--gold)]" size={19} />
               </a>
             ))}
           </div>
+          <Link href={`${base}/forms`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[var(--gold)] hover:text-white">
+            <ArrowUpRight size={16} />
+            {fa ? "همه فرم‌ها و کاتالوگ‌ها" : "All forms and catalogues"}
+          </Link>
         </div>
-
-        <div className="glass rounded-[2rem] p-7">
-          <h3 className="text-2xl font-black text-white">{content.registration.formTitle}</h3>
-          <p className="mt-3 flex items-start gap-2 text-sm leading-7 text-white/56">
-            <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={17} />
-            {content.lang === "fa"
-              ? "این فرم اطلاعات را در مرورگر نگه می دارد و فقط پیش نویس ایمیل ایجاد می کند."
-              : "This form keeps data in the browser and only creates an email draft."}
-          </p>
-          <div className="mt-6">
-            <InquiryForm content={content} />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function EquipmentParticipantsSection({ content }: HomeSectionsProps) {
-  const downloads = content.registration.downloads.slice(1);
-  return (
-    <section id="equipment" className="py-20">
-      <div className="section-shell grid gap-5 md:grid-cols-2" id="participants">
-        {downloads.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            download={item.fileName}
-            className="industrial-card group relative overflow-hidden rounded-[2rem] p-7 transition hover:-translate-y-1 hover:border-cyan-200/40"
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(62,231,255,0.14),transparent_18rem)]" />
-            <div className="relative">
-              <div className="font-latin text-xs font-bold uppercase tracking-[0.22em] text-[var(--cyan)]">
-                {item.type}
-              </div>
-              <h2 className="card-display-title mt-5 font-black text-white">{item.label}</h2>
-              <p className="site-copy mt-4 text-white/62">
-                {content.lang === "fa"
-                  ? "اسناد دوره‌های گذشته را دریافت کنید و برای نیازهای نمایشگاه بعدی با دفتر اَرَتَ هماهنگ شوید."
-                  : "Download past-edition documents and contact the Aratta office to discuss your next exhibition."}
-              </p>
-              <span className="mt-8 inline-flex items-center gap-2 font-bold text-[var(--gold)]">
-                <Download size={18} />
-                {content.lang === "fa" ? "دریافت فایل" : "Open file"}
-              </span>
-            </div>
-          </a>
-        ))}
       </div>
     </section>
   );
@@ -197,38 +143,34 @@ function EquipmentParticipantsSection({ content }: HomeSectionsProps) {
 
 function NewsSection({ content }: HomeSectionsProps) {
   return (
-    <section id="news" className="py-24">
+    <section id="news" className="py-20 sm:py-24">
       <div className="section-shell">
-        <div className="mb-10"><ArchiveOverview lang={content.lang}/></div>
-        <div className="section-kicker">{content.news.kicker}</div>
-        <h2 className="section-display-title mt-4 font-black text-white">{content.news.title}</h2>
-        <div className="mt-10 grid gap-4">
-          {content.news.items.map((item) => (
-            <article
-              key={item.title}
-              className="industrial-card grid gap-4 rounded-[1.7rem] p-6 md:grid-cols-[11rem_1fr]"
-            >
-              <time className="font-latin text-sm font-bold uppercase tracking-[0.18em] text-[var(--gold)]">
-                {item.date}
-              </time>
-              <div>
-                <h3 className="text-2xl font-black text-white">{item.title}</h3>
-                <p className="mt-3 leading-8 text-white/62">{item.body}</p>
-                {item.href ? (
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-4 inline-flex items-center gap-2 font-bold text-[var(--gold)]"
-                  >
-                    <ArrowUpRight size={17} />
-                    {content.lang === "fa" ? "مشاهده منبع رسمی" : "Open official source"}
-                  </a>
-                ) : null}
-              </div>
-            </article>
-          ))}
+        {/* Six latest posts on wide screens, three on phones. */}
+        <div className="max-md:[&_.grid>a:nth-child(n+4)]:hidden">
+          <ArchiveOverview lang={content.lang} />
         </div>
+      </div>
+    </section>
+  );
+}
+
+function FaqSection({ content }: HomeSectionsProps) {
+  const fa = content.lang === "fa";
+  return (
+    <section id="faq" className="py-20 sm:py-24">
+      <div className="section-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+        <div>
+          <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Frequent questions"}</div>
+          <h2 className="section-display-title mt-4 font-black text-white">{fa ? "پیش از تماس بدانید" : "Good to know first"}</h2>
+          <p className="site-copy mt-4 text-white/60">
+            {fa ? "پاسخ کوتاه به سوال‌هایی که بیشتر از دفتر اَرَتَ پرسیده می‌شود." : "Short answers to the questions the Aratta office hears most."}
+          </p>
+          <Link href={`/${content.lang}/contact`} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white hover:border-cyan-200/42">
+            <Phone size={16} />
+            {fa ? "سوال دیگری دارید؟" : "Another question?"}
+          </Link>
+        </div>
+        <FaqList lang={content.lang} />
       </div>
     </section>
   );
@@ -237,7 +179,7 @@ function NewsSection({ content }: HomeSectionsProps) {
 function RelatedNewsSection({ content }: HomeSectionsProps) {
   const featuredItems = content.news.relatedItems.slice(0, 3);
   return (
-    <section id="industry-news" className="py-20">
+    <section id="industry-news" className="py-16 sm:py-20">
       <div className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div>
@@ -261,7 +203,7 @@ function RelatedNewsSection({ content }: HomeSectionsProps) {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-3 max-md:[&>a:nth-child(n+3)]:hidden">
           {featuredItems.map((item) => (
             <Link
               key={item.title}
@@ -304,7 +246,7 @@ function BlogSection({ content }: HomeSectionsProps) {
   );
 
   return (
-    <section id="blog" className="py-24">
+    <section id="blog" className="py-16 sm:py-24">
       <div className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -328,7 +270,7 @@ function BlogSection({ content }: HomeSectionsProps) {
           </div>
         </div>
 
-        <div className="mt-9">
+        <div className="mt-9 max-md:[&_.grid>*:nth-child(n+3)]:hidden">
           <BlogCards content={content} posts={featuredPosts} limit={3} />
         </div>
       </div>
@@ -337,16 +279,23 @@ function BlogSection({ content }: HomeSectionsProps) {
 }
 
 function GallerySection({ content }: HomeSectionsProps) {
+  const fa = content.lang === "fa";
   return (
-    <section id="gallery" className="py-24">
+    <section id="gallery" className="py-20 sm:py-24">
       <div className="section-shell">
-        <div className="mb-10 max-w-3xl">
-          <div className="section-kicker">{content.gallery.kicker}</div>
-          <h2 className="section-display-title mt-4 font-black text-white">
-            {content.gallery.title}
-          </h2>
+        <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+          <div className="max-w-3xl">
+            <div className="section-kicker">{content.gallery.kicker}</div>
+            <h2 className="section-display-title mt-4 font-black text-white">{content.gallery.title}</h2>
+          </div>
+          <Link href={`/${content.lang}/gallery`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-[var(--gold)] hover:bg-white/10">
+            <Images size={17} />
+            {fa ? "همه گزارش‌های تصویری" : "All photo reports"}
+          </Link>
         </div>
-        <GalleryLightbox content={content} />
+        <div className="max-sm:[&_.grid>button:nth-child(n+5)]:hidden">
+          <GalleryLightbox content={content} limit={6} />
+        </div>
       </div>
     </section>
   );
@@ -354,7 +303,7 @@ function GallerySection({ content }: HomeSectionsProps) {
 
 function ContactSection({ content }: HomeSectionsProps) {
   return (
-    <section id="contact" className="py-24">
+    <section id="contact" className="py-20 sm:py-24">
       <div className="section-shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="industrial-card rounded-[2rem] p-7">
           <div className="section-kicker">{content.contact.kicker}</div>
@@ -373,6 +322,20 @@ function ContactSection({ content }: HomeSectionsProps) {
                 </a>
               ))}
             </ContactRow>
+          </div>
+          <div className="mt-8 grid grid-cols-3 gap-2">
+            <a href={`tel:${content.contact.phones[0]}`} className="liquid-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 font-black text-white">
+              <Phone size={17} />
+              {content.lang === "fa" ? "تماس" : "Call"}
+            </a>
+            <a href="mailto:info@arattaexpo.ir" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/[0.05] px-4 font-black text-white">
+              <Mail size={17} />
+              {content.lang === "fa" ? "ایمیل" : "Email"}
+            </a>
+            <a href={content.contact.mapsUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/[0.05] px-4 font-black text-white">
+              <Navigation size={17} />
+              {content.lang === "fa" ? "مسیریابی" : "Directions"}
+            </a>
           </div>
         </div>
         <GoogleMapPanel content={content} compact />

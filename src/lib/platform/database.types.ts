@@ -580,6 +580,10 @@ export type Database = {
           space_rate: number | null;
           booth_build_rate: number | null;
           notes: string | null;
+          website_listed: boolean;
+          registration_open: boolean;
+          website_summary_fa: string | null;
+          website_summary_en: string | null;
           import_key: string | null;
           created_by: string | null;
           created_at: string;
@@ -607,6 +611,10 @@ export type Database = {
           space_rate?: number | null;
           booth_build_rate?: number | null;
           notes?: string | null;
+          website_listed?: boolean;
+          registration_open?: boolean;
+          website_summary_fa?: string | null;
+          website_summary_en?: string | null;
           import_key?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -634,6 +642,10 @@ export type Database = {
           space_rate?: number | null;
           booth_build_rate?: number | null;
           notes?: string | null;
+          website_listed?: boolean;
+          registration_open?: boolean;
+          website_summary_fa?: string | null;
+          website_summary_en?: string | null;
           import_key?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -1249,6 +1261,29 @@ export type Database = {
       };
     };
     Views: {
+      website_exhibitions: {
+        Row: {
+          id: string | null;
+          slug: string | null;
+          name_fa: string | null;
+          name_en: string | null;
+          edition: number | null;
+          year_label: string | null;
+          venue_fa: string | null;
+          venue_en: string | null;
+          city_fa: string | null;
+          city_en: string | null;
+          starts_on: string | null;
+          ends_on: string | null;
+          status: Database["public"]["Enums"]["exhibition_status"] | null;
+          color: string | null;
+          registration_open: boolean | null;
+          website_summary_fa: string | null;
+          website_summary_en: string | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
       deal_balances: {
         Row: {
           deal_id: string | null;
