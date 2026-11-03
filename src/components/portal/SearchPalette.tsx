@@ -4,7 +4,7 @@ import { Building2, Search, Square } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
-import { area, pick } from "@/lib/portal/format";
+import { area, pick, sep } from "@/lib/portal/format";
 import { boothStatusLabel, dealStageLabel, t } from "@/lib/portal/i18n";
 import { useExhibition } from "./ExhibitionProvider";
 import { usePortal } from "./PortalProvider";
@@ -49,8 +49,8 @@ function Palette({ onClose }: { onClose: () => void }) {
         out.push({
           kind: "booth",
           id: b.id,
-          title: `${b.code}${company ? ` · ${pick(lang, company.name_fa, company.name_en)}` : ""}`,
-          hint: `${hallName.get(b.hall_id) ?? ""} · ${area(lang, b.area_m2)} · ${boothStatusLabel[b.status][lang]}`,
+          title: `${b.code}${company ? `${sep(lang)}${pick(lang, company.name_fa, company.name_en)}` : ""}`,
+          hint: `${hallName.get(b.hall_id) ?? ""}${sep(lang)}${area(lang, b.area_m2)}${sep(lang)}${boothStatusLabel[b.status][lang]}`,
           tone: b.status,
         });
       }

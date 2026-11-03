@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { area, compact, date, money, num, percent, pick, relativeTime } from "@/lib/portal/format";
+import { area, compact, date, money, num, percent, pick, relativeTime, sep } from "@/lib/portal/format";
 import { boothStatusLabel, dealStageLabel, equipmentStageLabel } from "@/lib/portal/i18n";
 import { boothListPrice, paidShare, ZERO_BALANCE } from "@/lib/portal/money";
 import { equipmentPatch, nextEquipmentStep } from "@/lib/portal/furniture";
@@ -76,8 +76,8 @@ export function BoothPanel({
             <TonePill tone={booth.status}>{boothStatusLabel[booth.status][lang]}</TonePill>
           </div>
           <p className="mt-1 truncate text-[13px] text-p-ink-3">
-            {hall ? pick(lang, hall.name_fa, hall.name_en) : ""} · {area(lang, booth.area_m2)} · {num(lang, booth.width, 1)}×{num(lang, booth.depth, 1)}
-            {booth.open_sides ? ` · ${fa ? `${num(lang, booth.open_sides)} بر باز` : `${booth.open_sides} open sides`}` : ""}
+            {hall ? pick(lang, hall.name_fa, hall.name_en) : ""}{sep(lang)}{area(lang, booth.area_m2)}{sep(lang)}{num(lang, booth.width, 1)}×{num(lang, booth.depth, 1)}
+            {booth.open_sides ? `${sep(lang)}${fa ? `${num(lang, booth.open_sides)} بر باز` : `${booth.open_sides} open sides`}` : ""}
           </p>
           {company ? <p className="mt-1 truncate text-sm font-semibold text-p-ink">{pick(lang, company.name_fa, company.name_en)}</p> : null}
         </div>
@@ -253,7 +253,7 @@ function SalesTab({
         </dl>
         <p className="text-[11px] text-p-ink-3">
           {fa ? "مبالغ به" : "Amounts in"} {exhibition.currency === "IRR" ? (fa ? "ریال" : "rial") : exhibition.currency}
-          {listPrice != null ? ` · ${fa ? "قیمت فهرست" : "list price"} ${num(lang, listPrice)}` : ""}
+          {listPrice != null ? `${sep(lang)}${fa ? "قیمت فهرست" : "list price"} ${num(lang, listPrice)}` : ""}
         </p>
         <InvoiceList dealId={deal.id} />
         {can.finance ? <RecordPayment deal={deal} /> : null}
@@ -307,7 +307,7 @@ function CompanyCard({ deal, company }: { deal: Deal; company: Company | null })
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold">{company ? pick(lang, company.name_fa, company.name_en) : "—"}</p>
-          <p className="truncate text-xs text-p-ink-3">{[company?.sector, company?.city].filter(Boolean).join(" · ")}</p>
+          <p className="truncate text-xs text-p-ink-3">{[company?.sector, company?.city].filter(Boolean).join(sep(lang))}</p>
         </div>
       </div>
       {contact || phone ? (
@@ -315,7 +315,7 @@ function CompanyCard({ deal, company }: { deal: Deal; company: Company | null })
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{contact?.full_name ?? (fa ? "تلفن شرکت" : "Company phone")}</p>
             <p className="truncate text-xs text-p-ink-3">
-              {contact?.job_title ? `${contact.job_title} · ` : ""}
+              {contact?.job_title ? `${contact.job_title}${sep(lang)}` : ""}
               <bdi dir="ltr">{phone}</bdi>
             </p>
           </div>
@@ -382,7 +382,7 @@ function CompanyCard({ deal, company }: { deal: Deal; company: Company | null })
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-p-ink-3">
         <span>
           {owner ? `${fa ? "کارشناس:" : "Owner:"} ${owner.display_name ?? owner.email}` : null}
-          {deal.last_contact_at ? ` · ${fa ? "آخرین تماس" : "last contact"} ${relativeTime(lang, deal.last_contact_at)}` : ""}
+          {deal.last_contact_at ? `${sep(lang)}${fa ? "آخرین تماس" : "last contact"} ${relativeTime(lang, deal.last_contact_at)}` : ""}
         </span>
         {can.edit ? (
           <Button size="sm" tone="quiet" icon={<PhoneCall className="size-3.5" />} onClick={logCall}>
@@ -412,7 +412,7 @@ function InvoiceList({ dealId }: { dealId: string }) {
               </span>{" "}
               <span className="text-p-ink-3">
                 {inv.kind === "proforma" ? (fa ? "پیش فاکتور" : "Proforma") : fa ? "فاکتور" : "Invoice"}
-                {inv.status === "registered" ? (fa ? " · ثبت در سامانه" : " · filed") : ""}
+                {inv.status === "registered" ? (fa ? "، ثبت در سامانه" : " · filed") : ""}
               </span>
             </span>
             <span className="tabular shrink-0 font-medium">
@@ -470,7 +470,7 @@ function RecordPayment({ deal }: { deal: Deal }) {
               <Select name="invoice" defaultValue={invoices[0]?.id}>
                 {invoices.map((i) => (
                   <option key={i.id} value={i.id}>
-                    #{i.number ?? "—"} · {num(lang, x.invoiceTotalsById.get(i.id)?.balance ?? 0)} {fa ? "مانده" : "due"}
+                    #{i.number ?? "—"}{sep(lang)}{num(lang, x.invoiceTotalsById.get(i.id)?.balance ?? 0)} {fa ? "مانده" : "due"}
                   </option>
                 ))}
                 <option value="">{fa ? "بدون فاکتور (علی الحساب)" : "No invoice (on account)"}</option>
@@ -539,7 +539,7 @@ export function EquipmentLine({ order: o, compact }: { order: EquipmentOrder; co
             {equipmentStageLabel[o.stage][lang]}
           </Pill>
           {o.stage === "collected" && o.collected_at ? relativeTime(lang, o.collected_at) : o.delivered_at ? relativeTime(lang, o.delivered_at) : null}
-          {!returnable ? <span>{fa ? "· برگشت ندارد" : "· not returned"}</span> : null}
+          {!returnable ? <span>{fa ? "، برگشت ندارد" : "· not returned"}</span> : null}
           {o.notes ? <span className="text-p-danger">· {o.notes}</span> : null}
         </p>
       </div>
@@ -671,7 +671,7 @@ function DetailsTab({ booth, onUpdate, onDelete }: { booth: Booth; onUpdate: (pa
         </div>
       ) : null}
       <p className="text-xs text-p-ink-3">
-        {fa ? "آخرین تغییر" : "Last changed"} {date(lang, booth.updated_at)} · {x.exhibition ? pick(lang, x.exhibition.name_fa, x.exhibition.name_en) : ""}
+        {fa ? "آخرین تغییر" : "Last changed"} {date(lang, booth.updated_at)}{sep(lang)}{x.exhibition ? pick(lang, x.exhibition.name_fa, x.exhibition.name_en) : ""}
       </p>
       {disabled ? null : <span className="sr-only">{fa ? "تغییرات خودکار ذخیره می شوند" : "Changes save automatically"}</span>}
     </div>

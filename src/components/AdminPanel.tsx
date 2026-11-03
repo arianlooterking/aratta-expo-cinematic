@@ -130,10 +130,10 @@ function makeBlogPost(lang: Lang): BlogPost {
     category: lang === "fa" ? "راهنمای نمایشگاه" : "Exhibition guide",
     publishedAt: lang === "fa" ? "تاریخ انتشار" : "Publication date",
     readTime: lang === "fa" ? "۵ دقیقه" : "5 min read",
-    author: lang === "fa" ? "تیم اَرَت" : "Aratta Team",
+    author: lang === "fa" ? "تیم اَرَتَ" : "Aratta Team",
     coverImage: "/gallery/expo-floor-01.jpg",
     coverAlt: lang === "fa" ? "تصویر مقاله نمایشگاهی" : "Exhibition article cover",
-    seoTitle: lang === "fa" ? "عنوان سئو مقاله | مجله اَرَت" : "Article SEO title | Aratta Journal",
+    seoTitle: lang === "fa" ? "عنوان سئو مقاله | مجله اَرَتَ" : "Article SEO title | Aratta Journal",
     seoDescription: lang === "fa" ? "توضیح کوتاه مقاله برای موتورهای جستجو." : "A concise search description for the article.",
   };
 }
@@ -284,7 +284,7 @@ export function AdminPanel({ embedded = false, initialLang = "fa" }: { embedded?
               Aratta Admin / Content Operations
             </div>
             <h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">
-              {isFa ? "استودیوی محتوای وب‌سایت اَرَت" : "Aratta website content studio"}
+              {isFa ? "استودیوی محتوای وب‌سایت اَرَتَ" : "Aratta website content studio"}
             </h1>
             <p className="site-copy mt-3 text-white/62">
               {isFa

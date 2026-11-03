@@ -3,7 +3,7 @@
 import { Building2, Check, History, Search, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
-import { area, num, pick } from "@/lib/portal/format";
+import { area, num, pick, sep } from "@/lib/portal/format";
 import { dealStageLabel } from "@/lib/portal/i18n";
 import { newId } from "@/lib/portal/store";
 import type { Booth, BoothStatus, Company, Deal, Patch } from "@/lib/portal/types";
@@ -221,7 +221,7 @@ function ExistingPicker({
                             c.company.city,
                           ]
                             .filter(Boolean)
-                            .join(" · ")}
+                            .join(sep(lang))}
                         </span>
                       </span>
                       {busy === c.company.id ? <Check className="size-4 text-p-brand" /> : null}

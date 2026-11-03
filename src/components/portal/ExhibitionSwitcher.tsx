@@ -4,7 +4,7 @@ import { Check, ChevronDown, Plus } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { countdownText } from "@/lib/portal/countdown";
-import { date, pick } from "@/lib/portal/format";
+import { date, pick, sep } from "@/lib/portal/format";
 import { exhibitionStatusLabel } from "@/lib/portal/i18n";
 import { exhibitionPhase } from "@/lib/portal/metrics";
 import { newId } from "@/lib/portal/store";
@@ -109,7 +109,7 @@ function ExhibitionRow({ exhibition: e, active, onPick }: { exhibition: Exhibiti
         <span className="mt-0.5 flex items-center gap-1.5 text-xs text-p-ink-3">
           <span className={cn("size-1.5 rounded-full", phaseTone[phase])} />
           {e.starts_on ? date(lang, e.starts_on) : exhibitionStatusLabel[e.status][lang]}
-          {" · "}
+          {sep(lang)}
           {countdownText(lang, e)}
         </span>
       </span>

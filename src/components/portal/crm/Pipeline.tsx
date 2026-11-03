@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { compact, date, num, pick, relativeTime } from "@/lib/portal/format";
+import { compact, date, num, pick, relativeTime, sep } from "@/lib/portal/format";
 import { dealStageLabel } from "@/lib/portal/i18n";
 import { dueGroupLabel } from "@/lib/portal/labels";
 import { boothListPrice } from "@/lib/portal/money";
@@ -98,7 +98,7 @@ export function Pipeline() {
           title={fa ? "فروش و پیگیری" : "Sales pipeline"}
           hint={
             fa
-              ? `${num(lang, open.length)} پرونده باز · ارزش وزنی ${compact(lang, weighted)} ${currency === "IRR" ? "ریال" : currency}`
+              ? `${num(lang, open.length)} پرونده باز، ارزش وزنی ${compact(lang, weighted)} ${currency === "IRR" ? "ریال" : currency}`
               : `${open.length} open deals · weighted ${compact(lang, weighted)} ${currency}`
           }
           actions={
@@ -355,7 +355,7 @@ function FollowUps({ deals, onLog }: { deals: Deal[]; onLog: (c: Company) => voi
         return (
           <section key={g} className="grid gap-2">
             <h2 className={cn("text-[13px] font-semibold", g === "overdue" ? "text-p-danger" : "text-p-ink-2")}>
-              {dueGroupLabel[g][lang]} · {num(lang, list.length)}
+              {dueGroupLabel[g][lang]}{sep(lang)}{num(lang, list.length)}
             </h2>
             <Card className="divide-y divide-p-line p-0">
               {list.map((d) => {
@@ -365,8 +365,8 @@ function FollowUps({ deals, onLog }: { deals: Deal[]; onLog: (c: Company) => voi
                     <Link href={`/${lang}/staff/crm/${d.company_id}`} className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{c ? pick(lang, c.name_fa, c.name_en) : "—"}</span>
                       <span className="block truncate text-xs text-p-ink-3">
-                        {dealStageLabel[d.stage][lang]} · {d.next_follow_up_at ? date(lang, d.next_follow_up_at, "short") : ""}
-                        {d.last_contact_at ? ` · ${fa ? "آخرین تماس" : "last contact"} ${relativeTime(lang, d.last_contact_at)}` : ""}
+                        {dealStageLabel[d.stage][lang]}{sep(lang)}{d.next_follow_up_at ? date(lang, d.next_follow_up_at, "short") : ""}
+                        {d.last_contact_at ? `${sep(lang)}${fa ? "آخرین تماس" : "last contact"} ${relativeTime(lang, d.last_contact_at)}` : ""}
                       </span>
                     </Link>
                     <div className="flex items-center gap-1.5">

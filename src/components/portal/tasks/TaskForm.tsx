@@ -2,7 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { pick } from "@/lib/portal/format";
+import { pick, sep } from "@/lib/portal/format";
 import { taskPriorityLabel, taskStatusLabel } from "@/lib/portal/labels";
 import { newId } from "@/lib/portal/store";
 import type { Booth, Company, Task } from "@/lib/portal/types";
@@ -110,7 +110,7 @@ function Body({ task, preset, onClose }: { task: Task | null; preset?: { company
             {staff.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.id === user.id ? (fa ? "خودم" : "Me") : (s.display_name ?? s.email)}
-                {s.job_title ? ` · ${s.job_title}` : ""}
+                {s.job_title ? `${sep(lang)}${s.job_title}` : ""}
               </option>
             ))}
           </Select>

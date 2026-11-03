@@ -24,6 +24,12 @@
   --p-info-soft: #e5eefa;
   --p-violet: #6a43b8;
   --p-violet-soft: #efe9fa;
+  /* Receivables by age: one hue, light (not yet due) to dark (90+ days). Validated ordinal ramp. */
+  --age-0: #eba66d;
+  --age-1: #df7f44;
+  --age-2: #cc5824;
+  --age-3: #b23213;
+  --age-4: #8d1b17;
   --p-side: #0b1d18;
   --p-side-ink: #e3ece8;
   --p-side-muted: #8ea59b;
@@ -112,6 +118,11 @@
   --p-info-soft: rgba(124, 177, 239, 0.14);
   --p-violet: #ad93ee;
   --p-violet-soft: rgba(173, 147, 238, 0.15);
+  --age-0: #7c4523;
+  --age-1: #b15829;
+  --age-2: #db7039;
+  --age-3: #f69557;
+  --age-4: #ffc28c;
   --p-side: #070e0c;
   --p-side-ink: #dbe6e1;
   --p-side-muted: #7b9187;
@@ -326,5 +337,19 @@
   }
   [dir="rtl"] .portal .scroll-fade {
     mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent);
+  }
+}
+
+/* Printing an invoice: plain white paper, no app chrome, colours kept for the small accents. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  .portal {
+    background: #fff !important;
+    color: #000;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }

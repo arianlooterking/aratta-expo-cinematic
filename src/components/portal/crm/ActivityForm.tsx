@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { pick } from "@/lib/portal/format";
+import { pick, sep } from "@/lib/portal/format";
 import { activityKindLabel } from "@/lib/portal/labels";
 import { newId } from "@/lib/portal/store";
 import type { Company } from "@/lib/portal/types";
@@ -90,7 +90,7 @@ function Body({ company: preset, onClose }: { company: Company | null; onClose: 
             {contacts.rows.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.full_name}
-                {c.job_title ? ` · ${c.job_title}` : ""}
+                {c.job_title ? `${sep(lang)}${c.job_title}` : ""}
               </option>
             ))}
             <option value="">{fa ? "نامشخص" : "Not recorded"}</option>

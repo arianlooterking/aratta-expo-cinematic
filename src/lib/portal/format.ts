@@ -106,3 +106,11 @@ export function relativeTime(lang: Lang, value: string | Date, now = new Date())
 export function pick(lang: Lang, fa: string | null | undefined, en: string | null | undefined) {
   return (lang === "en" ? en || fa : fa || en) ?? "";
 }
+
+/**
+ * The separator between short facts on one line. Persian uses its comma: a middle dot before a
+ * Persian digit is drawn on the wrong side of it and reads as a zero ("۱۰" instead of "· ۱").
+ */
+export function sep(lang: Lang) {
+  return lang === "fa" ? "، " : " · ";
+}

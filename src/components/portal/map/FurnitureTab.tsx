@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { money, num, pick, relativeTime } from "@/lib/portal/format";
+import { money, num, pick, relativeTime, sep } from "@/lib/portal/format";
 import { kitOf, mergeKit, minQuantity, quantityEditable, quantityPatch, removable, standardKit, stockLeft, type KitLine } from "@/lib/portal/furniture";
 import { equipmentStageLabel } from "@/lib/portal/i18n";
 import { newId } from "@/lib/portal/store";
@@ -233,7 +233,7 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
               <span>{fa ? `${num(lang, o.delivered_qty)} از ${num(lang, o.quantity)} تحویل شده` : `${o.delivered_qty} of ${o.quantity} delivered`}</span>
             ) : null}
             {o.stage === "collected" && o.collected_at ? relativeTime(lang, o.collected_at) : o.delivered_at ? relativeTime(lang, o.delivered_at) : null}
-            {!returnable ? <span>{fa ? "· برگشت ندارد" : "· not returned"}</span> : null}
+            {!returnable ? <span>{fa ? "، برگشت ندارد" : "· not returned"}</span> : null}
             {o.damaged_qty > 0 ? <span className="text-p-danger">· {fa ? `${num(lang, o.damaged_qty)} آسیب دیده` : `${o.damaged_qty} damaged`}</span> : null}
             {o.notes ? <span className="text-p-danger">· {o.notes}</span> : null}
           </p>
@@ -415,7 +415,7 @@ function CopyFrom({ booths, onPick }: { booths: Booth[]; onPick: (b: Booth) => v
         const deal = b.deal_id ? x.dealById.get(b.deal_id) : null;
         const company = deal ? x.companyById.get(deal.company_id) : null;
         const pieces = (x.ordersByBooth.get(b.id) ?? []).reduce((s, o) => s + (o.stage === "cancelled" ? 0 : o.quantity), 0);
-        return [company ? pick(lang, company.name_fa, company.name_en) : null, fa ? `${num(lang, pieces)} قلم` : `${pieces} pieces`].filter(Boolean).join(" · ");
+        return [company ? pick(lang, company.name_fa, company.name_en) : null, fa ? `${num(lang, pieces)} قلم` : `${pieces} pieces`].filter(Boolean).join(sep(lang));
       }}
       placeholder={fa ? "کد غرفه" : "Booth code"}
       emptyText={fa ? "غرفه ای پیدا نشد" : "No booth found"}

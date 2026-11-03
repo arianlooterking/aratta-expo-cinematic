@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Map as MapIcon, PackageCheck, PackageOpen, Printer, Search, TriangleAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
-import { num, percent, pick } from "@/lib/portal/format";
+import { num, percent, pick, sep } from "@/lib/portal/format";
 import type { Booth, EquipmentOrder } from "@/lib/portal/types";
 import { useExhibition } from "./ExhibitionProvider";
 import { usePortal } from "./PortalProvider";
@@ -125,7 +125,7 @@ export function Handover() {
                 {mode === "deliver" ? (fa ? "تحویل شده" : "Delivered") : fa ? "برگشته به انبار" : "Back in store"}
               </span>
               <span className="tabular text-p-ink-2">
-                {num(lang, pieces.done)} / {num(lang, pieces.total)} · {pieces.total ? percent(lang, pieces.done / pieces.total) : "—"}
+                {num(lang, pieces.done)} / {num(lang, pieces.total)}{sep(lang)}{pieces.total ? percent(lang, pieces.done / pieces.total) : "—"}
               </span>
             </div>
             <Progress value={pieces.total ? pieces.done / pieces.total : 0} tone={mode === "deliver" ? "info" : "ok"} />
@@ -204,7 +204,7 @@ export function Handover() {
                     <p className="truncate font-semibold">{g.company || (fa ? "بدون شرکت" : "No company")}</p>
                     <p className="truncate text-xs text-p-ink-3">
                       {hall ? pick(lang, hall.name_fa, hall.name_en) : ""}
-                      {mode !== "issues" ? ` · ${fa ? `${num(lang, g.open.length)} قلم مانده` : `${g.open.length} lines left`}` : ""}
+                      {mode !== "issues" ? `${sep(lang)}${fa ? `${num(lang, g.open.length)} قلم مانده` : `${g.open.length} lines left`}` : ""}
                     </p>
                   </div>
                   <Link href={`/${lang}/staff/map?booth=${g.booth.id}`} className="grid size-9 place-items-center rounded-xl text-p-ink-3 hover:bg-p-sunken print:hidden" aria-label={fa ? "نمایش روی نقشه" : "Show on map"}>

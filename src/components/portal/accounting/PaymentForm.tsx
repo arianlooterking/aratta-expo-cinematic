@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { money, num, pick } from "@/lib/portal/format";
+import { cn } from "@/lib/cn";
+import { date, money, num, pick, sep } from "@/lib/portal/format";
 import { invoiceKindLabel, paymentMethodLabel } from "@/lib/portal/labels";
 import { newId } from "@/lib/portal/store";
-import type { Company, Invoice } from "@/lib/portal/types";
+import type { Company, Invoice, Payment } from "@/lib/portal/types";
 import { useExhibition } from "../ExhibitionProvider";
 import { DateQuick, MoneyInput, PickerField, todayIso } from "../fields";
 import { usePortal } from "../PortalProvider";
@@ -112,7 +113,7 @@ function Body({ company: presetCompany, invoice: presetInvoice, onClose }: { com
           >
             {open.map((i) => (
               <option key={i.id} value={i.id}>
-                {invoiceKindLabel[i.kind][lang]} #{i.number ?? "—"} · {fa ? "مانده" : "due"} {num(lang, x.invoiceTotalsById.get(i.id)?.balance ?? 0)}
+                {invoiceKindLabel[i.kind][lang]} #{i.number ?? "—"}{sep(lang)}{fa ? "مانده" : "due"} {num(lang, x.invoiceTotalsById.get(i.id)?.balance ?? 0)}
               </option>
             ))}
             <option value="none">{fa ? "علی الحساب (بدون فاکتور)" : "On account (no invoice)"}</option>
@@ -154,5 +155,66 @@ function Body({ company: presetCompany, invoice: presetInvoice, onClose }: { com
         </Button>
       </div>
     </form>
+  );
+}
+
+/** Void a payment that was entered by mistake or bounced. The row stays, struck through, with the reason. */
+export function VoidPayment({ payment, onClose }: { payment: Payment | null; onClose: () => void }) {
+  const { lang, store, toast } = usePortal();
+  const fa = lang === "fa";
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const reasons = fa ? ["اشتباه در ثبت", "چک برگشتی", "تکراری", "بازپرداخت به مشتری"] : ["Entered by mistake", "Cheque bounced", "Duplicate", "Refunded"];
+  return (
+    <Sheet open={Boolean(payment)} onClose={onClose} closeLabel={fa ? "بستن" : "Close"} title={fa ? "ابطال دریافتی" : "Void payment"}>
+      {payment ? (
+        <form
+          className="grid gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const r = reason.trim();
+            if (!r) return;
+            setBusy(true);
+            const res = await store.update("payments", payment.id, { voided_at: new Date().toISOString(), void_reason: r });
+            setBusy(false);
+            if (res.ok) {
+              toast(fa ? "دریافتی باطل شد" : "Payment voided");
+              setReason("");
+              onClose();
+            }
+          }}
+        >
+          <p className="text-sm text-p-ink-2">
+            {fa
+              ? `${money(lang, payment.amount, payment.currency)} در تاریخ ${date(lang, payment.paid_on)} از حساب ها خارج می شود. ردیف با دلیل ابطال باقی می ماند.`
+              : `${money(lang, payment.amount, payment.currency)} from ${date(lang, payment.paid_on)} stops counting. The row stays on record with the reason.`}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {reasons.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setReason(r)}
+                aria-pressed={reason === r}
+                className={cn("h-7 rounded-lg px-2.5 text-xs font-medium", reason === r ? "bg-p-danger-soft text-p-danger ring-1 ring-p-danger" : "bg-p-sunken text-p-ink-2 hover:bg-p-line")}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+          <Field label={fa ? "دلیل ابطال" : "Reason"}>
+            <Input value={reason} onChange={(e) => setReason(e.target.value)} required autoFocus />
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button tone="ghost" onClick={onClose}>
+              {fa ? "انصراف" : "Cancel"}
+            </Button>
+            <Button tone="danger" type="submit" disabled={!reason.trim() || busy}>
+              {fa ? "ابطال دریافتی" : "Void payment"}
+            </Button>
+          </div>
+        </form>
+      ) : null}
+    </Sheet>
   );
 }

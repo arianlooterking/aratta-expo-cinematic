@@ -19,7 +19,7 @@ const TOURS: Record<TourKey, { title: L; steps: Step[] }> = {
     title: { fa: "آشنایی با مرکز عملیات", en: "Getting around" },
     steps: [
       {
-        title: { fa: "به مرکز عملیات آرت اکسپو خوش آمدید", en: "Welcome to Aratta operations" },
+        title: { fa: "به مرکز عملیات اَرَتَ اکسپو خوش آمدید", en: "Welcome to Aratta operations" },
         body: {
           fa: "نقشه سالن ها، فروش و پیگیری، حسابداری، تحویل تجهیزات و کارهای تیم، همه این جاست و برای همه همکاران همزمان به روز می شود.",
           en: "Hall maps, sales follow-up, accounting, furniture handover and team tasks all live here, and update for everyone at the same time.",

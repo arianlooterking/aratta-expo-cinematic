@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { clampRect, fitLabel, fitView, focusView, rectFromPoints, round, snap, toPlan, wrapLabel, zoomAt, type Rect, type View } from "@/lib/portal/geometry";
 import type { FeatureKind } from "@/lib/portal/types";
 import { IconButton } from "../ui";
+import { sep } from "@/lib/portal/format";
 
 export type CanvasBooth = Rect & {
   id: string;
@@ -711,7 +712,7 @@ function Feature({
           opacity={f.kind === "aisle" ? 0.75 : 1}
         >
           {f.label}
-          {editing && (f.kind === "aisle" || f.kind === "entrance" || f.kind === "door") ? ` · ${round(vertical ? f.width : f.depth, 2)} m` : ""}
+          {editing && (f.kind === "aisle" || f.kind === "entrance" || f.kind === "door") ? `${sep(lang)}${round(vertical ? f.width : f.depth, 2)} m` : ""}
         </text>
       ) : null}
       {editing && f.locked && minSide * scale > 14 ? (

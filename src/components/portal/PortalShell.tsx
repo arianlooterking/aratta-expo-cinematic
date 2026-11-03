@@ -164,7 +164,7 @@ function Shell({
           A
         </span>
         <span className="min-w-0 leading-tight">
-          <span className="block text-[15px] font-bold tracking-tight text-p-side-ink">{fa ? "اَرَت اکسپو" : "Aratta Expo"}</span>
+          <span className="block text-[15px] font-bold tracking-tight text-p-side-ink">{fa ? "اَرَتَ اکسپو" : "Aratta Expo"}</span>
           <span className="block text-xs text-p-side-muted">{fa ? "مرکز عملیات نمایشگاه" : "Exhibition operations"}</span>
         </span>
       </Link>
@@ -230,7 +230,7 @@ function Shell({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side lg:block">{sidebar}</aside>
+      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side lg:block print:hidden">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {drawer ? (
@@ -245,8 +245,8 @@ function Shell({
         </div>
       ) : null}
 
-      <div className={cn("flex flex-col lg:ps-64", isMap ? "h-dvh" : "min-h-dvh")}>
-        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 backdrop-blur-md">
+      <div className={cn("flex flex-col lg:ps-64 print:ps-0", isMap ? "h-dvh" : "min-h-dvh")}>
+        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 backdrop-blur-md print:hidden">
           <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
             <IconButton label={t(lang, "menu")} className="lg:hidden" onClick={() => setDrawer(true)}>
               <Menu className="size-5" />
@@ -285,11 +285,11 @@ function Shell({
           {mode === "demo" ? <DemoBanner /> : null}
         </header>
 
-        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-16 lg:pb-0" : "pb-24 lg:pb-10")}>{children}</main>
+        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-16 lg:pb-0" : "pb-24 lg:pb-10 print:pb-0")}>{children}</main>
 
         {/* Mobile tab bar */}
         <nav
-          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-p-line bg-p-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-p-line bg-p-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden"
           aria-label={t(lang, "menu")}
           data-tour="nav"
         >
@@ -321,7 +321,7 @@ function Shell({
 
       <SearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6">
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 print:hidden">
         {toasts.map((toast) => (
           <button
             key={toast.id}

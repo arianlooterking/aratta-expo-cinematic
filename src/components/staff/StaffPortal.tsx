@@ -317,7 +317,7 @@ type PortalCopy = {
 const copyByLocale: Record<PortalLocale, PortalCopy> = {
   fa: {
     operations: "مرکز عملیات نمایشگاهی",
-    workspace: "پورتال کارکنان اَرَت",
+    workspace: "پورتال کارکنان اَرَتَ",
     archivedTemplate: "الگوی عملیاتی آرشیوی",
     localMode: "فضای کاری محلی",
     localModeBody: "تغییرات در همین مرورگر ذخیره می‌شوند و به سامانه دیگری ارسال نمی‌شوند.",

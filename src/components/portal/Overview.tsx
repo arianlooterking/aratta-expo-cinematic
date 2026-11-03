@@ -18,7 +18,7 @@ import {
 import { useMemo } from "react";
 import { cn } from "@/lib/cn";
 import { countdownText } from "@/lib/portal/countdown";
-import { area, compact, date, daysUntil, moneyCompact, num, percent, pick, relativeTime } from "@/lib/portal/format";
+import { area, compact, date, daysUntil, moneyCompact, num, percent, pick, relativeTime, sep } from "@/lib/portal/format";
 import { boothStatusLabel, dealStageLabel } from "@/lib/portal/i18n";
 import { dueFollowUps, summariseMoney, summariseSpace, type Phase } from "@/lib/portal/metrics";
 import type { BoothStatus, DealStage } from "@/lib/portal/types";
@@ -112,7 +112,7 @@ export function Overview() {
           <p className="mt-1 text-sm text-p-ink-3">
             {[pick(lang, exhibition.venue_fa, exhibition.venue_en), exhibition.starts_on ? `${date(lang, exhibition.starts_on)} – ${date(lang, exhibition.ends_on)}` : null]
               .filter(Boolean)
-              .join(" · ")}
+              .join(sep(lang))}
           </p>
         </div>
         <div className="flex gap-2">
@@ -211,8 +211,8 @@ export function Overview() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{company ? pick(lang, company.name_fa, company.name_en) : "—"}</p>
                       <p className="truncate text-xs text-p-ink-3">
-                        {dealStageLabel[d.stage][lang]} · {relativeTime(lang, d.next_follow_up_at!)}
-                        {owner ? ` · ${owner.display_name ?? owner.email}` : ""}
+                        {dealStageLabel[d.stage][lang]}{sep(lang)}{relativeTime(lang, d.next_follow_up_at!)}
+                        {owner ? `${sep(lang)}${owner.display_name ?? owner.email}` : ""}
                       </p>
                     </div>
                     {company?.phone ? (
@@ -237,7 +237,7 @@ export function Overview() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{company ? pick(lang, company.name_fa, company.name_en) : "—"}</p>
                         <p className="truncate text-xs text-p-ink-3">
-                          {booths.map((b) => b.code).join("، ") || (fa ? "بدون غرفه" : "No booth")} · {fa ? "پرداخت" : "paid"}{" "}
+                          {booths.map((b) => b.code).join("، ") || (fa ? "بدون غرفه" : "No booth")}{sep(lang)}{fa ? "پرداخت" : "paid"}{" "}
                           {percent(lang, balance.invoiced ? balance.paid / balance.invoiced : 0)}
                         </p>
                       </div>
@@ -257,7 +257,7 @@ export function Overview() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{task.title}</p>
                       <p className={cn("truncate text-xs", late ? "text-p-danger" : "text-p-ink-3")}>
-                        {assignee ? `${assignee.display_name ?? assignee.email} · ` : ""}
+                        {assignee ? `${assignee.display_name ?? assignee.email}${sep(lang)}` : ""}
                         {task.due_at ? relativeTime(lang, task.due_at) : fa ? "بدون مهلت" : "No due date"}
                       </p>
                     </div>
@@ -307,7 +307,7 @@ export function Overview() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium group-hover:text-p-brand">{pick(lang, hall.name_fa, hall.name_en)}</span>
                       <span className="tabular text-xs text-p-ink-3">
-                        {percent(lang, space.soldShare)} · {num(lang, space.booths)} {fa ? "غرفه" : "booths"}
+                        {percent(lang, space.soldShare)}{sep(lang)}{num(lang, space.booths)} {fa ? "غرفه" : "booths"}
                       </span>
                     </div>
                     <Progress value={space.soldShare} label={pick(lang, hall.name_fa, hall.name_en)} />

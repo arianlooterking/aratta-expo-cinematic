@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
-import { num } from "@/lib/portal/format";
+import { num, sep } from "@/lib/portal/format";
 import type { Rect } from "@/lib/portal/geometry";
 import { featureLabel } from "@/lib/portal/i18n";
 import { clearWidth, columnsAlong, repeatRect, resize, snapToWall, turn, wallOf, type Wall } from "@/lib/portal/structure";
@@ -73,7 +73,7 @@ export function FeaturePanel({
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-lg font-bold">{name ?? featureLabel[feature.kind][lang]}</h2>
           <p className="text-xs text-p-ink-3">
-            {featureLabel[feature.kind][lang]} · {num(lang, feature.width, 1)} × {num(lang, feature.depth, 1)} {fa ? "متر" : "m"}
+            {featureLabel[feature.kind][lang]}{sep(lang)}{num(lang, feature.width, 1)} × {num(lang, feature.depth, 1)} {fa ? "متر" : "m"}
           </p>
         </div>
         {locked ? (
@@ -127,7 +127,7 @@ export function FeaturePanel({
           {feature.kind === "aisle" ? (
             <p className="rounded-xl bg-p-info-soft px-3 py-2 text-xs text-p-info">
               {fa ? "عرض عبور راهرو" : "Walking width"}: <b>{num(lang, clearWidth(rect), 1)} {fa ? "متر" : "m"}</b>
-              {clearWidth(rect) < 2.5 ? (fa ? " · کمتر از ۲٫۵ متر برای ازدحام نمایشگاه تنگ است" : " · under 2.5 m is tight for show-day crowds") : null}
+              {clearWidth(rect) < 2.5 ? (fa ? "، کمتر از ۲٫۵ متر برای ازدحام نمایشگاه تنگ است" : " · under 2.5 m is tight for show-day crowds") : null}
             </p>
           ) : null}
           {editable ? (

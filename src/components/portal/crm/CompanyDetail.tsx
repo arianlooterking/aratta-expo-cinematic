@@ -21,7 +21,7 @@ import {
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
-import { compact, date, money, num, pick, relativeTime } from "@/lib/portal/format";
+import { compact, date, money, num, pick, relativeTime, sep } from "@/lib/portal/format";
 import { activityKindLabel, companyKindLabel, companyPriorityLabel, invoiceKindLabel, invoiceStatusLabel, paymentMethodLabel, taskStatusLabel } from "@/lib/portal/labels";
 import { ZERO_BALANCE } from "@/lib/portal/money";
 import { newId } from "@/lib/portal/store";
@@ -284,7 +284,7 @@ function DealCard({ companyId }: { companyId: string }) {
             {deal.last_contact_at ? <span>{fa ? `آخرین تماس ${relativeTime(lang, deal.last_contact_at)}` : `Last contact ${relativeTime(lang, deal.last_contact_at)}`}</span> : null}
             {deal.next_follow_up_at ? (
               <span className={cn(now > 0 && new Date(deal.next_follow_up_at).getTime() < now && "font-semibold text-p-danger")}>
-                · {fa ? "پیگیری" : "Follow up"} {date(lang, deal.next_follow_up_at)}
+               {sep(lang)}{fa ? "پیگیری" : "Follow up"} {date(lang, deal.next_follow_up_at)}
               </span>
             ) : null}
             <span className="flex-1" />
@@ -473,9 +473,9 @@ function Timeline({ companyId, onLog }: { companyId: string; onLog: () => void }
                   {a.body ? <p className="mt-1 whitespace-pre-line text-[13px] leading-relaxed text-p-ink-2">{a.body}</p> : null}
                   {a.outcome ? <p className="mt-1 text-[13px] text-p-ink-2">{fa ? "نتیجه: " : "Outcome: "}{a.outcome}</p> : null}
                   <p className="mt-1 text-xs text-p-ink-3">
-                    {date(lang, a.occurred_at)} · {relativeTime(lang, a.occurred_at)}
-                    {author ? ` · ${author.display_name ?? author.email}` : ""}
-                    {a.next_follow_up_at ? ` · ${fa ? "پیگیری" : "follow up"} ${date(lang, a.next_follow_up_at, "short")}` : ""}
+                    {date(lang, a.occurred_at)}{sep(lang)}{relativeTime(lang, a.occurred_at)}
+                    {author ? `${sep(lang)}${author.display_name ?? author.email}` : ""}
+                    {a.next_follow_up_at ? `${sep(lang)}${fa ? "پیگیری" : "follow up"} ${date(lang, a.next_follow_up_at, "short")}` : ""}
                   </p>
                 </div>
               </li>
@@ -516,7 +516,7 @@ function Contacts({ companyId }: { companyId: string }) {
                 {c.is_primary ? <Star className="size-3 fill-current text-p-gold" aria-label={fa ? "رابط اصلی" : "Main contact"} /> : null}
               </span>
               <span className="block truncate text-xs text-p-ink-3">
-                {[c.job_title, c.phone ? `⁦${c.phone}⁩` : null, c.email].filter(Boolean).join(" · ")}
+                {[c.job_title, c.phone ? `⁦${c.phone}⁩` : null, c.email].filter(Boolean).join(sep(lang))}
               </span>
             </button>
             {c.phone ? (
@@ -650,7 +650,7 @@ function MoneyCard({ companyId }: { companyId: string }) {
               <li key={i.id}>
                 <Link href={`${base}/accounting/invoices/${i.id}`} className="flex items-center gap-2 rounded-xl border border-p-line px-3 py-2 text-[13px] hover:border-p-line-strong">
                   <span className="min-w-0 flex-1 truncate">
-                    <b dir="ltr">#{i.number ?? "—"}</b> <span className="text-p-ink-3">{invoiceKindLabel[i.kind][lang]} · {invoiceStatusLabel[i.status][lang]}</span>
+                    <b dir="ltr">#{i.number ?? "—"}</b> <span className="text-p-ink-3">{invoiceKindLabel[i.kind][lang]}{sep(lang)}{invoiceStatusLabel[i.status][lang]}</span>
                   </span>
                   <span className="tabular shrink-0 font-medium">{compact(lang, t?.total ?? 0)}</span>
                 </Link>
@@ -666,7 +666,7 @@ function MoneyCard({ companyId }: { companyId: string }) {
           {payments.slice(0, 6).map((p) => (
             <li key={p.id} className={cn("flex items-center gap-2 px-1", p.voided_at && "text-p-ink-3 line-through")}>
               <span className="flex-1">
-                {date(lang, p.paid_on, "short")} · {paymentMethodLabel[p.method][lang]}
+                {date(lang, p.paid_on, "short")}{sep(lang)}{paymentMethodLabel[p.method][lang]}
               </span>
               <span className="tabular font-medium text-p-ok">{num(lang, p.amount)}</span>
             </li>

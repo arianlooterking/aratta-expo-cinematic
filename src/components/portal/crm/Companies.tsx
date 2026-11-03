@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/cn";
 import { toCsv } from "@/lib/portal/finance";
-import { compact, date, num, pick, relativeTime } from "@/lib/portal/format";
+import { compact, date, num, pick, relativeTime, sep } from "@/lib/portal/format";
 import { dealStageLabel } from "@/lib/portal/i18n";
 import { companyKindLabel } from "@/lib/portal/labels";
 import { ZERO_BALANCE } from "@/lib/portal/money";
@@ -131,7 +131,7 @@ export function Companies() {
     <div className="mx-auto max-w-7xl space-y-4 px-4 py-5 sm:px-6 lg:py-7">
       <PageHeader
         title={fa ? "شرکت ها" : "Companies"}
-        hint={fa ? `${num(lang, rows.length)} شرکت · ${num(lang, rows.filter((r) => r.deal).length)} در این نمایشگاه` : `${rows.length} companies · ${rows.filter((r) => r.deal).length} in this exhibition`}
+        hint={fa ? `${num(lang, rows.length)} شرکت، ${num(lang, rows.filter((r) => r.deal).length)} در این نمایشگاه` : `${rows.length} companies · ${rows.filter((r) => r.deal).length} in this exhibition`}
         actions={
           <>
             <Button icon={<Download className="size-4" />} onClick={exportCsv} className="hidden sm:inline-flex">
@@ -254,7 +254,7 @@ export function Companies() {
                         {pick(lang, r.company.name_fa, r.company.name_en)}
                       </Link>
                       <span className="block truncate text-xs text-p-ink-3">
-                        {[r.company.sector, r.company.city, r.pastShows ? (fa ? `${num(lang, r.pastShows)} دوره قبل` : `${r.pastShows} past`) : null].filter(Boolean).join(" · ")}
+                        {[r.company.sector, r.company.city, r.pastShows ? (fa ? `${num(lang, r.pastShows)} دوره قبل` : `${r.pastShows} past`) : null].filter(Boolean).join(sep(lang))}
                       </span>
                     </td>
                     <td>{r.deal ? <StagePill stage={r.deal.stage} /> : <span className="text-xs text-p-ink-3">—</span>}</td>

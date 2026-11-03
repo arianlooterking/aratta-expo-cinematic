@@ -30,7 +30,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { area, compact, num, percent, pick } from "@/lib/portal/format";
+import { area, compact, num, percent, pick, sep } from "@/lib/portal/format";
 import { nextCode, overlapping, type Rect } from "@/lib/portal/geometry";
 import { boothStatusLabel, featureLabel } from "@/lib/portal/i18n";
 import { type EquipmentState } from "@/lib/portal/metrics";
@@ -424,7 +424,7 @@ export function MapWorkspace() {
       let progress: number | null = null;
       let badge: string | null = null;
       if (layer === "sales") {
-        subtitle = share != null ? `${area(lang, b.area_m2)} · ${percent(lang, share)}` : area(lang, b.area_m2);
+        subtitle = share != null ? `${area(lang, b.area_m2)}${sep(lang)}${percent(lang, share)}` : area(lang, b.area_m2);
         progress = share;
       } else {
         const strike = x.phase === "strike" || x.phase === "after";
@@ -436,11 +436,11 @@ export function MapWorkspace() {
       }
       const statusText = boothStatusLabel[b.status][lang];
       const hoverLines = [
-        `${b.code} · ${area(lang, b.area_m2)} · ${num(lang, b.width, 1)}×${num(lang, b.depth, 1)} ${fa ? "متر" : "m"}`,
+        `${b.code}${sep(lang)}${area(lang, b.area_m2)}${sep(lang)}${num(lang, b.width, 1)}×${num(lang, b.depth, 1)} ${fa ? "متر" : "m"}`,
         layer === "sales"
           ? [statusText, share != null ? (fa ? `${percent(lang, share)} پرداخت شده` : `${percent(lang, share)} paid`) : null, balance && balance.balance > 0 ? (fa ? `مانده ${compact(lang, balance.balance)}` : `${compact(lang, balance.balance)} due`) : null]
               .filter(Boolean)
-              .join(" · ")
+              .join(sep(lang))
           : subtitle,
       ];
       if (layer === "equipment" && eq?.issues) hoverLines.push(fa ? `${num(lang, eq.issues)} مشکل باز` : `${eq.issues} open issues`);
@@ -883,7 +883,7 @@ export function MapWorkspace() {
         <div className="flex items-center gap-3 border-t border-p-line bg-p-surface px-4 py-2 text-xs text-p-ink-3">
           <span className="tabular">
             {fa
-              ? `${num(lang, hallBooths.length)} غرفه · ${num(lang, Math.round(totals.sold))} از ${num(lang, Math.round(totals.total))} متر فروخته شده`
+              ? `${num(lang, hallBooths.length)} غرفه، ${num(lang, Math.round(totals.sold))} از ${num(lang, Math.round(totals.total))} متر فروخته شده`
               : `${hallBooths.length} booths · ${Math.round(totals.sold)} of ${Math.round(totals.total)} m² sold`}
           </span>
           <span className="tabular font-semibold text-p-ink-2">{totals.total ? percent(lang, totals.sold / totals.total) : ""}</span>
@@ -1101,7 +1101,7 @@ function QuickMenu({
               {fa ? "آزاد کردن" : "Release hold"}
             </MenuItem>
           ) : null}
-          <MenuItem icon={<Copy className="size-4" />} onClick={run(() => onCopy(company ? `${booth.code} · ${pick(lang, company.name_fa, company.name_en)}` : booth.code))}>
+          <MenuItem icon={<Copy className="size-4" />} onClick={run(() => onCopy(company ? `${booth.code}${sep(lang)}${pick(lang, company.name_fa, company.name_en)}` : booth.code))}>
             {fa ? "کپی کد غرفه" : "Copy booth code"}
           </MenuItem>
           {editing && can.manage ? (
@@ -1161,8 +1161,8 @@ function StructureCard({ feature, onClose, onEdit }: { feature: HallFeature | nu
           {isLocked(feature) ? <Lock className="size-3.5 text-p-ink-3" aria-label={fa ? "قفل" : "Locked"} /> : null}
         </p>
         <p className="text-xs text-p-ink-3">
-          {featureLabel[feature.kind][lang]} · {num(lang, feature.width, 1)} × {num(lang, feature.depth, 1)} {fa ? "متر" : "m"}
-          {feature.kind === "aisle" ? ` · ${fa ? "عرض عبور" : "clear width"} ${num(lang, narrow, 1)} ${fa ? "متر" : "m"}` : ""}
+          {featureLabel[feature.kind][lang]}{sep(lang)}{num(lang, feature.width, 1)} × {num(lang, feature.depth, 1)} {fa ? "متر" : "m"}
+          {feature.kind === "aisle" ? `${sep(lang)}${fa ? "عرض عبور" : "clear width"} ${num(lang, narrow, 1)} ${fa ? "متر" : "m"}` : ""}
         </p>
       </div>
       {can.edit ? (

@@ -42,7 +42,7 @@ export function BuildStageShowcase({ content }: BuildStageShowcaseProps) {
           </div>
           <p className="max-w-3xl text-base leading-8 text-white/64 lg:justify-self-end">
             {content.lang === "fa"
-              ? "روایت غرفه به صورت مرحله ای نمایش داده می شود: از سالن خام و نقشه فنی تا هویت اَرَت و تجربه آماده مذاکره."
+              ? "روایت غرفه به صورت مرحله ای نمایش داده می شود: از سالن خام و نقشه فنی تا هویت اَرَتَ و تجربه آماده مذاکره."
               : "The booth story is presented in clear stages: from an empty hall and technical plan to Aratta identity and a negotiation-ready experience."}
           </p>
         </div>

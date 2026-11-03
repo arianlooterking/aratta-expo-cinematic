@@ -132,7 +132,7 @@ export function ArchiveOverview({ lang, kind }: { lang: Lang; kind?: string }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="section-kicker">
-            {lang === "fa" ? "بایگانی اَرَت" : "Aratta archive"}
+            {lang === "fa" ? "بایگانی اَرَتَ" : "Aratta archive"}
           </p>
           <h2 className="mt-3 text-2xl font-bold">
             {lang === "fa"
@@ -166,7 +166,7 @@ export function ArchiveDownloads({ lang }: { lang: Lang }) {
       </h2>
       <p className="mt-3 text-white/65">
         {fa
-          ? "فایل‌های دوره‌های گذشته برای مراجعه و بایگانی نگهداری می‌شوند؛ پیش از استفاده از فرم یا تعرفه، اعتبار آن را با دفتر اَرَت بررسی کنید."
+          ? "فایل‌های دوره‌های گذشته برای مراجعه و بایگانی نگهداری می‌شوند؛ پیش از استفاده از فرم یا تعرفه، اعتبار آن را با دفتر اَرَتَ بررسی کنید."
           : "Past-edition documents are retained for reference. Confirm the validity of any form or tariff with the Aratta office before using it."}
       </p>
       <div className="mt-6 grid gap-3 md:grid-cols-2">
