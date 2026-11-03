@@ -4,21 +4,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
+  Building2,
+  Check,
   ChevronDown,
+  CircleHelp,
+  GraduationCap,
   History,
+  Landmark,
   LayoutDashboard,
+  ListTodo,
   LogOut,
   Map as MapIcon,
   Menu,
   Monitor,
   Moon,
+  MoreHorizontal,
   PackageCheck,
   RefreshCw,
   Search,
+  SquareKanban,
   Sun,
   Users,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { roleLabels } from "@/lib/platform/labels";
@@ -28,10 +37,14 @@ import type { DemoStore } from "@/lib/portal/demo-store";
 import { useExhibition } from "./ExhibitionProvider";
 import { ExhibitionSwitcher } from "./ExhibitionSwitcher";
 import { usePersistentState, usePortal, useCollection } from "./PortalProvider";
+import { QuickAdd } from "./QuickAdd";
 import { SearchPalette } from "./SearchPalette";
+import { TOUR_KEYS, TOUR_ROUTES, TourProvider, useTour } from "./Tour";
 import { IconButton, MenuItem, Popover } from "./ui";
+import { useToday } from "./useToday";
 
-type NavItem = { href: string; label: string; icon: ReactNode; match: (path: string) => boolean };
+type NavItem = { href: string; label: string; icon: ReactNode; match: (path: string) => boolean; badge?: number; tone?: "danger" | "brand" };
+type NavGroup = { label: string; items: NavItem[] };
 
 function useSystemDark() {
   return useSyncExternalStore(
@@ -46,26 +59,89 @@ function useSystemDark() {
 }
 
 export function PortalShell({ children }: { children: ReactNode }) {
-  const { lang, mode, user, can, toasts, dismissToast } = usePortal();
-  const { status } = useExhibition();
-  const pathname = usePathname() ?? "";
   const [themePref, setThemePref] = usePersistentState<"system" | "light" | "dark">("aratta.portal.theme", "system");
   const systemDark = useSystemDark();
   const theme = themePref === "system" ? (systemDark ? "dark" : "light") : themePref;
+  // The tour overlay sits inside .portal so it gets the portal's colours and theme.
+  return (
+    <div className="portal min-h-dvh" data-theme={theme}>
+      <TourProvider>
+        <Shell themePref={themePref} setThemePref={setThemePref}>
+          {children}
+        </Shell>
+      </TourProvider>
+    </div>
+  );
+}
+
+function Shell({
+  children,
+  themePref,
+  setThemePref,
+}: {
+  children: ReactNode;
+  themePref: "system" | "light" | "dark";
+  setThemePref: (v: "system" | "light" | "dark") => void;
+}) {
+  const { lang, mode, user, can, toasts, dismissToast } = usePortal();
+  const today = useToday();
+  const { status } = useExhibition();
+  const pathname = usePathname() ?? "";
   const [drawer, setDrawer] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const base = `/${lang}/staff`;
   const isMap = pathname.startsWith(`${base}/map`);
 
-  const nav: NavItem[] = useMemo(() => {
-    const items: NavItem[] = [
-      { href: base, label: t(lang, "overview"), icon: <LayoutDashboard className="size-[18px]" />, match: (p) => p === base },
-      { href: `${base}/map`, label: t(lang, "map"), icon: <MapIcon className="size-[18px]" />, match: (p) => p.startsWith(`${base}/map`) },
-      { href: `${base}/handover`, label: t(lang, "handover"), icon: <PackageCheck className="size-[18px]" />, match: (p) => p.startsWith(`${base}/handover`) },
+  const fa = lang === "fa";
+  const groups: NavGroup[] = useMemo(() => {
+    const icon = "size-[18px]";
+    const out: NavGroup[] = [
+      {
+        label: fa ? "عملیات" : "Operations",
+        items: [
+          { href: base, label: t(lang, "overview"), icon: <LayoutDashboard className={icon} />, match: (p) => p === base },
+          { href: `${base}/map`, label: t(lang, "map"), icon: <MapIcon className={icon} />, match: (p) => p.startsWith(`${base}/map`) },
+          { href: `${base}/handover`, label: t(lang, "handover"), icon: <PackageCheck className={icon} />, match: (p) => p.startsWith(`${base}/handover`) },
+        ],
+      },
+      {
+        label: fa ? "فروش و مشتریان" : "Sales and clients",
+        items: [
+          { href: `${base}/crm`, label: fa ? "شرکت ها" : "Companies", icon: <Building2 className={icon} />, match: (p) => p === `${base}/crm` || (p.startsWith(`${base}/crm/`) && !p.startsWith(`${base}/crm/pipeline`)) },
+          {
+            href: `${base}/crm/pipeline`,
+            label: t(lang, "pipeline"),
+            icon: <SquareKanban className={icon} />,
+            match: (p) => p.startsWith(`${base}/crm/pipeline`),
+            badge: today.followUps,
+            tone: "brand",
+          },
+        ],
+      },
     ];
-    if (mode === "live") items.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className="size-[18px]" />, match: (p) => p.startsWith(`${base}/team`) });
-    return items;
-  }, [base, lang, mode]);
+    if (can.finance)
+      out.push({
+        label: fa ? "مالی" : "Finance",
+        items: [
+          {
+            href: `${base}/accounting`,
+            label: fa ? "حسابداری" : "Accounting",
+            icon: <Landmark className={icon} />,
+            match: (p) => p.startsWith(`${base}/accounting`),
+            badge: today.overdueInvoices,
+            tone: "danger",
+          },
+        ],
+      });
+    const team: NavItem[] = [
+      { href: `${base}/tasks`, label: t(lang, "tasks"), icon: <ListTodo className={icon} />, match: (p) => p.startsWith(`${base}/tasks`), badge: today.myTasksDue, tone: "danger" },
+    ];
+    if (mode === "live") team.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className={icon} />, match: (p) => p.startsWith(`${base}/team`) });
+    out.push({ label: fa ? "تیم" : "Team", items: team });
+    return out;
+  }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue]);
+  const nav = groups.flatMap((g) => g.items);
+  const tabs: NavItem[] = [nav[0], nav[1], nav.find((n) => n.href === `${base}/crm/pipeline`)!, nav.find((n) => n.href === `${base}/tasks`)!];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -82,38 +158,55 @@ export function PortalShell({ children }: { children: ReactNode }) {
   const otherLangPath = pathname.replace(/^\/(fa|en)(?=\/|$)/, lang === "fa" ? "/en" : "/fa");
 
   const sidebar = (
-    <nav className="flex h-full flex-col gap-1 p-3" aria-label={t(lang, "menu")}>
+    <nav className="thin-scroll flex h-full flex-col gap-1 overflow-y-auto p-3" aria-label={t(lang, "menu")}>
       <Link href={base} className="mb-3 flex items-center gap-3 rounded-xl px-2 py-2" onClick={closeDrawer}>
         <span className="grid size-9 place-items-center rounded-xl bg-[linear-gradient(140deg,#d9b26a,#8f6a24)] text-[15px] font-black text-[#0b1d18]">
           A
         </span>
         <span className="min-w-0 leading-tight">
-          <span className="block text-[15px] font-bold tracking-tight text-p-side-ink">{lang === "fa" ? "اَرَت اکسپو" : "Aratta Expo"}</span>
-          <span className="block text-xs text-p-side-muted">{lang === "fa" ? "مرکز عملیات نمایشگاه" : "Exhibition operations"}</span>
+          <span className="block text-[15px] font-bold tracking-tight text-p-side-ink">{fa ? "اَرَت اکسپو" : "Aratta Expo"}</span>
+          <span className="block text-xs text-p-side-muted">{fa ? "مرکز عملیات نمایشگاه" : "Exhibition operations"}</span>
         </span>
       </Link>
-      <ExhibitionSwitcher variant="sidebar" />
-      <div className="mt-3 grid gap-0.5">
-        {nav.map((item) => {
-          const active = item.match(pathname);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={closeDrawer}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
-                active ? "bg-white/10 text-white" : "text-p-side-muted hover:bg-p-side-hover hover:text-p-side-ink",
-              )}
-            >
-              <span className={active ? "text-[#e3bd77]" : ""}>{item.icon}</span>
-              {item.label}
-            </Link>
-          );
-        })}
+      <div data-tour="exhibition">
+        <ExhibitionSwitcher variant="sidebar" />
       </div>
+      <div className="mt-3">
+        <QuickAdd variant="sidebar" />
+      </div>
+      <div className="mt-2 grid gap-3" data-tour="nav">
+        {groups.map((g) => (
+          <div key={g.label} className="grid gap-0.5">
+            <p className="px-3 pb-0.5 pt-1 text-[11px] font-semibold text-p-side-muted/80">{g.label}</p>
+            {g.items.map((item) => {
+              const active = item.match(pathname);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeDrawer}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors",
+                    active ? "bg-white/10 text-white" : "text-p-side-muted hover:bg-p-side-hover hover:text-p-side-ink",
+                  )}
+                >
+                  <span className={active ? "text-[#e3bd77]" : ""}>{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge ? (
+                    <span className={cn("tabular grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-bold", item.tone === "danger" ? "bg-p-danger text-white" : "bg-[#e3bd77] text-[#0b1d18]")}>
+                      {num(lang, item.badge)}
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <TodayCard today={today} base={base} onNavigate={closeDrawer} />
       <div className="mt-auto grid gap-0.5 pt-4">
+        <HelpMenu variant="sidebar" />
         <Link
           href={`${base}/classic`}
           className="flex h-9 items-center gap-3 rounded-xl px-3 text-[13px] text-p-side-muted hover:bg-p-side-hover hover:text-p-side-ink"
@@ -135,7 +228,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="portal min-h-dvh" data-theme={theme}>
+    <>
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side lg:block">{sidebar}</aside>
 
@@ -158,11 +251,12 @@ export function PortalShell({ children }: { children: ReactNode }) {
             <IconButton label={t(lang, "menu")} className="lg:hidden" onClick={() => setDrawer(true)}>
               <Menu className="size-5" />
             </IconButton>
-            <div className="min-w-0 flex-1 lg:hidden">
+            <div className="min-w-0 flex-1 lg:hidden" data-tour="exhibition">
               <ExhibitionSwitcher variant="compact" />
             </div>
             <button
               type="button"
+              data-tour="search"
               onClick={() => setSearchOpen(true)}
               className="hidden h-10 w-full max-w-sm items-center gap-2 rounded-xl border border-p-line bg-p-surface px-3 text-sm text-p-ink-3 shadow-[var(--p-shadow)] transition-colors hover:border-p-line-strong lg:flex"
             >
@@ -171,10 +265,16 @@ export function PortalShell({ children }: { children: ReactNode }) {
               <span className="text-xs">⌘K</span>
             </button>
             <div className="hidden flex-1 lg:block" />
-            <IconButton label={t(lang, "search")} className="lg:hidden" onClick={() => setSearchOpen(true)}>
+            <div className="lg:hidden">
+              <QuickAdd variant="icon" />
+            </div>
+            <IconButton label={t(lang, "search")} className="lg:hidden" data-tour="search" onClick={() => setSearchOpen(true)}>
               <Search className="size-5" />
             </IconButton>
             <ConnectionBadge mode={mode} status={status} />
+            <div className="hidden sm:block">
+              <HelpMenu variant="icon" />
+            </div>
             <Inbox />
             <UserMenu
               themePref={themePref}
@@ -189,26 +289,33 @@ export function PortalShell({ children }: { children: ReactNode }) {
 
         {/* Mobile tab bar */}
         <nav
-          className={cn(
-            "fixed inset-x-0 bottom-0 z-30 grid border-t border-p-line bg-p-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden",
-            nav.length === 4 ? "grid-cols-4" : "grid-cols-3",
-          )}
+          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-p-line bg-p-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
           aria-label={t(lang, "menu")}
+          data-tour="nav"
         >
-          {nav.map((item) => {
+          {tabs.map((item) => {
             const active = item.match(pathname);
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={cn("flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium", active ? "text-p-brand" : "text-p-ink-3")}
+                className={cn("relative flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium", active ? "text-p-brand" : "text-p-ink-3")}
               >
                 {item.icon}
-                {item.label}
+                <span className="max-w-full truncate px-1">{item.label}</span>
+                {item.badge ? (
+                  <span className={cn("tabular absolute top-2 grid h-4 min-w-4 translate-x-3 place-items-center rounded-full px-1 text-[10px] font-bold text-white rtl:-translate-x-3", item.tone === "danger" ? "bg-p-danger" : "bg-p-brand")}>
+                    {num(lang, item.badge)}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
+          <button type="button" onClick={() => setDrawer(true)} className="flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium text-p-ink-3">
+            <MoreHorizontal className="size-[18px]" />
+            {fa ? "بیشتر" : "More"}
+          </button>
         </nav>
       </div>
 
@@ -230,7 +337,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
         ))}
       </div>
       {!can.edit ? <span className="sr-only">{lang === "fa" ? "دسترسی فقط مشاهده" : "Read-only access"}</span> : null}
-    </div>
+    </>
   );
 }
 
@@ -265,12 +372,13 @@ function DemoBanner() {
 
 function Inbox() {
   const { lang, store, user } = usePortal();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const { rows } = useCollection("notifications", { column: "recipient_id", value: user.id });
   const sorted = useMemo(() => [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 30), [rows]);
   const unread = sorted.filter((n) => !n.read_at).length;
   return (
-    <div className="relative">
+    <div className="relative" data-tour="inbox">
       <IconButton label={t(lang, "notifications")} onClick={() => setOpen((o) => !o)} active={open}>
         <Bell className="size-5" />
         {unread ? (
@@ -294,11 +402,18 @@ function Inbox() {
             <button
               key={n.id}
               type="button"
-              onClick={() => store.markNotificationsRead([n.id])}
+              onClick={() => {
+                store.markNotificationsRead([n.id]);
+                if (n.link?.startsWith("/staff/")) {
+                  setOpen(false);
+                  router.push(`/${lang}${n.link}`);
+                }
+              }}
               className="flex w-full gap-3 rounded-xl px-2.5 py-2.5 text-start hover:bg-p-sunken"
             >
               <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read_at ? "bg-transparent" : "bg-p-brand")} />
               <span className="min-w-0">
+                <span className="block text-[11px] font-semibold text-p-gold">{notificationKind(lang, n.kind)}</span>
                 <span className={cn("block text-sm", n.read_at ? "text-p-ink-2" : "font-medium text-p-ink")}>{n.title}</span>
                 <span className="block text-xs text-p-ink-3">{relativeTime(lang, n.created_at)}</span>
               </span>
@@ -385,3 +500,89 @@ function UserMenu({
   );
 }
 
+
+function notificationKind(lang: "fa" | "en", kind: string) {
+  const fa = lang === "fa";
+  if (kind === "task.assigned" || kind === "task_assigned") return fa ? "کار تازه برای شما" : "New task for you";
+  if (kind === "task.status") return fa ? "تغییر وضعیت کار" : "Task status changed";
+  if (kind === "task.comment") return fa ? "نظر تازه" : "New comment";
+  if (kind.includes("payment")) return fa ? "پرداخت" : "Payment";
+  return fa ? "اعلان" : "Notice";
+}
+
+function TodayCard({ today, base, onNavigate }: { today: ReturnType<typeof useToday>; base: string; onNavigate: () => void }) {
+  const { lang, can } = usePortal();
+  const fa = lang === "fa";
+  const rows: Array<{ href: string; label: string; value: number; tone: string }> = [
+    { href: `${base}/crm/pipeline?view=followups`, label: fa ? "پیگیری امروز" : "Follow-ups due", value: today.followUps, tone: "text-[#e3bd77]" },
+    { href: `${base}/tasks?view=mine`, label: fa ? "کارهای امروز من" : "My tasks due", value: today.myTasksDue, tone: today.myTasksDue ? "text-[#ff9b8f]" : "text-p-side-ink" },
+  ];
+  if (can.finance) rows.push({ href: `${base}/accounting?tab=receivables`, label: fa ? "فاکتور سررسید گذشته" : "Overdue invoices", value: today.overdueInvoices, tone: today.overdueInvoices ? "text-[#ff9b8f]" : "text-p-side-ink" });
+  return (
+    <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] p-2" data-tour="today">
+      <p className="px-1.5 pb-1 text-[11px] font-semibold text-p-side-muted/80">{fa ? "امروز" : "Today"}</p>
+      <div className="grid gap-0.5">
+        {rows.map((r) => (
+          <Link key={r.href} href={r.href} onClick={onNavigate} className="flex h-8 items-center gap-2 rounded-lg px-1.5 text-[13px] text-p-side-muted hover:bg-p-side-hover hover:text-p-side-ink">
+            <span className="flex-1">{r.label}</span>
+            <span className={cn("tabular font-bold", r.value ? r.tone : "text-p-side-muted/60")}>{num(lang, r.value)}</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Replays the welcome tour or the tour for the current page. */
+function HelpMenu({ variant }: { variant: "sidebar" | "icon" }) {
+  const { lang } = usePortal();
+  const { start, startWhenReady, pageTour, seen, title } = useTour();
+  const router = useRouter();
+  const fa = lang === "fa";
+  const [open, setOpen] = useState(false);
+  const fresh = pageTour ? !seen(pageTour) : false;
+  const go = (key: (typeof TOUR_KEYS)[number]) => {
+    setOpen(false);
+    const route = TOUR_ROUTES[key];
+    if (key === "welcome" || key === pageTour || !route) return start(key);
+    startWhenReady(key);
+    router.push(`/${lang}/staff${route}`);
+  };
+  return (
+    <div className="relative">
+      {variant === "sidebar" ? (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex h-9 w-full items-center gap-3 rounded-xl px-3 text-[13px] text-p-side-muted hover:bg-p-side-hover hover:text-p-side-ink"
+        >
+          <GraduationCap className="size-4" />
+          <span className="flex-1 text-start">{fa ? "آموزش و راهنما" : "Help and tours"}</span>
+          {fresh ? <span className="size-2 animate-pulse rounded-full bg-[#e3bd77]" /> : null}
+        </button>
+      ) : (
+        <IconButton label={fa ? "آموزش و راهنما" : "Help and tours"} data-tour="help" onClick={() => setOpen((o) => !o)} active={open} className="relative">
+          <CircleHelp className="size-5" />
+          {fresh ? <span className="absolute end-2 top-2 size-2 animate-pulse rounded-full bg-p-gold" /> : null}
+        </IconButton>
+      )}
+      <Popover open={open} onClose={() => setOpen(false)} align={variant === "sidebar" ? "start" : "end"} className={cn("w-72", variant === "sidebar" && "bottom-full top-auto mb-2")}>
+        {pageTour ? (
+          <MenuItem icon={<GraduationCap className="size-4" />} onClick={() => go(pageTour)} active>
+            {fa ? `آموزش همین صفحه: ${title(pageTour)}` : `This page: ${title(pageTour)}`}
+          </MenuItem>
+        ) : null}
+        <MenuItem icon={<CircleHelp className="size-4" />} onClick={() => go("welcome")} hint={seen("welcome") ? <Check className="size-3.5" /> : null}>
+          {title("welcome")}
+        </MenuItem>
+        <div className="my-1 h-px bg-p-line" />
+        <p className="px-2.5 pb-1 pt-1 text-xs font-medium text-p-ink-3">{fa ? "همه آموزش ها" : "All tours"}</p>
+        {TOUR_KEYS.filter((k) => k !== "welcome" && k !== pageTour && TOUR_ROUTES[k]).map((k) => (
+          <MenuItem key={k} onClick={() => go(k)} hint={seen(k) ? <Check className="size-3.5" /> : null}>
+            {title(k)}
+          </MenuItem>
+        ))}
+      </Popover>
+    </div>
+  );
+}

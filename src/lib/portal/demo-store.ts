@@ -1,7 +1,8 @@
 "use client";
 
 import { deriveBooth, deriveOrder } from "./rules.ts";
-import { PortalStore, type AnyRow, type Collection } from "./store.ts";
+import { DEMO_STAFF_ID } from "./demo-seed.ts";
+import { PortalStore, newId, type AnyRow, type Collection } from "./store.ts";
 import type { Insert, MutationResult, Patch, PortalTable, Row } from "./types";
 
 const STORAGE_KEY = "aratta.portal.demo.v1";
@@ -181,7 +182,33 @@ export class DemoStore extends PortalStore {
     return next;
   }
 
+  // notify_task_change: tell the assignee about a new task, and the creator about status changes.
+  private notifyTask(row: AnyRow, before: AnyRow | undefined) {
+    const actor = DEMO_STAFF_ID;
+    const now = new Date().toISOString();
+    const push = (recipient: unknown, kind: string, body: unknown) => {
+      const id = newId();
+      this.tables.notifications.set(id, {
+        id,
+        recipient_id: String(recipient),
+        actor_id: actor,
+        kind,
+        title: String(row.title ?? ""),
+        body: body == null ? null : String(body),
+        link: `/staff/tasks/${row.id}`,
+        entity_type: "task",
+        entity_id: row.id,
+        read_at: null,
+        created_at: now,
+      });
+      this.touched("notifications");
+    };
+    if (row.assignee_id && row.assignee_id !== actor && (!before || row.assignee_id !== before.assignee_id)) push(row.assignee_id, "task.assigned", row.description);
+    if (before && row.status !== before.status && row.created_by && row.created_by !== actor) push(row.created_by, "task.status", row.status);
+  }
+
   private afterWrite(table: PortalTable, row: AnyRow) {
+    if (table === "tasks") this.notifyTask(row, undefined);
     // activity_after_insert: a logged conversation moves the deal forward.
     if (table === "activities" && row.deal_id && row.kind !== "system") {
       const deal = this.tables.deals.get(String(row.deal_id));
@@ -213,6 +240,7 @@ export class DemoStore extends PortalStore {
     const next = this.derive(table, { ...before, ...(patch as object), id }, before);
     this.tables[table].set(id, next);
     this.touched(table);
+    if (table === "tasks") this.notifyTask(next, before);
     return { ok: true, row: next as unknown as Row<T> };
   }
 

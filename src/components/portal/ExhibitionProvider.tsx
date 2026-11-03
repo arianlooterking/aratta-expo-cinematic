@@ -14,6 +14,7 @@ import type {
   HallFeature,
   InventoryItem,
   Invoice,
+  InvoiceLine,
   Payment,
   StaffMember,
   Task,
@@ -37,6 +38,8 @@ export type ExhibitionData = {
   companyById: Map<string, Company>;
   invoices: Invoice[];
   invoiceTotalsById: Map<string, InvoiceTotal>;
+  /** Invoice lines of this exhibition's invoices. */
+  lines: InvoiceLine[];
   balanceByDeal: Map<string, Balance>;
   payments: Payment[];
   orders: EquipmentOrder[];
@@ -144,6 +147,7 @@ export function ExhibitionProvider({ children }: { children: ReactNode }) {
       companyById: byId(companies.rows as Company[]),
       invoices: invoiceRows,
       invoiceTotalsById: totals,
+      lines: lineRows as InvoiceLine[],
       balanceByDeal: balances,
       payments: paymentRows,
       orders: orderRows,

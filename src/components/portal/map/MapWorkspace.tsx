@@ -533,7 +533,7 @@ export function MapWorkspace() {
       {/* Toolbar */}
       <div className="flex flex-col gap-2 border-b border-p-line bg-p-surface px-3 py-2 sm:px-4">
         <div className="flex items-center gap-2">
-          <div className="thin-scroll scroll-fade flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          <div className="thin-scroll scroll-fade flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" data-tour="map-halls">
             {x.halls.map((h) => (
               <button
                 key={h.id}
@@ -576,6 +576,7 @@ export function MapWorkspace() {
               </IconButton>
               <Button
                 size="sm"
+                data-tour="map-edit"
                 tone={editing ? "primary" : "secondary"}
                 icon={editing ? <X className="size-3.5" /> : <Pencil className="size-3.5" />}
                 onClick={() => {
@@ -591,6 +592,7 @@ export function MapWorkspace() {
         </div>
         {hall ? (
           <div className="flex items-center gap-2">
+            <div data-tour="map-layers" className="shrink-0">
             <Segmented
               size="sm"
               value={layer}
@@ -604,6 +606,7 @@ export function MapWorkspace() {
                 { value: "equipment", label: fa ? "تجهیزات" : "Equipment" },
               ]}
             />
+            </div>
             <label className="relative hidden min-w-0 max-w-56 flex-1 sm:block">
               <Search className="pointer-events-none absolute start-2.5 top-1/2 size-4 -translate-y-1/2 text-p-ink-3" />
               <input
@@ -614,7 +617,7 @@ export function MapWorkspace() {
                 className="h-8 w-full rounded-lg border border-p-line bg-p-surface-2 ps-8 pe-2 text-[13px] outline-none focus:border-p-brand"
               />
             </label>
-            <div className="thin-scroll scroll-fade flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+            <div className="thin-scroll scroll-fade flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" data-tour="map-legend">
               {tones.map((tone) => {
                 const count = toneCounts.get(tone) ?? 0;
                 if (!count && layer === "equipment") return null;
@@ -671,7 +674,7 @@ export function MapWorkspace() {
         </div>
       ) : (
         <div className="relative flex min-h-0 flex-1">
-          <div className={cn("relative min-w-0 flex-1", view === "list" && "hidden")}>
+          <div className={cn("relative min-w-0 flex-1", view === "list" && "hidden")} data-tour="map-canvas">
             <HallCanvas
               lang={lang}
               hall={hall}

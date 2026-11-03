@@ -183,9 +183,13 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   return <input ref={ref} className={cn(inputClass, className)} {...props} />;
 });
 
-export function Select({ className, children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+const compactSelectClass =
+  "h-8 w-auto min-w-0 rounded-lg border border-p-line bg-p-surface px-2 text-[13px] text-p-ink transition-colors hover:border-p-line-strong focus:border-p-brand focus:outline-none disabled:opacity-60";
+
+/** A native select. `compact` is the small filter-bar size. */
+export function Select({ className, children, compact, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { compact?: boolean }) {
   return (
-    <select className={cn(inputClass, "appearance-auto pe-2", className)} {...props}>
+    <select className={cn(compact ? compactSelectClass : inputClass, "appearance-auto pe-2", className)} {...props}>
       {children}
     </select>
   );
