@@ -45,22 +45,23 @@ jobs:
       APP_VERSION_CODE: ${{ github.run_number }}
       APP_VERSION_NAME: 1.0.${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
-
       - run: npm ci
+
+      - name: Android SDK (preinstalled on the runner)
+        run: echo "Using $ANDROID_HOME" && test -d "$ANDROID_HOME"
 
       - name: Sync web shell and plugins
         run: npm run mobile:sync -- android
@@ -98,7 +99,7 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk"
           cp android/app/build/outputs/bundle/release/app-release.aab "dist-mobile/aratta-staff-${APP_VERSION_NAME}.aab"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: aratta-staff-android-${{ env.APP_VERSION_NAME }}
           path: dist-mobile/

@@ -44,13 +44,13 @@ jobs:
       ARATTA_APP_URL: ${{ vars.ARATTA_APP_URL }}
       BUILD_NUMBER: ${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
