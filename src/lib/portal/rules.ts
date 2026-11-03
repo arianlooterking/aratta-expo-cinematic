@@ -68,3 +68,34 @@ export function deriveOrder<O extends OrderLike>(
   }
   return next;
 }
+
+/** staff_ids_clean: first-come order, no blanks or repeats, only people we know. */
+export function cleanStaffIds(ids: readonly (string | null | undefined)[] | null | undefined, known: (id: string) => boolean = () => true): string[] {
+  const out: string[] = [];
+  for (const id of ids ?? []) if (id && !out.includes(id) && known(id)) out.push(id);
+  return out;
+}
+
+type HandoverLike = {
+  stage: OrderLike["stage"];
+  delivered_by: string[];
+  collected_by: string[];
+  handled_by: string | null;
+};
+
+/**
+ * equipment_people_before_write: a delivery or collection saved with nobody named
+ * is credited to whoever saved it.
+ */
+export function deriveHandoverPeople<O extends HandoverLike>(
+  order: O,
+  before: Pick<HandoverLike, "stage"> | undefined,
+  me: string | null,
+  known?: (id: string) => boolean,
+): O {
+  const next = { ...order, delivered_by: cleanStaffIds(order.delivered_by, known), collected_by: cleanStaffIds(order.collected_by, known) };
+  if (me && next.stage === "delivered" && before?.stage !== "delivered" && next.delivered_by.length === 0) next.delivered_by = [me];
+  if (me && next.stage === "collected" && before?.stage !== "collected" && next.collected_by.length === 0) next.collected_by = [me];
+  if (me && !next.handled_by && (next.stage === "delivered" || next.stage === "collected")) next.handled_by = me;
+  return next;
+}

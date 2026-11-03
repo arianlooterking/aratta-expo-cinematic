@@ -129,6 +129,8 @@ export abstract class PortalStore {
   abstract update<T extends PortalTable>(table: T, id: string, patch: Patch<T>): Promise<MutationResult<Row<T>>>;
   abstract remove<T extends PortalTable>(table: T, id: string): Promise<MutationResult<Row<T>>>;
   abstract markNotificationsRead(ids?: string[]): Promise<void>;
+  /** The signed-in person's own picture: "preset:<n>" for a built-in one, or an uploaded file path. */
+  abstract setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>>;
   /** Upload a file and return a path the store can turn into a URL. */
   abstract uploadFile(bucket: "hall-plans" | "documents", path: string, file: File): Promise<{ ok: true; path: string } | { ok: false; error: string }>;
   abstract fileUrl(bucket: "hall-plans" | "documents", path: string): Promise<string | null>;

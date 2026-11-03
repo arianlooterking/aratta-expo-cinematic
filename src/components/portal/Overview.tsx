@@ -23,6 +23,7 @@ import { boothStatusLabel, dealStageLabel } from "@/lib/portal/i18n";
 import { dueFollowUps, summariseMoney, summariseSpace, type Phase } from "@/lib/portal/metrics";
 import type { BoothStatus, DealStage } from "@/lib/portal/types";
 import { useExhibition } from "./ExhibitionProvider";
+import { StaffAvatar } from "./people";
 import { useNow, usePortal } from "./PortalProvider";
 import { Button, Card, Empty, Pill, Progress, SectionTitle, Skeleton } from "./ui";
 
@@ -264,6 +265,7 @@ export function Overview() {
                     {task.priority === "urgent" || task.priority === "high" ? (
                       <Pill tone={task.priority === "urgent" ? "danger" : "warn"}>{task.priority === "urgent" ? (fa ? "فوری" : "Urgent") : fa ? "مهم" : "High"}</Pill>
                     ) : null}
+                    {assignee ? <StaffAvatar staff={assignee} size={26} /> : null}
                   </li>
                 );
               })}

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { money, num, pick, relativeTime, sep } from "@/lib/portal/format";
+import { money, num, pick, sep } from "@/lib/portal/format";
 import { kitOf, mergeKit, minQuantity, quantityEditable, quantityPatch, removable, standardKit, stockLeft, type KitLine } from "@/lib/portal/furniture";
 import { equipmentStageLabel } from "@/lib/portal/i18n";
 import { newId } from "@/lib/portal/store";
@@ -26,6 +26,7 @@ import { usePortal } from "../PortalProvider";
 import { normalizeSearch } from "../SearchPalette";
 import { Button, Combobox, IconButton, Input, Pill } from "../ui";
 import { equipmentPatch, nextEquipmentStep } from "@/lib/portal/furniture";
+import { CrewBar, HandoverStamp, useCrew } from "../crew";
 
 const CATEGORY: Record<InventoryItem["category"], { fa: string; en: string }> = {
   furniture: { fa: "مبلمان", en: "Furniture" },
@@ -64,6 +65,7 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
   // Lines inserted this session, so quick repeated taps top up the same line.
   const recent = useRef(new Map<string, string>());
 
+  const { crew } = useCrew();
   const returnable = (o: EquipmentOrder) => x.itemById.get(o.item_id)?.returnable ?? true;
   const pending = orders.filter((o) => nextEquipmentStep(o, returnable(o)) === "deliver");
   const collectable = orders.filter((o) => nextEquipmentStep(o, returnable(o)) === "collect");
@@ -115,7 +117,8 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
 
   async function bulk(step: "deliver" | "collect") {
     const list = step === "deliver" ? pending : collectable;
-    await Promise.all(list.map((o) => store.update("equipment_orders", o.id, equipmentPatch(o, step))));
+    const at = new Date().toISOString();
+    await Promise.all(list.map((o) => store.update("equipment_orders", o.id, equipmentPatch(o, step, crew, at))));
     toast(step === "deliver" ? (fa ? "همه اقلام تحویل شد" : "Everything delivered") : fa ? "همه اقلام جمع آوری شد" : "Everything collected");
   }
 
@@ -144,6 +147,7 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
         </div>
       ) : null}
 
+      {can.edit && (pending.length > 0 || collectable.length > 0) ? <CrewBar /> : null}
       {can.edit && (pending.length > 0 || collectable.length > 0) ? (
         <div className="grid grid-cols-2 gap-2">
           <Button tone="primary" icon={<PackageCheck className="size-4" />} disabled={!pending.length} onClick={() => bulk("deliver")}>
@@ -213,6 +217,7 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
   const { lang, store, can, toast } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
+  const { crew } = useCrew();
   const [confirm, setConfirm] = useState(false);
   const item = x.itemById.get(o.item_id);
   const returnable = item?.returnable ?? true;
@@ -232,10 +237,9 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
             {o.delivered_qty > 0 && o.delivered_qty < o.quantity ? (
               <span>{fa ? `${num(lang, o.delivered_qty)} از ${num(lang, o.quantity)} تحویل شده` : `${o.delivered_qty} of ${o.quantity} delivered`}</span>
             ) : null}
-            {o.stage === "collected" && o.collected_at ? relativeTime(lang, o.collected_at) : o.delivered_at ? relativeTime(lang, o.delivered_at) : null}
-            {!returnable ? <span>{fa ? "، برگشت ندارد" : "· not returned"}</span> : null}
-            {o.damaged_qty > 0 ? <span className="text-p-danger">· {fa ? `${num(lang, o.damaged_qty)} آسیب دیده` : `${o.damaged_qty} damaged`}</span> : null}
-            {o.notes ? <span className="text-p-danger">· {o.notes}</span> : null}
+            {!returnable ? <span>{fa ? "برگشت ندارد" : "not returned"}</span> : null}
+            {o.damaged_qty > 0 ? <span className="text-p-danger">{sep(lang)}{fa ? `${num(lang, o.damaged_qty)} آسیب دیده` : `${o.damaged_qty} damaged`}</span> : null}
+            {o.notes ? <span className="text-p-danger">{sep(lang)}{o.notes}</span> : null}
           </p>
         </div>
         {can.edit ? (
@@ -258,6 +262,8 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
           ) : null
         ) : null}
       </div>
+
+      <HandoverStamp order={o} className="-mx-1" />
 
       <div className="flex items-center gap-2">
         <div className="flex h-9 items-stretch overflow-hidden rounded-xl border border-p-line" aria-label={fa ? "تعداد" : "Quantity"}>
@@ -308,7 +314,7 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
         ) : null}
         {can.edit && !confirm ? (
           step ? (
-            <Button size="sm" tone={step === "deliver" ? "primary" : "secondary"} onClick={() => store.update("equipment_orders", o.id, equipmentPatch(o, step))}>
+            <Button size="sm" tone={step === "deliver" ? "primary" : "secondary"} onClick={() => store.update("equipment_orders", o.id, equipmentPatch(o, step, crew))}>
               {step === "deliver" ? (fa ? "تحویل" : "Deliver") : fa ? "جمع آوری" : "Collect"}
             </Button>
           ) : (

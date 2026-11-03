@@ -10,6 +10,8 @@ import { useExhibition } from "./ExhibitionProvider";
 import { usePortal } from "./PortalProvider";
 import { normalizeSearch } from "./SearchPalette";
 import { equipmentPatch, nextEquipmentStep } from "@/lib/portal/furniture";
+import { CrewBar, useCrew } from "./crew";
+import { usePageTour } from "./Tour";
 import { EquipmentLine } from "./map/BoothPanel";
 import { Button, Card, Empty, Progress, Segmented, Skeleton } from "./ui";
 
@@ -25,6 +27,8 @@ export function Handover() {
   const [hallId, setHallId] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [showDone, setShowDone] = useState(false);
+  const { crew } = useCrew();
+  usePageTour("handover");
 
   const returnable = (o: EquipmentOrder) => x.itemById.get(o.item_id)?.returnable ?? true;
 
@@ -77,7 +81,8 @@ export function Handover() {
 
   async function finishBooth(orders: EquipmentOrder[]) {
     const step = mode === "deliver" ? "deliver" : "collect";
-    await Promise.all(orders.map((o) => store.update("equipment_orders", o.id, equipmentPatch(o, step))));
+    const at = new Date().toISOString();
+    await Promise.all(orders.map((o) => store.update("equipment_orders", o.id, equipmentPatch(o, step, crew, at))));
     toast(fa ? "ثبت شد" : "Saved");
   }
 
@@ -108,16 +113,19 @@ export function Handover() {
       </div>
 
       <Card className="grid gap-3 p-4 print:hidden">
-        <Segmented
-          className="w-full [&>button]:flex-1"
-          value={mode}
-          onChange={setMode}
-          options={[
-            { value: "deliver", label: fa ? "تحویل به غرفه" : "Deliver", icon: <PackageCheck className="size-4" /> },
-            { value: "collect", label: fa ? "جمع آوری" : "Collect", icon: <PackageOpen className="size-4" /> },
-            { value: "issues", label: fa ? "مشکلات" : "Issues", icon: <TriangleAlert className="size-4" /> },
-          ]}
-        />
+        <div data-tour="handover-modes">
+          <Segmented
+            className="w-full [&>button]:flex-1"
+            value={mode}
+            onChange={setMode}
+            options={[
+              { value: "deliver", label: fa ? "تحویل به غرفه" : "Deliver", icon: <PackageCheck className="size-4" /> },
+              { value: "collect", label: fa ? "جمع آوری" : "Collect", icon: <PackageOpen className="size-4" /> },
+              { value: "issues", label: fa ? "مشکلات" : "Issues", icon: <TriangleAlert className="size-4" /> },
+            ]}
+          />
+        </div>
+        {can.edit && mode !== "issues" ? <CrewBar /> : null}
         {mode !== "issues" ? (
           <div className="grid gap-2">
             <div className="flex items-baseline justify-between text-sm">
@@ -190,7 +198,7 @@ export function Handover() {
         </Card>
       ) : null}
 
-      <ul className="grid gap-3">
+      <ul className="grid gap-3" data-tour="handover-list">
         {visible.map((g) => {
           const hall = x.halls.find((h) => h.id === g.booth.hall_id);
           return (
@@ -218,7 +226,7 @@ export function Handover() {
                 </div>
                 <ul className="grid gap-2 p-3">
                   {g.orders.map((o) => (
-                    <EquipmentLine key={o.id} order={o} compact />
+                    <EquipmentLine key={o.id} order={o} compact crew={crew} />
                   ))}
                 </ul>
               </Card>

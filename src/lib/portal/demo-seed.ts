@@ -28,10 +28,10 @@ function day(offset: number, from = new Date()) {
   return d.toISOString().slice(0, 10);
 }
 
-function at(offsetDays: number, hour = 10) {
+function at(offsetDays: number, hour = 10, minute = 0) {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
-  d.setHours(hour, 0, 0, 0);
+  d.setHours(hour, minute, 0, 0);
   return d.toISOString();
 }
 
@@ -278,26 +278,30 @@ export function demoSeed(): DemoSnapshot {
     return r as AnyRow;
   };
 
-  const staffNames: Array<[string, string, string[]]> = [
-    ["شما (مدیر نمونه)", "owner", ["executive"]],
-    ["سارا کریمی", "member", ["sales"]],
-    ["رضا نجفی", "member", ["sales"]],
-    ["مریم صادقی", "member", ["finance"]],
-    ["کاوه رستمی", "member", ["logistics", "operations"]],
+  // [name, role, departments, job title, picture]
+  const staffNames: Array<[string, string, string[], string, number]> = [
+    ["شما (مدیر نمونه)", "owner", ["executive"], "مدیرعامل", 2],
+    ["سارا کریمی", "member", ["sales"], "کارشناس فروش", 1],
+    ["رضا نجفی", "member", ["sales"], "کارشناس فروش", 9],
+    ["مریم صادقی", "member", ["finance"], "مدیر مالی", 6],
+    ["کاوه رستمی", "member", ["logistics", "operations"], "مسئول تدارکات", 8],
+    ["نگار احمدی", "member", ["operations"], "دستیار مدیرعامل", 3],
+    ["امید باقری", "member", ["logistics"], "انباردار", 11],
+    ["الهام شریفی", "member", ["finance"], "حسابدار", 10],
   ];
-  const staff = staffNames.map(([name, role, departments], i) =>
+  const staff = staffNames.map(([name, role, departments, title, picture], i) =>
     push("staff_members", {
       ...stamps,
       id: i === 0 ? DEMO_STAFF_ID : id(),
       user_id: null,
       email: `demo${i}@example.com`,
       display_name: name,
-      job_title: null,
+      job_title: title,
       role,
       departments,
       status: "active",
       phone: null,
-      avatar_url: null,
+      avatar_url: `preset:${picture}`,
       locale: "fa",
       invited_by: null,
       last_seen_at: null,
@@ -455,6 +459,7 @@ export function demoSeed(): DemoSnapshot {
             notes: null,
             import_key: null,
             deal_id: null,
+            manager_ids: [],
           }),
         );
       }
@@ -498,6 +503,13 @@ export function demoSeed(): DemoSnapshot {
       }
       booth.deal_id = deal.id;
       booth.status = deal.stage === "won" ? "contracted" : "reserved";
+      // The seller looks after the booth; signed booths also get someone from logistics.
+      // Key accounts are followed by the director as well.
+      booth.manager_ids = [
+        deal.owner_id ?? sellers[0].id,
+        ...(deal.stage === "won" ? [random() < 0.6 ? staff[4].id : staff[6].id] : []),
+        ...(random() < 0.2 ? [staff[0].id] : []),
+      ];
 
       if (deal.stage === "won") {
         const invoice = push("invoices", {
@@ -607,6 +619,12 @@ export function demoSeed(): DemoSnapshot {
           if (random() < 0.2) kit.push(["fridge", 1]);
           if (random() < 0.2) kit.push(["sofa", 1]);
           if (random() < 0.3) kit.push(["fascia", 1]);
+          // One crew drops off a booth's kit together, and one picks it up.
+          const crews = [[staff[4].id, staff[6].id], [staff[6].id], [staff[4].id, staff[6].id, staff[5].id], [staff[4].id]];
+          const deliveryCrew = pickOne(crews);
+          const collectCrew = pickOne(crews);
+          const deliveryMinute = Math.floor(random() * 50);
+          const collectMinute = Math.floor(random() * 50);
           for (const [sku, qty] of kit) {
             const it = item(sku);
             let stage = "requested";
@@ -639,9 +657,11 @@ export function demoSeed(): DemoSnapshot {
               damaged_qty: damaged,
               delivery_due_at: at(spec.start - 1, 9),
               pickup_due_at: at(spec.end + 1, 16),
-              delivered_at: delivered ? at(Math.min(spec.start - 1, -1), 10) : null,
-              collected_at: collected ? at(-1, 15) : null,
+              delivered_at: delivered ? at(Math.min(spec.start - 1, -1), 10, deliveryMinute) : null,
+              collected_at: collected ? at(-1, 15, collectMinute) : null,
               handled_by: staff[4].id,
+              delivered_by: delivered ? deliveryCrew : [],
+              collected_by: collected ? collectCrew : [],
               notes: stage === "issue" ? (spec.phase === "strike" ? "یک عدد آسیب دیده" : "موجودی انبار کافی نیست") : null,
               import_key: null,
             });

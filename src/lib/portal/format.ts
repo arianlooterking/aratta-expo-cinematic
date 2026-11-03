@@ -80,6 +80,33 @@ export function time(lang: Lang, value: string | Date) {
 const DAY = 86_400_000;
 
 /** Whole days from today to the given day (negative = in the past). */
+/** "سه‌شنبه ۱۲ آبان": the weekday with the date, for handover records. */
+export function weekdayDate(lang: Lang, value: string | Date) {
+  return memo(`wd:${lang}`, () => new Intl.DateTimeFormat(dateLocales[lang], { weekday: "long", day: "numeric", month: "long" })).format(toDate(value));
+}
+
+/** "سه‌شنبه ۱۲ آبان ساعت ۱۰:۳۲": exactly when something happened. */
+export function dayTime(lang: Lang, value: string | Date) {
+  return memo(`wdt:${lang}`, () =>
+    new Intl.DateTimeFormat(dateLocales[lang], { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }),
+  ).format(toDate(value));
+}
+
+/** A local calendar day as "YYYY-MM-DD", and the local "HH:mm" of a moment. For date and time inputs. */
+export function localDayKey(value: string | Date) {
+  const d = toDate(value);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+export function localTimeKey(value: string | Date) {
+  const d = toDate(value);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+/** Back from a local day and time to a stored moment. */
+export function fromLocal(day: string, time: string) {
+  const d = new Date(`${day}T${time || "00:00"}`);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 export function daysUntil(value: string | Date, now = new Date()) {
   const d = toDate(value);
   const a = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());

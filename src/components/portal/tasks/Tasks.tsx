@@ -16,7 +16,8 @@ import { normalizeSearch } from "../SearchPalette";
 import { usePageTour } from "../Tour";
 import { Button, Card, Empty, Input, Segmented, Select, Sheet, Skeleton } from "../ui";
 import { useBoardDrag } from "../useBoardDrag";
-import { Avatar, PageHeader } from "../crm/shared";
+import { PageHeader } from "../crm/shared";
+import { StaffAvatar } from "../people";
 import { TaskForm } from "./TaskForm";
 
 type View = "board" | "mine" | "all";
@@ -334,7 +335,7 @@ function TaskCard({ task, now, dragging, onPointerDown, onOpen }: { task: Task; 
     >
       <div className="flex items-start gap-2">
         <span className={cn("min-w-0 flex-1 text-[13px] font-semibold leading-5", done && "text-p-ink-3 line-through")}>{task.title}</span>
-        {who ? <Avatar name={who.display_name ?? who.email} /> : null}
+        {who ? <StaffAvatar staff={who} size={24} /> : null}
       </div>
       <Links task={task} />
       <div className="flex flex-wrap items-center gap-1.5">
@@ -404,7 +405,7 @@ function DueList({ tasks, now, showWho, onOpen }: { tasks: Task[]; now: number; 
             <Links task={t} />
           </span>
         </button>
-        {showWho ? who ? <Avatar name={who.display_name ?? who.email} className="size-7" /> : <span className="text-[11px] text-p-ink-3">{fa ? "بدون مسئول" : "Unassigned"}</span> : null}
+        {showWho ? who ? <StaffAvatar staff={who} size={28} /> : <span className="text-[11px] text-p-ink-3">{fa ? "بدون مسئول" : "Unassigned"}</span> : null}
       </li>
     );
   };
@@ -484,7 +485,10 @@ function TaskDetail({ task, onEdit }: { task: Task; onEdit: () => void }) {
 
       <div className="grid grid-cols-2 gap-3">
         <label className="grid gap-1.5">
-          <span className="text-[13px] font-medium text-p-ink-2">{fa ? "مسئول" : "Who"}</span>
+          <span className="flex items-center gap-1.5 text-[13px] font-medium text-p-ink-2">
+            {fa ? "مسئول" : "Who"}
+            {task.assignee_id ? <StaffAvatar staff={x.staffById.get(task.assignee_id)} size={18} /> : null}
+          </span>
           <Select value={task.assignee_id ?? ""} disabled={!can.edit} onChange={(e) => update({ assignee_id: e.target.value || null })}>
             <option value="">{fa ? "بدون مسئول" : "Nobody yet"}</option>
             {x.staff
@@ -516,7 +520,11 @@ function TaskDetail({ task, onEdit }: { task: Task; onEdit: () => void }) {
         <div>
           <dt className="text-xs text-p-ink-3">{fa ? "ثبت کننده" : "Created by"}</dt>
           <dd className="mt-0.5 truncate font-medium">
-            {creator?.display_name ?? creator?.email ?? "—"} <span className="text-xs font-normal text-p-ink-3">· {relativeTime(lang, task.created_at)}</span>
+            <span className="inline-flex max-w-full items-center gap-1.5 align-middle">
+              {creator ? <StaffAvatar staff={creator} size={20} /> : null}
+              <span className="truncate">{creator?.display_name ?? creator?.email ?? "—"}</span>
+            </span>
+            <span className="block text-xs font-normal text-p-ink-3">{relativeTime(lang, task.created_at)}</span>
           </dd>
         </div>
         {company ? (

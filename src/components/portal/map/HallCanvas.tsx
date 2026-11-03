@@ -5,8 +5,9 @@ import { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, u
 import { cn } from "@/lib/cn";
 import { clampRect, fitLabel, fitView, focusView, rectFromPoints, round, snap, toPlan, wrapLabel, zoomAt, type Rect, type View } from "@/lib/portal/geometry";
 import type { FeatureKind } from "@/lib/portal/types";
-import { IconButton } from "../ui";
 import { sep } from "@/lib/portal/format";
+import { PeopleLine } from "../people";
+import { IconButton } from "../ui";
 
 export type CanvasBooth = Rect & {
   id: string;
@@ -20,7 +21,7 @@ export type CanvasBooth = Rect & {
   dim?: boolean;
   flagged?: boolean;
   /** Shown in the hover card on desktop. */
-  hover?: { title: string; lines: string[] };
+  hover?: { title: string; lines: string[]; people?: readonly string[] };
 };
 
 export type CanvasFeature = Rect & { id: string; kind: FeatureKind; label?: string | null; locked?: boolean; note?: string | null };
@@ -739,6 +740,11 @@ const HoverCard = forwardRef<HTMLDivElement, { booth: CanvasBooth | null }>(func
           {line}
         </p>
       ))}
+      {booth.hover.people?.length ? (
+        <div className="mt-2 border-t border-p-line pt-2">
+          <PeopleLine ids={booth.hover.people} size={22} />
+        </div>
+      ) : null}
     </div>
   );
 });

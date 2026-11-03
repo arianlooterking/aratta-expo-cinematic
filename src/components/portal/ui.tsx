@@ -1,12 +1,14 @@
 "use client";
 
 import { X } from "lucide-react";
+import { createPortal } from "react-dom";
 import {
   forwardRef,
   useEffect,
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
   type ReactNode,
@@ -256,8 +258,9 @@ export function Sheet({
 }) {
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);
+  const host = useSheetHost();
   useEffect(() => {
-    if (!open) return;
+    if (!open || !host) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
@@ -268,9 +271,9 @@ export function Sheet({
       window.removeEventListener("keydown", onKey);
       previous?.focus?.();
     };
-  }, [open, onClose]);
-  if (!open) return null;
-  return (
+  }, [open, onClose, host]);
+  if (!open || !host) return null;
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
       <div className="animate-fade absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
       <div
@@ -294,7 +297,22 @@ export function Sheet({
         <div className="thin-scroll overflow-y-auto px-5 py-4">{children}</div>
         {footer ? <div className="flex flex-wrap justify-end gap-2 border-t border-p-line px-5 py-3">{footer}</div> : null}
       </div>
-    </div>
+    </div>,
+    host,
+  );
+}
+
+const noSubscribe = () => () => {};
+
+/**
+ * Sheets render at the top of the portal, outside whatever opened them, so a faded card or a
+ * transformed panel never shows through. The theme lives on the .portal element, so they go there.
+ */
+function useSheetHost() {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => document.querySelector<HTMLElement>(".portal") ?? document.body,
+    () => null,
   );
 }
 

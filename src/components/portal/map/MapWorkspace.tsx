@@ -39,6 +39,7 @@ import { newId, type AnyRow } from "@/lib/portal/store";
 import type { Booth, BoothStatus, FeatureKind, Hall, HallFeature, Patch } from "@/lib/portal/types";
 import { useExhibition } from "../ExhibitionProvider";
 import { usePortal } from "../PortalProvider";
+import { AvatarStack, StaffAvatar } from "../people";
 import { normalizeSearch } from "../SearchPalette";
 import { Button, Empty, IconButton, Kbd, MenuItem, Segmented, Sheet, Skeleton, TonePill } from "../ui";
 import { BoothPanel, type PanelTab } from "./BoothPanel";
@@ -82,7 +83,7 @@ export function isLocked(f: { style: unknown }) {
 }
 
 export function MapWorkspace() {
-  const { lang, store, can, toast } = usePortal();
+  const { lang, store, can, toast, user } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
   const params = useSearchParams();
@@ -97,6 +98,7 @@ export function MapWorkspace() {
   const [tab, setTab] = useState<PanelTab>("sales");
   const [query, setQuery] = useState("");
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [mine, setMine] = useState(false);
   const [focus, setFocus] = useState<{ id: string; nonce: number } | null>(null);
   const [setup, setSetup] = useState<"new" | "edit" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null);
@@ -419,7 +421,7 @@ export function MapWorkspace() {
       const share = paidShare(balance);
       const tone = layer === "sales" ? b.status : (eq?.state ?? "none");
       const matchesQuery = !q || normalizeSearch(`${b.code} ${company?.name_fa ?? ""} ${company?.name_en ?? ""}`).includes(q);
-      const visible = !hidden.has(tone) && matchesQuery;
+      const visible = !hidden.has(tone) && matchesQuery && (!mine || b.manager_ids.includes(user.id));
       let subtitle: string;
       let progress: number | null = null;
       let badge: string | null = null;
@@ -464,11 +466,12 @@ export function MapWorkspace() {
           progress,
           dim: !visible,
           flagged: flagged.has(b.id),
-          hover: { title: companyName || statusText, lines: hoverLines },
+          hover: { title: companyName || statusText, lines: hoverLines, people: b.manager_ids },
         } satisfies CanvasBooth,
       };
     });
-  }, [hallBooths, x.dealById, x.companyById, x.equipmentByBooth, x.balanceByDeal, x.phase, layer, lang, fa, q, hidden, flagged]);
+  }, [hallBooths, x.dealById, x.companyById, x.equipmentByBooth, x.balanceByDeal, x.phase, layer, lang, fa, q, hidden, flagged, mine, user.id]);
+  const myBooths = useMemo(() => hallBooths.filter((b) => b.manager_ids.includes(user.id)).length, [hallBooths, user.id]);
 
   const canvasFeatures = useMemo<CanvasFeature[]>(
     () =>
@@ -617,6 +620,23 @@ export function MapWorkspace() {
                 className="h-8 w-full rounded-lg border border-p-line bg-p-surface-2 ps-8 pe-2 text-[13px] outline-none focus:border-p-brand"
               />
             </label>
+            {myBooths || mine ? (
+              <button
+                type="button"
+                aria-pressed={mine}
+                onClick={() => setMine((m) => !m)}
+                title={fa ? "فقط غرفه هایی که مسئولشان شما هستید" : "Only booths you look after"}
+                className={cn(
+                  "flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-1.5 pe-2 text-xs font-medium transition-colors",
+                  mine ? "border-p-brand bg-p-brand-soft text-p-brand" : "border-p-line hover:bg-p-sunken",
+                )}
+                data-tour="map-mine"
+              >
+                <StaffAvatar staff={x.staffById.get(user.id)} size={20} />
+                <span className="hidden sm:inline">{fa ? "غرفه های من" : "My booths"}</span>
+                <span className="tabular text-p-ink-3">{num(lang, myBooths)}</span>
+              </button>
+            ) : null}
             <div className="thin-scroll scroll-fade flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" data-tour="map-legend">
               {tones.map((tone) => {
                 const count = toneCounts.get(tone) ?? 0;
@@ -959,6 +979,7 @@ function BoothList({
             <th className="px-2 py-2.5 text-start font-medium">{fa ? "شرکت" : "Company"}</th>
             <th className="hidden px-2 py-2.5 text-start font-medium sm:table-cell">{fa ? "متراژ" : "Area"}</th>
             <th className="px-2 py-2.5 text-start font-medium">{fa ? "وضعیت" : "Status"}</th>
+            <th className="hidden px-2 py-2.5 text-start font-medium sm:table-cell">{fa ? "مسئول" : "Managed by"}</th>
             <th className="hidden px-4 py-2.5 text-end font-medium md:table-cell">{layer === "sales" ? (fa ? "مانده" : "Balance") : fa ? "اقلام" : "Pieces"}</th>
           </tr>
         </thead>
@@ -980,6 +1001,7 @@ function BoothList({
                 <td className="px-2 py-2.5">
                   <TonePill tone={tone}>{toneLabel(tone)}</TonePill>
                 </td>
+                <td className="hidden px-2 py-2.5 sm:table-cell">{booth.manager_ids.length ? <AvatarStack ids={booth.manager_ids} size={24} /> : <span className="text-p-ink-3">—</span>}</td>
                 <td className="tabular hidden px-4 py-2.5 text-end md:table-cell">
                   {layer === "sales" ? (balance ? compact(lang, Math.max(0, balance.balance)) : "—") : eq ? num(lang, eq.pieces) : "—"}
                 </td>

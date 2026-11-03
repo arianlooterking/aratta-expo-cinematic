@@ -1,6 +1,6 @@
 "use client";
 
-import { deriveBooth, deriveOrder } from "./rules.ts";
+import { cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder } from "./rules.ts";
 import { DEMO_STAFF_ID } from "./demo-seed.ts";
 import { PortalStore, newId, type AnyRow, type Collection } from "./store.ts";
 import type { Insert, MutationResult, Patch, PortalTable, Row } from "./types";
@@ -40,7 +40,7 @@ function defaults(table: PortalTable, now: string): Record<string, unknown> {
     case "hall_features":
       return { ...stamps, exhibition_id: "", label_fa: null, label_en: null, rotation: 0, polygon: null, style: {}, import_key: null };
     case "booths":
-      return { ...stamps, exhibition_id: "", rotation: 0, polygon: null, area_m2: 0, area_is_manual: false, open_sides: 1, zone: null, status: "available", price_override: null, notes: null, import_key: null, deal_id: null };
+      return { ...stamps, exhibition_id: "", rotation: 0, polygon: null, area_m2: 0, area_is_manual: false, open_sides: 1, zone: null, status: "available", price_override: null, notes: null, import_key: null, deal_id: null, manager_ids: [] };
     case "companies":
       return { ...stamps, kind: "exhibitor", name_en: null, legal_name: null, national_id: null, economic_code: null, sector: null, city: null, address: null, website: null, phone: null, email: null, owner_id: null, priority: "normal", tags: [], notes: null, import_key: null, archived_at: null };
     case "contacts":
@@ -58,7 +58,7 @@ function defaults(table: PortalTable, now: string): Record<string, unknown> {
     case "inventory_items":
       return { ...stamps, item_code: null, name_en: null, category: "furniture", unit_fa: "عدد", unit_en: "unit", returnable: true, on_hand: 0, low_stock_threshold: 0, rental_rate: null, notes: null, archived_at: null };
     case "equipment_orders":
-      return { ...stamps, booth_id: null, deal_id: null, quantity: 1, unit_price: null, stage: "requested", delivered_qty: 0, collected_qty: 0, damaged_qty: 0, delivery_due_at: null, pickup_due_at: null, delivered_at: null, collected_at: null, handled_by: null, notes: null, import_key: null };
+      return { ...stamps, booth_id: null, deal_id: null, quantity: 1, unit_price: null, stage: "requested", delivered_qty: 0, collected_qty: 0, damaged_qty: 0, delivery_due_at: null, pickup_due_at: null, delivered_at: null, collected_at: null, handled_by: null, delivered_by: [], collected_by: [], notes: null, import_key: null };
     case "tasks":
       return { ...stamps, exhibition_id: null, description: null, status: "todo", priority: "normal", assignee_id: null, created_by: null, due_at: null, started_at: null, completed_at: null, booth_id: null, deal_id: null, company_id: null, checklist: [], sort_order: 0 };
     case "staff_members":
@@ -96,7 +96,9 @@ export class DemoStore extends PortalStore {
 
   private fromSnapshot(snapshot: DemoSnapshot): Tables {
     const tables = {} as Tables;
-    for (const t of TABLES) tables[t] = new Map((snapshot[t] ?? []).map((row) => [row.id, row]));
+    const now = new Date().toISOString();
+    // Fill columns added since the snapshot was saved, so an older demo keeps working.
+    for (const t of TABLES) tables[t] = new Map((snapshot[t] ?? []).map((row) => [row.id, { ...defaults(t, now), ...row }]));
     return tables;
   }
 
@@ -153,6 +155,8 @@ export class DemoStore extends PortalStore {
     this.persist();
   }
 
+  private isStaff = (id: string) => this.tables.staff_members.has(id);
+
   // The same derived fields the database triggers fill in.
   private derive(table: PortalTable, row: AnyRow, before: AnyRow | undefined): AnyRow {
     const now = new Date().toISOString();
@@ -160,12 +164,16 @@ export class DemoStore extends PortalStore {
     if (before && "updated_at" in before) next = { ...next, updated_at: now };
     if (table === "booths" || table === "hall_features") {
       const hallExhibition = (hallId: string) => this.tables.halls.get(hallId)?.exhibition_id as string | undefined;
-      if (table === "booths") next = deriveBooth(next as unknown as Row<"booths">, hallExhibition) as unknown as AnyRow;
+      if (table === "booths") {
+        next = deriveBooth(next as unknown as Row<"booths">, hallExhibition) as unknown as AnyRow;
+        next = { ...next, manager_ids: cleanStaffIds(next.manager_ids as string[], this.isStaff) };
+      }
       else next = { ...next, exhibition_id: hallExhibition(String(next.hall_id)) ?? next.exhibition_id };
     }
     if (table === "equipment_orders") {
       const booth = (id: string) => this.tables.booths.get(id) as unknown as Row<"booths"> | undefined;
       next = deriveOrder(next as unknown as Row<"equipment_orders">, booth, now) as unknown as AnyRow;
+      next = deriveHandoverPeople(next as unknown as Row<"equipment_orders">, before as unknown as Row<"equipment_orders"> | undefined, DEMO_STAFF_ID, this.isStaff) as unknown as AnyRow;
     }
     if (table === "payments" && next.invoice_id) {
       const invoice = this.tables.invoices.get(String(next.invoice_id));
@@ -273,6 +281,11 @@ export class DemoStore extends PortalStore {
       if (!n.read_at && (!ids || ids.includes(n.id))) this.tables.notifications.set(n.id, { ...n, read_at: now });
     }
     this.touched("notifications");
+  }
+
+  async setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>> {
+    if (avatar !== null && !/^preset:\d{1,2}$/.test(avatar)) return { ok: false, error: "Choose one of the avatars" };
+    return this.update("staff_members", staffId, { avatar_url: avatar });
   }
 
   async uploadFile(_bucket: "hall-plans" | "documents", path: string, file: File) {

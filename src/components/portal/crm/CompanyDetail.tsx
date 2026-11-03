@@ -36,6 +36,7 @@ import { TaskForm } from "../tasks/TaskForm";
 import { Button, Card, Empty, Field, IconButton, Input, Pill, Select, Sheet, Skeleton } from "../ui";
 import { ActivityForm } from "./ActivityForm";
 import { CompanyForm } from "./CompanyForm";
+import { StaffAvatar } from "../people";
 import { Avatar, STAGES, StagePill } from "./shared";
 import { dealStageLabel } from "@/lib/portal/i18n";
 
@@ -123,7 +124,7 @@ export function CompanyDetail({ id }: { id: string }) {
               ) : null}
               {owner ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <Avatar name={owner.display_name ?? owner.email} className="size-5" />
+                  <StaffAvatar staff={owner} size={20} />
                   {owner.display_name ?? owner.email}
                 </span>
               ) : null}
@@ -703,7 +704,7 @@ function TasksCard({ companyId, onNew }: { companyId: string; onNew: () => void 
               <Link href={`/${lang}/staff/tasks/${t.id}`} className="flex items-center gap-2 rounded-xl border border-p-line px-3 py-2 text-[13px] hover:border-p-line-strong">
                 <span className={cn("min-w-0 flex-1 truncate", t.status === "done" && "text-p-ink-3 line-through")}>{t.title}</span>
                 <span className="shrink-0 text-xs text-p-ink-3">{taskStatusLabel[t.status][lang]}</span>
-                {who ? <Avatar name={who.display_name ?? who.email} /> : null}
+                {who ? <StaffAvatar staff={who} size={24} /> : null}
               </Link>
             </li>
           );

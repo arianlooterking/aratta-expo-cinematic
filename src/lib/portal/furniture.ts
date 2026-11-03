@@ -104,9 +104,17 @@ export function nextEquipmentStep(o: Pick<OrderLine, "stage" | "delivered_qty">,
   return "deliver";
 }
 
-/** The patch that records a delivery or a collection of the whole line. */
-export function equipmentPatch(o: Pick<OrderLine, "quantity" | "delivered_qty" | "damaged_qty">, step: "deliver" | "collect") {
-  const now = new Date().toISOString();
-  if (step === "deliver") return { stage: "delivered" as const, delivered_qty: o.quantity, delivered_at: now };
-  return { stage: "collected" as const, collected_qty: Math.max(0, o.delivered_qty - o.damaged_qty), collected_at: now };
+/**
+ * The patch that records a delivery or a collection of the whole line: who did it (in order,
+ * the first is the lead) and when. With nobody named, the database credits whoever saves it.
+ */
+export function equipmentPatch(
+  o: Pick<OrderLine, "quantity" | "delivered_qty" | "damaged_qty">,
+  step: "deliver" | "collect",
+  by: readonly string[] = [],
+  at: string = new Date().toISOString(),
+) {
+  const people = [...new Set(by.filter(Boolean))];
+  if (step === "deliver") return { stage: "delivered" as const, delivered_qty: o.quantity, delivered_at: at, ...(people.length ? { delivered_by: people } : {}) };
+  return { stage: "collected" as const, collected_qty: Math.max(0, o.delivered_qty - o.damaged_qty), collected_at: at, ...(people.length ? { collected_by: people } : {}) };
 }

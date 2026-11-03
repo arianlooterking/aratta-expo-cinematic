@@ -11,7 +11,7 @@ import { Button } from "./ui";
 type L = { fa: string; en: string };
 type Step = { target?: string; title: L; body: L };
 
-export type TourKey = "welcome" | "map" | "crm" | "company" | "pipeline" | "accounting" | "invoice" | "tasks";
+export type TourKey = "welcome" | "map" | "crm" | "company" | "pipeline" | "accounting" | "invoice" | "tasks" | "handover";
 
 /** What each tour teaches. Targets are data-tour attributes; a missing target shows the step in the middle. */
 const TOURS: Record<TourKey, { title: L; steps: Step[] }> = {
@@ -108,8 +108,8 @@ const TOURS: Record<TourKey, { title: L; steps: Step[] }> = {
         target: "map-canvas",
         title: { fa: "کار با نقشه", en: "Working the map" },
         body: {
-          fa: "روی غرفه بزنید تا پرونده اش باز شود. کلیک راست یا نگه داشتن انگشت: منوی سریع. با دو انگشت یا چرخ ماوس بزرگنمایی کنید و با کشیدن جابجا شوید. نشانگر ماوس روی غرفه، خلاصه آن را نشان می دهد.",
-          en: "Tap a booth to open its file. Right-click or press and hold for quick actions. Pinch or scroll to zoom, drag to move around. Hover a booth with the mouse for a summary.",
+          fa: "روی غرفه بزنید تا پرونده اش باز شود؛ مسئولان غرفه بالای پرونده هستند. کلیک راست یا نگه داشتن انگشت: منوی سریع. با دو انگشت یا چرخ ماوس بزرگنمایی کنید و با کشیدن جابجا شوید. نشانگر ماوس روی غرفه، خلاصه و مسئولانش را نشان می دهد.",
+          en: "Tap a booth to open its file; the people who look after it are at the top. Right-click or press and hold for quick actions. Pinch or scroll to zoom, drag to move around. Hover a booth with the mouse for a summary and who looks after it.",
         },
       },
       {
@@ -255,6 +255,35 @@ const TOURS: Record<TourKey, { title: L; steps: Step[] }> = {
       },
     ],
   },
+  handover: {
+    title: { fa: "آموزش تحویل و جمع آوری", en: "Handover tour" },
+    steps: [
+      {
+        target: "handover-modes",
+        title: { fa: "تحویل، جمع آوری، مشکلات", en: "Deliver, collect, issues" },
+        body: {
+          fa: "قبل از نمایشگاه تحویل به غرفه ها، بعد از آن جمع آوری. مشکلات: هر چیزی که گم یا خراب شده.",
+          en: "Before the show you deliver to booths, after it you collect. Issues lists anything missing or damaged.",
+        },
+      },
+      {
+        target: "handover-crew",
+        title: { fa: "تیم تحویل", en: "The crew" },
+        body: {
+          fa: "چه کسانی با شما هستند؟ دو یا سه نفر را انتخاب کنید. هر تحویل و جمع آوری به نام همه آنها و با روز و ساعت دقیق ثبت می شود.",
+          en: "Who is with you? Pick two or three people. Every delivery and collection is saved in all their names, with the exact day and time.",
+        },
+      },
+      {
+        target: "handover-list",
+        title: { fa: "غرفه به غرفه", en: "Booth by booth" },
+        body: {
+          fa: "هر قلم را با یک لمس ثبت کنید، یا «تحویل همه». زیر هر قلم می بینید چه کسی و کی تحویل داده؛ برای اصلاح، روی همان خط بزنید.",
+          en: "Tick each item with one tap, or use Deliver all. Under each item you see who did it and when; tap that line to correct it.",
+        },
+      },
+    ],
+  },
 };
 
 const SEEN_KEY = "aratta.portal.tours.v1";
@@ -284,6 +313,7 @@ export const TOUR_ROUTES: Partial<Record<TourKey, string>> = {
   pipeline: "/crm/pipeline",
   accounting: "/accounting",
   tasks: "/tasks",
+  handover: "/handover",
 };
 
 type TourState = {

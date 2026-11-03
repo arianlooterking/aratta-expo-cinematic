@@ -21,7 +21,8 @@ import { Button, Card, Empty, Field, Segmented, Select, Sheet, Skeleton } from "
 import { useBoardDrag } from "../useBoardDrag";
 import { ActivityForm } from "./ActivityForm";
 import { LostSheet } from "./CompanyDetail";
-import { Avatar, PageHeader, STAGES } from "./shared";
+import { StaffAvatar } from "../people";
+import { PageHeader, STAGES } from "./shared";
 
 type View = "board" | "followups";
 
@@ -276,7 +277,7 @@ function DealCard({
       <div className="flex items-start gap-1.5">
         {can.edit ? <GripVertical className="mt-0.5 size-4 shrink-0 text-p-ink-3 opacity-40 group-hover:opacity-100" aria-hidden /> : null}
         <p className="min-w-0 flex-1 text-[13px] font-semibold leading-snug">{company ? pick(lang, company.name_fa, company.name_en) : "—"}</p>
-        {owner ? <Avatar name={owner.display_name ?? owner.email} /> : null}
+        {owner ? <StaffAvatar staff={owner} size={24} /> : null}
       </div>
       <p className="flex flex-wrap gap-x-2 text-[11px] text-p-ink-3">
         {booths.length ? <bdi dir="ltr">{booths.map((b) => b.code).join(", ")}</bdi> : deal.expected_area_m2 ? <span>~{num(lang, deal.expected_area_m2)} m²</span> : null}

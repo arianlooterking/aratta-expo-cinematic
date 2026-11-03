@@ -128,10 +128,15 @@ a:not(.portal a) {
   outline-offset: 4px;
 }
 
-button,
 input,
 textarea,
 select {
+  font: inherit;
+}
+
+/* Unlayered, so it would beat text-size utilities. The portal sizes its buttons with
+   utilities (Tailwind's base layer already inherits the font there). */
+button:not(.portal *) {
   font: inherit;
 }
 

@@ -144,6 +144,21 @@ export class LiveStore extends PortalStore {
     await this.sb.rpc("mark_notifications_read", ids ? { p_ids: ids } : {});
   }
 
+  async setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>> {
+    const before = this.findRow("staff_members", staffId);
+    this.applyLocal("staff_members", { type: "upsert", row: { id: staffId, avatar_url: avatar } as AnyRow, full: false });
+    const { data, error } = await this.sb.rpc("set_my_avatar", { p_avatar: avatar });
+    if (error || !data) {
+      if (before) this.applyLocal("staff_members", { type: "upsert", row: before, full: true });
+      const message = friendly(error?.message);
+      this.notify({ kind: "error", message });
+      return { ok: false, error: message };
+    }
+    const row = data as unknown as Row<"staff_members">;
+    this.applyLocal("staff_members", { type: "upsert", row: row as unknown as AnyRow, full: true });
+    return { ok: true, row };
+  }
+
   async uploadFile(bucket: "hall-plans" | "documents", path: string, file: File) {
     const { error } = await this.sb.storage.from(bucket).upload(path, file, { upsert: true, contentType: file.type });
     if (error) return { ok: false as const, error: friendly(error.message) };

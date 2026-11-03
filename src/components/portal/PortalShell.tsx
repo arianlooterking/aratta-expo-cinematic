@@ -26,6 +26,7 @@ import {
   Sun,
   Users,
   X,
+  SmilePlus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -40,6 +41,7 @@ import { usePersistentState, usePortal, useCollection } from "./PortalProvider";
 import { QuickAdd } from "./QuickAdd";
 import { SearchPalette } from "./SearchPalette";
 import { TOUR_KEYS, TOUR_ROUTES, TourProvider, useTour } from "./Tour";
+import { AvatarChooser, StaffAvatar } from "./people";
 import { IconButton, MenuItem, Popover } from "./ui";
 import { useToday } from "./useToday";
 
@@ -85,7 +87,8 @@ function Shell({
 }) {
   const { lang, mode, user, can, toasts, dismissToast } = usePortal();
   const today = useToday();
-  const { status } = useExhibition();
+  const { status, staffById } = useExhibition();
+  const me = staffById.get(user.id);
   const pathname = usePathname() ?? "";
   const [drawer, setDrawer] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -215,9 +218,11 @@ function Shell({
           {t(lang, "classic")}
         </Link>
         <div className="mt-2 flex items-center gap-3 rounded-xl px-2 py-2">
-          <span className="grid size-8 place-items-center rounded-full bg-white/10 text-xs font-bold text-p-side-ink">
-            {user.name.trim().charAt(0)}
-          </span>
+          {me ? (
+            <StaffAvatar staff={me} size={32} />
+          ) : (
+            <span className="grid size-8 place-items-center rounded-full bg-white/10 text-xs font-bold text-p-side-ink">{user.name.trim().charAt(0)}</span>
+          )}
           <span className="min-w-0 leading-tight">
             <span className="block truncate text-[13px] font-medium text-p-side-ink">{user.name}</span>
             <span className="block text-xs text-p-side-muted">{roleLabels[user.role][lang]}</span>
@@ -435,9 +440,13 @@ function UserMenu({
   otherLangPath: string;
 }) {
   const { lang, mode, user, store } = usePortal();
+  const x = useExhibition();
+  const me = x.staffById.get(user.id) ?? null;
   const [open, setOpen] = useState(false);
+  const [choosing, setChoosing] = useState(false);
   return (
     <div className="relative">
+      <AvatarChooser open={choosing} onClose={() => setChoosing(false)} />
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -445,14 +454,32 @@ function UserMenu({
         aria-expanded={open}
         aria-label={user.name}
       >
-        <span className="grid size-8 place-items-center rounded-full bg-p-brand text-xs font-bold text-p-brand-ink">{user.name.trim().charAt(0)}</span>
+        {me ? (
+          <StaffAvatar staff={me} size={32} />
+        ) : (
+          <span className="grid size-8 place-items-center rounded-full bg-p-brand text-xs font-bold text-p-brand-ink">{user.name.trim().charAt(0)}</span>
+        )}
         <ChevronDown className="hidden size-4 text-p-ink-3 sm:block" />
       </button>
       <Popover open={open} onClose={() => setOpen(false)}>
-        <div className="px-2.5 pb-2 pt-1.5">
-          <p className="truncate text-sm font-semibold">{user.name}</p>
-          <p className="truncate text-xs text-p-ink-3">{user.email ?? roleLabels[user.role][lang]}</p>
+        <div className="flex items-center gap-2.5 px-2.5 pb-2 pt-1.5">
+          {me ? <StaffAvatar staff={me} size={40} /> : null}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{user.name}</p>
+            <p className="truncate text-xs text-p-ink-3">{me?.job_title ?? user.email ?? roleLabels[user.role][lang]}</p>
+          </div>
         </div>
+        {me ? (
+          <MenuItem
+            icon={<SmilePlus className="size-4" />}
+            onClick={() => {
+              setOpen(false);
+              setChoosing(true);
+            }}
+          >
+            {lang === "fa" ? "تصویر شما" : "Your picture"}
+          </MenuItem>
+        ) : null}
         <div className="my-1 h-px bg-p-line" />
         <p className="px-2.5 pb-1 pt-1.5 text-xs font-medium text-p-ink-3">{t(lang, "theme")}</p>
         <div className="grid grid-cols-3 gap-1 px-1.5 pb-1.5">

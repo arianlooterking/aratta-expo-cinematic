@@ -6,6 +6,7 @@ import {
   Check,
   CheckCircle2,
   Hand,
+  Pencil,
   Phone,
   PhoneCall,
   Plus,
@@ -13,6 +14,7 @@ import {
   Trash2,
   TriangleAlert,
   Undo2,
+  UserRoundPlus,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -25,6 +27,8 @@ import { newId } from "@/lib/portal/store";
 import type { Booth, BoothStatus, Company, Deal, DealStage, EquipmentOrder, Patch } from "@/lib/portal/types";
 import { useExhibition } from "../ExhibitionProvider";
 import { useCollection, useNow, usePortal } from "../PortalProvider";
+import { HandoverStamp } from "../crew";
+import { PeoplePicker, PeopleLine } from "../people";
 import { AssignSheet } from "./AssignSheet";
 import { FurnitureTab } from "./FurnitureTab";
 import { Button, Field, IconButton, Input, Pill, Progress, Segmented, Select, Sheet, Textarea, TonePill } from "../ui";
@@ -80,6 +84,7 @@ export function BoothPanel({
             {booth.open_sides ? `${sep(lang)}${fa ? `${num(lang, booth.open_sides)} بر باز` : `${booth.open_sides} open sides`}` : ""}
           </p>
           {company ? <p className="mt-1 truncate text-sm font-semibold text-p-ink">{pick(lang, company.name_fa, company.name_en)}</p> : null}
+          <BoothManagers booth={booth} onUpdate={onUpdate} />
         </div>
         <IconButton label={fa ? "بستن" : "Close"} size="sm" onClick={onClose}>
           <X className="size-4" />
@@ -107,6 +112,49 @@ export function BoothPanel({
         )}
       </div>
       {!deal ? <AssignSheet booth={booth} open={assignOpen} onClose={() => onAssignOpen(false)} onUpdate={onUpdate} /> : null}
+    </div>
+  );
+}
+
+/** Who looks after this booth, as round faces. The first person is the lead. */
+function BoothManagers({ booth, onUpdate }: { booth: Booth; onUpdate: (patch: Patch<"booths">) => void }) {
+  const { lang, can } = usePortal();
+  const fa = lang === "fa";
+  const [open, setOpen] = useState(false);
+  const ids = booth.manager_ids;
+  return (
+    <div className="mt-2 flex min-w-0 items-center gap-2" data-tour="booth-managers">
+      <span className="shrink-0 text-xs text-p-ink-3">{fa ? "مسئول غرفه" : "Managed by"}</span>
+      {can.edit ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="group flex min-w-0 items-center gap-1.5 rounded-full py-0.5 pe-2 ps-0.5 hover:bg-p-sunken"
+          aria-label={fa ? "تعیین مسئولان غرفه" : "Choose who looks after this booth"}
+        >
+          {ids.length ? (
+            <>
+              <PeopleLine ids={ids} size={24} />
+              <Pencil className="size-3.5 shrink-0 text-p-ink-3 opacity-60 group-hover:opacity-100" />
+            </>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-1.5 text-xs font-semibold text-p-brand">
+              <UserRoundPlus className="size-3.5" />
+              {fa ? "تعیین مسئول" : "Assign someone"}
+            </span>
+          )}
+        </button>
+      ) : (
+        <PeopleLine ids={ids} size={24} empty={fa ? "تعیین نشده" : "Nobody yet"} />
+      )}
+      <PeoplePicker
+        open={open}
+        onClose={() => setOpen(false)}
+        value={ids}
+        onSave={(next) => onUpdate({ manager_ids: next })}
+        title={fa ? `مسئولان غرفه ⁦${booth.code}⁩` : `Who looks after ${booth.code}`}
+        hint={fa ? "یک یا چند همکار را انتخاب کنید. نفر اول مسئول اصلی است." : "Pick one or more colleagues. The first one is the lead."}
+      />
     </div>
   );
 }
@@ -520,7 +568,7 @@ const stageTone: Record<string, "neutral" | "warn" | "info" | "ok" | "danger" | 
   cancelled: "neutral",
 };
 
-export function EquipmentLine({ order: o, compact }: { order: EquipmentOrder; compact?: boolean }) {
+export function EquipmentLine({ order: o, compact, crew }: { order: EquipmentOrder; compact?: boolean; crew: readonly string[] }) {
   const { lang, store, can } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
@@ -538,10 +586,10 @@ export function EquipmentLine({ order: o, compact }: { order: EquipmentOrder; co
           <Pill tone={stageTone[o.stage]} className="h-5 px-1.5 text-[11px]">
             {equipmentStageLabel[o.stage][lang]}
           </Pill>
-          {o.stage === "collected" && o.collected_at ? relativeTime(lang, o.collected_at) : o.delivered_at ? relativeTime(lang, o.delivered_at) : null}
-          {!returnable ? <span>{fa ? "، برگشت ندارد" : "· not returned"}</span> : null}
-          {o.notes ? <span className="text-p-danger">· {o.notes}</span> : null}
+          {!returnable ? <span>{fa ? "برگشت ندارد" : "not returned"}</span> : null}
+          {o.notes ? <span className="text-p-danger">{sep(lang)}{o.notes}</span> : null}
         </p>
+        <HandoverStamp order={o} className="-mx-1 mt-1" />
       </div>
       {can.edit ? (
         <div className="flex shrink-0 items-center gap-1">
@@ -563,7 +611,7 @@ export function EquipmentLine({ order: o, compact }: { order: EquipmentOrder; co
             </IconButton>
           ) : null}
           {step ? (
-            <Button size="sm" tone={step === "deliver" ? "primary" : "secondary"} onClick={() => store.update("equipment_orders", o.id, equipmentPatch(o, step))}>
+            <Button size="sm" tone={step === "deliver" ? "primary" : "secondary"} onClick={() => store.update("equipment_orders", o.id, equipmentPatch(o, step, crew))}>
               {step === "deliver" ? (fa ? "تحویل" : "Deliver") : fa ? "جمع آوری" : "Collect"}
             </Button>
           ) : (
