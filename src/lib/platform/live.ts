@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import type { Database } from "./database.types";
 import { applyChange } from "./live-merge";
 
@@ -16,81 +17,105 @@ type Row<T extends LiveTableName> = PublicTables[T]["Row"];
 
 export type LiveStatus = "idle" | "loading" | "live" | "offline" | "error";
 
+type LiveState<R> = {
+  key: string;
+  rows: R[];
+  loaded: boolean;
+  channel: "pending" | "ok" | "down";
+  error: string | null;
+};
+
+function emptyState<R>(key: string): LiveState<R> {
+  return { key, rows: [], loaded: false, channel: "pending", error: null };
+}
+
 /**
  * Loads rows from a table and keeps them current as colleagues edit them.
- * `filter` uses the realtime filter syntax, e.g. `exhibition_id=eq.<uuid>`,
- * and is applied to both the initial query and the subscription.
+ * An optional equality filter (e.g. exhibition_id) applies to both the
+ * initial query and the realtime subscription.
  */
 export function useLiveTable<T extends LiveTableName>(
   table: T,
   options: { filter?: { column: keyof Row<T> & string; value: string }; enabled?: boolean } = {},
 ) {
-  const { filter, enabled = true } = options;
-  const [rows, setRows] = useState<Row<T>[]>([]);
-  const [status, setStatus] = useState<LiveStatus>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const filterKey = filter ? `${filter.column}=eq.${filter.value}` : "";
-  const filterRef = useRef(filter);
-  filterRef.current = filter;
+  const { enabled = true } = options;
+  const filterColumn = options.filter?.column ?? null;
+  const filterValue = options.filter?.value ?? null;
+  const key = `${table}:${filterColumn ?? "*"}=${filterValue ?? "*"}`;
+  const [live, setLive] = useState<LiveState<Row<T>>>(() => emptyState(key));
+  const current = live.key === key ? live : emptyState<Row<T>>(key);
 
   useEffect(() => {
     const supabase = getBrowserSupabase();
-    if (!supabase || !enabled) {
-      setStatus(supabase ? "idle" : "offline");
-      return;
-    }
+    if (!supabase || !enabled) return;
     let cancelled = false;
-    setStatus("loading");
+    const update = (fn: (state: LiveState<Row<T>>) => LiveState<Row<T>>) =>
+      setLive((prev) => fn(prev.key === key ? prev : emptyState(key)));
+    const realtimeFilter = filterColumn && filterValue ? `${filterColumn}=eq.${filterValue}` : undefined;
 
     const channel = supabase
-      .channel(`live:${table}:${filterKey || "all"}`)
+      .channel(`live:${key}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table, ...(filterKey ? { filter: filterKey } : {}) },
+        { event: "*", schema: "public", table, ...(realtimeFilter ? { filter: realtimeFilter } : {}) },
         (payload: RealtimePostgresChangesPayload<Row<T>>) => {
-          setRows((current) =>
-            applyChange(current, {
+          update((state) => ({
+            ...state,
+            rows: applyChange(state.rows, {
               eventType: payload.eventType,
               new: payload.new as Partial<Row<T>>,
               old: payload.old as Partial<Row<T>>,
             }),
-          );
+          }));
         },
       )
-      .subscribe((state) => {
+      .subscribe((status) => {
         if (cancelled) return;
-        if (state === "SUBSCRIBED") setStatus((s) => (s === "loading" ? s : "live"));
-        if (state === "CHANNEL_ERROR" || state === "TIMED_OUT") setStatus("offline");
+        if (status === "SUBSCRIBED") update((state) => ({ ...state, channel: "ok" }));
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          update((state) => ({ ...state, channel: "down" }));
+        }
       });
 
     // Subscribe first, then load, so no change between the two is missed.
     (async () => {
-      const f = filterRef.current;
       // The generic table name defeats postgrest-js inference; rows are typed below.
       const base = supabase.from(table as "booths").select("*");
-      const { data, error: loadError } = await (f ? base.eq(f.column as "id", f.value) : base);
+      const { data, error } = await (filterColumn && filterValue
+        ? base.eq(filterColumn as "id", filterValue)
+        : base);
       if (cancelled) return;
-      if (loadError) {
-        setError(loadError.message);
-        setStatus("error");
-        return;
-      }
-      setRows((current) => {
+      update((state) => {
+        if (error) return { ...state, loaded: true, error: error.message };
         // Keep any realtime rows that arrived while the query was in flight.
         const byId = new Map((data as unknown as Row<T>[]).map((row) => [row.id, row]));
-        for (const row of current) byId.set(row.id, row);
-        return [...byId.values()];
+        for (const row of state.rows) byId.set(row.id, row);
+        return { ...state, loaded: true, error: null, rows: [...byId.values()] };
       });
-      setStatus("live");
     })();
 
     return () => {
       cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [table, filterKey, enabled]);
+  }, [key, table, filterColumn, filterValue, enabled]);
 
-  return useMemo(() => ({ rows, status, error }), [rows, status, error]);
+  const status: LiveStatus = !isSupabaseConfigured()
+    ? "offline"
+    : !enabled
+      ? "idle"
+      : current.error
+        ? "error"
+        : !current.loaded
+          ? "loading"
+          : current.channel === "down"
+            ? "offline"
+            : "live";
+
+  return useMemo(
+    () => ({ rows: current.rows, status, error: current.error }),
+    [current.rows, status, current.error],
+  );
 }
 
 /** Unread count and newest notifications for the signed-in staff member. */

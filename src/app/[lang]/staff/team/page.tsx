@@ -8,6 +8,9 @@ import { getStaffSession, hasRole } from "@/lib/platform/session";
 import { roleLabels } from "@/lib/platform/labels";
 import { createServerSupabase } from "@/lib/supabase/server";
 
+// Access depends on the signed-in user, so never prerender.
+export const dynamic = "force-dynamic";
+
 type TeamPageProps = { params: Promise<{ lang: string }> };
 
 export const metadata: Metadata = {

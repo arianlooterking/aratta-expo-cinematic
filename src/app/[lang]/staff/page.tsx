@@ -4,6 +4,9 @@ import { StaffPortal } from "@/components/staff/StaffPortal";
 import { isLang, languages, type Lang } from "@/lib/lang";
 import { getStaffSession } from "@/lib/platform/session";
 
+// Access depends on the signed-in user, so never prerender.
+export const dynamic = "force-dynamic";
+
 type StaffPageProps = {
   params: Promise<{ lang: string }>;
 };

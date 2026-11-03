@@ -50,3 +50,8 @@ qa/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# workbook imports hold private contact data; never commit them
+/imports/
+*.xlsx
+!public/**/*.xlsx

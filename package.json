@@ -10,7 +10,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "test:db": "scripts/db-test.sh",
+    "import:workbook": "node scripts/workbook/cli.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -36,6 +38,7 @@
     "eslint-config-next": "16.3.5",
     "exceljs": "^4.4.0",
     "parse5": "8.0.0",
+    "pg": "^8.23.1",
     "react-server-dom-webpack": "19.2.8",
     "tailwindcss": "^4",
     "typescript": "^5",
