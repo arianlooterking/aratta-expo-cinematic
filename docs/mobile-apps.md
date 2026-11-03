@@ -46,13 +46,16 @@ store update. A new store build is only needed when the native part changes
 
 ### 2. Android (no account needed to install)
 
-1. Add the signing key as GitHub secrets (Settings → Secrets and variables →
-   Actions): `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
-   `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Keep the key backed up: every
+1. Add the signing key as two GitHub secrets (Settings → Secrets and variables →
+   Actions): `ANDROID_KEYSTORE_BASE64` and `ANDROID_KEYSTORE_PASSWORD` (alias
+   `aratta-staff`, key password = keystore password; `ANDROID_KEY_ALIAS` and
+   `ANDROID_KEY_PASSWORD` can override them). Keep the key backed up: every
    update must be signed with the same key.
-2. Actions → **Mobile · Android** → Run workflow. The run's **Artifacts**
-   contain `aratta-staff-1.0.N.apk` (install directly on phones: allow
-   "Install unknown apps" for the browser or Files app) and the `.aab` for Google Play.
+2. Actions → **Mobile · Android** → Run workflow. A signed run publishes a
+   GitHub release, and the team installs from one fixed link:
+   `https://github.com/arianlooterking/aratta-expo-cinematic/releases/latest/download/aratta-staff.apk`
+   (allow "Install unknown apps" for the browser when asked). Every run also
+   keeps the `.apk` and the `.aab` for Google Play under **Artifacts**.
 
 ### 3. Google Play internal testing (optional)
 
@@ -117,8 +120,10 @@ npm run mobile:icons     # regenerate icons and splash from mobile/assets
 To point a build at a preview or local server, set `ARATTA_APP_URL` before
 syncing, for example `ARATTA_APP_URL=http://192.168.1.20:3000 npm run mobile:android`.
 In CI, set the repository **variable** `ARATTA_APP_URL` to change the address
-for all builds. Note that Vercel preview links are behind Vercel sign-in, so
-the app should point at production or a public domain.
+for all builds. The address must be public: with Vercel's
+"all except custom domains" deployment protection, even the `*.vercel.app`
+production address asks for a Vercel login, so use "previews only"
+protection or a custom domain (for example `staff.arattaexpo.ir`).
 
 ## Limits worth knowing
 

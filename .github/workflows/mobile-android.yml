@@ -1,12 +1,15 @@
 # Builds the Android staff app.
 #
 # Every run uploads an installable APK (for phones outside the Play Store) and
-# an AAB (for Google Play) as build artifacts. Running it by hand with
-# "Send to Google Play" uploads the AAB to the Play internal testing track.
+# an AAB (for Google Play) as build artifacts. Running it by hand also
+# publishes a GitHub release with the APK, so the team always has one install
+# link: https://github.com/<owner>/<repo>/releases/latest/download/aratta-staff.apk
+# With "Send to Google Play" it also uploads the AAB to a Play testing track.
 #
 # Secrets (Settings → Secrets and variables → Actions), all optional:
-#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
-#       Release signing key. Without it the build is signed with a throwaway debug key.
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD
+#       Release signing key (alias and key password default to the Aratta key's).
+#       Without it the build is signed with a throwaway debug key and nothing is published.
 #   GOOGLE_SERVICES_JSON   Firebase config for push notifications (file contents).
 #   PLAY_SERVICE_ACCOUNT_JSON   Google Play API access for uploads.
 # Variables: ARATTA_APP_URL (portal address the app opens; defaults to the Vercel site).
@@ -15,6 +18,10 @@ name: Mobile · Android
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: "Publish an install link (GitHub release)"
+        type: boolean
+        default: true
       play_track:
         description: "Send to Google Play (track)"
         type: choice
@@ -34,7 +41,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write # publishing the install link (GitHub release)
 
 jobs:
   build:
@@ -98,6 +105,19 @@ jobs:
           mkdir -p dist-mobile
           cp android/app/build/outputs/apk/release/app-release.apk "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk"
           cp android/app/build/outputs/bundle/release/app-release.aab "dist-mobile/aratta-staff-${APP_VERSION_NAME}.aab"
+
+      - name: Publish install link
+        if: github.event_name == 'workflow_dispatch' && inputs.publish && env.ANDROID_KEYSTORE_FILE != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk" dist-mobile/aratta-staff.apk
+          gh release create "android-v${APP_VERSION_NAME}" \
+            --target "$GITHUB_SHA" --latest \
+            --title "Aratta Staff for Android ${APP_VERSION_NAME}" \
+            --notes "Install on Android: open this page on the phone, tap aratta-staff.apk, then allow installs from your browser when asked. Updates install over the previous version and keep you signed in. Built from ${GITHUB_SHA::7}." \
+            dist-mobile/aratta-staff.apk "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk"
+          echo "Install link: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/aratta-staff.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v5
         with:
