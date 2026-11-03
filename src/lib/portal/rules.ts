@@ -99,3 +99,55 @@ export function deriveHandoverPeople<O extends HandoverLike>(
   if (me && !next.handled_by && (next.stage === "delivered" || next.stage === "collected")) next.handled_by = me;
   return next;
 }
+
+type TeamLike = { name_fa: string; lead_id: string | null; member_ids: string[] };
+
+/** team_before_write: known members only, no repeats, the lead first. */
+export function deriveTeam<T extends TeamLike>(team: T, known?: (id: string) => boolean): T {
+  const members = cleanStaffIds(team.member_ids, known);
+  const lead = team.lead_id && (!known || known(team.lead_id)) ? team.lead_id : null;
+  return {
+    ...team,
+    name_fa: team.name_fa.trim(),
+    lead_id: lead,
+    member_ids: lead ? [lead, ...members.filter((id) => id !== lead)] : members,
+  };
+}
+
+type StaffLike = { id: string; role: "owner" | "admin" | "manager" | "member" | "viewer"; status: "invited" | "active" | "suspended"; email: string; user_id: string | null };
+
+const roleRank = { owner: 5, admin: 4, manager: 3, member: 2, viewer: 1 } as const;
+
+/**
+ * guard_staff_change + guard_staff_email + the staff policies, as one check.
+ * Returns why a change is refused, or null when it is allowed.
+ */
+export function staffChangeError(
+  actor: Pick<StaffLike, "id" | "role"> | null | undefined,
+  before: StaffLike | null,
+  after: StaffLike | null,
+  everyone: readonly StaffLike[],
+): string | null {
+  if (!actor) return "not-permitted";
+  const isAdmin = roleRank[actor.role] >= roleRank.admin;
+  const ownerActor = actor.role === "owner";
+  if (!before && after) {
+    if (!isAdmin) return "not-permitted";
+    if (after.role === "owner" && !ownerActor) return "owner-only";
+    return null;
+  }
+  if (!before) return null;
+  if (!isAdmin) return "not-permitted";
+  if (before.id === actor.id) {
+    if (!after) return "self-remove";
+    if (after.role !== before.role || after.status !== before.status) return "self-role";
+  }
+  if (before.role === "owner" && !ownerActor) return "owner-only";
+  if (after && after.role === "owner" && before.role !== "owner" && !ownerActor) return "owner-only";
+  if (after && after.email !== before.email && before.user_id) return "email-locked";
+  if (before.role === "owner" && before.status === "active" && (!after || after.role !== "owner" || after.status !== "active")) {
+    const others = everyone.filter((s) => s.id !== before.id && s.role === "owner" && s.status === "active");
+    if (!others.length) return "last-owner";
+  }
+  return null;
+}
