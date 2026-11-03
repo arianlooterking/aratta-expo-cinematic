@@ -112,8 +112,8 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
 
   return (
     <main className="min-h-dvh bg-[#071713] text-[#e8f4ed]">
-      <div className="mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-4 py-10 sm:px-8 lg:grid-cols-[1.1fr_minmax(0,28rem)] lg:gap-16">
-        <section className="space-y-8">
+      <div className="mx-auto grid min-h-dvh max-w-6xl content-center items-center gap-8 px-4 py-8 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-[1.1fr_minmax(0,28rem)] lg:gap-16">
+        <section className="space-y-6 sm:space-y-8">
           <div className="flex items-center gap-3">
             <span className="grid h-12 w-12 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-white/5">
               <Image src={brand.tab} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
@@ -127,7 +127,7 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
             <h1 className="text-3xl font-bold leading-snug text-white sm:text-4xl">{t.title}</h1>
             <p className="max-w-xl text-base text-[#b5c9bf] sm:text-lg">{t.lead}</p>
           </div>
-          <ul className="grid gap-3 sm:grid-cols-3">
+          <ul className="hidden gap-3 sm:grid sm:grid-cols-3">
             {t.highlights.map((item) => (
               <li
                 key={item}
