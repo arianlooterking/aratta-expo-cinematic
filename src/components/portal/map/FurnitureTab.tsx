@@ -17,7 +17,20 @@ import {
 import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import { money, num, pick, sep } from "@/lib/portal/format";
-import { kitOf, mergeKit, minQuantity, quantityEditable, quantityPatch, removable, standardKit, stockLeft, type KitLine } from "@/lib/portal/furniture";
+import {
+  kitOf,
+  mergeKit,
+  minQuantity,
+  parseCount,
+  quantityEditable,
+  quantityPatch,
+  removable,
+  setItemCount,
+  standardKit,
+  stockLeft,
+  type CountAction,
+  type KitLine,
+} from "@/lib/portal/furniture";
 import { equipmentStageLabel } from "@/lib/portal/i18n";
 import { newId } from "@/lib/portal/store";
 import type { Booth, EquipmentOrder, InventoryItem } from "@/lib/portal/types";
@@ -51,8 +64,8 @@ const stageTone: Record<string, "neutral" | "warn" | "info" | "ok" | "danger"> =
 };
 
 /**
- * A booth's furniture list. Tap an item in the catalogue to add one, use − and + to change
- * amounts, and remove lines that haven't gone out yet.
+ * A booth's furniture list. In the catalogue, tap the count side of a card to add one, the
+ * name side to take one off, or the number to type it. Lines can be changed until they go out.
  */
 export function FurnitureTab({ booth }: { booth: Booth }) {
   const { lang, store, can, toast } = usePortal();
@@ -104,6 +117,33 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
       damaged_qty: 0,
     });
   }
+
+  // Every line of an item on this booth, fresh from the store, including one added a moment ago.
+  const itemLines = (itemId: string) => {
+    const ids = new Set(orders.filter((o) => o.item_id === itemId).map((o) => o.id));
+    const fresh = recent.current.get(itemId);
+    if (fresh) ids.add(fresh);
+    return [...ids].map((id) => store.findRow("equipment_orders", id) as EquipmentOrder | undefined).filter((o): o is EquipmentOrder => Boolean(o) && o!.stage !== "cancelled");
+  };
+
+  /** Make the booth's count of one item `target`, as far as the rules allow. */
+  async function setCount(itemId: string, target: number): Promise<CountAction> {
+    const action = setItemCount(itemLines(itemId), target);
+    if (action.kind === "insert") await add(itemId, action.quantity);
+    else if (action.kind === "update") await store.update("equipment_orders", action.id, { quantity: action.quantity, ...(action.stage ? { stage: action.stage } : {}) });
+    else if (action.kind === "remove") {
+      recent.current.delete(itemId);
+      await store.remove("equipment_orders", action.id);
+    } else if (action.kind === "blocked") {
+      toast(
+        fa ? `کمتر از ${num(lang, action.min)} عدد نمی شود، چون این تعداد به غرفه رفته است.` : `Can't go below ${action.min}: that many have already gone out to the booth.`,
+        "error",
+      );
+    }
+    return action;
+  }
+
+  const countOf = (itemId: string) => itemLines(itemId).reduce((s, o) => s + o.quantity, 0);
 
   async function applyKit(kit: KitLine[], label: string) {
     const { updates, inserts } = mergeKit(orders, kit);
@@ -196,7 +236,7 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
             <span className="text-xs font-normal text-p-ink-3">{catalogOpen ? (fa ? "بستن" : "Hide") : fa ? "نمایش فهرست" : "Show list"}</span>
           </button>
           {catalogOpen ? (
-            <Catalog items={items} orders={orders} onAdd={(id) => add(id)} />
+            <Catalog items={items} orders={orders} onSet={setCount} onStep={(id, delta) => setCount(id, countOf(id) + delta)} />
           ) : null}
           {otherBooths.length ? (
             <CopyFrom
@@ -326,7 +366,17 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
   );
 }
 
-function Catalog({ items, orders, onAdd }: { items: InventoryItem[]; orders: EquipmentOrder[]; onAdd: (itemId: string) => void }) {
+function Catalog({
+  items,
+  orders,
+  onSet,
+  onStep,
+}: {
+  items: InventoryItem[];
+  orders: EquipmentOrder[];
+  onSet: (itemId: string, count: number) => Promise<CountAction>;
+  onStep: (itemId: string, delta: 1 | -1) => Promise<CountAction>;
+}) {
   const { lang } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
@@ -363,40 +413,131 @@ function Catalog({ items, orders, onAdd }: { items: InventoryItem[]; orders: Equ
         ))}
       </div>
       <ul className="grid grid-cols-2 gap-2">
-        {shown.map((i) => {
-          const left = stockLeft(i, x.orders);
-          const count = inList.get(i.id) ?? 0;
-          const low = left <= i.low_stock_threshold;
-          return (
-            <li key={i.id}>
-              <button
-                type="button"
-                onClick={() => onAdd(i.id)}
-                className={cn(
-                  "relative grid h-full w-full gap-1 rounded-xl border px-3 py-2.5 text-start transition-[background,border,transform] active:scale-[0.98]",
-                  count ? "border-p-brand bg-p-brand-soft/50" : "border-p-line hover:border-p-line-strong",
-                )}
-              >
-                <span className="pe-7 text-[13px] font-semibold leading-snug">{pick(lang, i.name_fa, i.name_en)}</span>
-                <span className={cn("text-[11px]", left <= 0 ? "text-p-danger" : low ? "text-p-warn" : "text-p-ink-3")}>
-                  {left <= 0 ? (fa ? "در انبار نیست" : "Out of stock") : fa ? `${num(lang, left)} در انبار` : `${left} in stock`}
-                </span>
-                <span
-                  className={cn(
-                    "absolute end-2 top-2 grid size-6 place-items-center rounded-full text-[11px] font-bold",
-                    count ? "bg-p-brand text-p-brand-ink" : "bg-p-sunken text-p-ink-2",
-                  )}
-                >
-                  {count ? num(lang, count) : <Plus className="size-3.5" />}
-                </span>
-              </button>
-            </li>
-          );
-        })}
+        {shown.map((i) => (
+          <CatalogCard key={i.id} item={i} left={stockLeft(i, x.orders)} count={inList.get(i.id) ?? 0} onSet={(n) => onSet(i.id, n)} onStep={(d) => onStep(i.id, d)} />
+        ))}
       </ul>
       {!shown.length ? <p className="text-center text-xs text-p-ink-3">{fa ? "قلمی پیدا نشد" : "Nothing matches"}</p> : null}
-      <p className="text-[11px] text-p-ink-3">{fa ? "هر بار زدن روی یک قلم، یکی اضافه می کند." : "Each tap adds one."}</p>
+      <p className="text-[11px] leading-relaxed text-p-ink-3">
+        {fa
+          ? "سمت چپ هر کارت: یکی بیشتر. سمت راست: یکی کمتر. روی عدد بزنید تا تعداد را بنویسید."
+          : "Tap the right of a card for one more, the left for one less, or the number to type it."}
+      </p>
     </div>
+  );
+}
+
+/**
+ * One item in the catalogue. The side with the count adds one, the side with the name takes one
+ * off (it flashes red), and the count itself can be typed.
+ */
+function CatalogCard({
+  item: i,
+  left,
+  count,
+  onSet,
+  onStep,
+}: {
+  item: InventoryItem;
+  left: number;
+  count: number;
+  onSet: (count: number) => Promise<CountAction>;
+  onStep: (delta: 1 | -1) => Promise<CountAction>;
+}) {
+  const { lang, can } = usePortal();
+  const fa = lang === "fa";
+  const [flash, setFlash] = useState<{ tone: "add" | "remove"; n: number } | null>(null);
+  const [typing, setTyping] = useState(false);
+  const name = pick(lang, i.name_fa, i.name_en);
+  const low = left <= i.low_stock_threshold;
+  const pulse = (tone: "add" | "remove") => setFlash((f) => ({ tone, n: (f?.n ?? 0) + 1 }));
+
+  async function step(delta: 1 | -1) {
+    pulse(delta > 0 ? "add" : "remove");
+    await onStep(delta);
+  }
+
+  async function commit(text: string) {
+    setTyping(false);
+    const n = parseCount(text);
+    if (n == null || n === count) return;
+    pulse(n > count ? "add" : "remove");
+    await onSet(n);
+  }
+
+  return (
+    <li
+      className={cn(
+        "relative isolate grid h-full min-h-[4.25rem] gap-1 overflow-hidden rounded-xl border px-3 py-2.5 transition-colors",
+        count ? "border-p-brand bg-p-brand-soft/50" : "border-p-line hover:border-p-line-strong",
+      )}
+    >
+      {flash ? (
+        <span
+          key={flash.n}
+          aria-hidden
+          className={cn("animate-flash pointer-events-none absolute inset-0 -z-10", flash.tone === "remove" ? "bg-p-danger-soft" : "bg-p-brand-soft")}
+          style={{ boxShadow: `inset 0 0 0 2px var(${flash.tone === "remove" ? "--p-danger" : "--p-brand"})` }}
+        />
+      ) : null}
+      <span className="pe-9 text-[13px] font-semibold leading-snug">{name}</span>
+      <span className={cn("flex items-center gap-1 text-[11px]", left <= 0 ? "text-p-danger" : low ? "text-p-warn" : "text-p-ink-3")}>
+        {count && can.edit ? <Minus className="size-3 shrink-0 text-p-ink-3" aria-hidden /> : null}
+        {left <= 0 ? (fa ? "در انبار نیست" : "Out of stock") : fa ? `${num(lang, left)} در انبار` : `${left} in stock`}
+      </span>
+
+      {can.edit ? (
+        count ? (
+          <>
+            {/* The name side takes one off, the count side adds one. */}
+            <button type="button" onClick={() => step(-1)} aria-label={fa ? `یکی کمتر: ${name}` : `One less: ${name}`} className="absolute inset-y-0 start-0 w-1/2 active:bg-p-danger-soft/70" />
+            <button type="button" onClick={() => step(1)} aria-label={fa ? `یکی بیشتر: ${name}` : `One more: ${name}`} className="absolute inset-y-0 end-0 w-1/2 active:bg-p-brand-soft/70" />
+            <Plus className="pointer-events-none absolute bottom-2.5 end-3 size-3.5 text-p-ink-3" aria-hidden />
+          </>
+        ) : (
+          <button type="button" onClick={() => step(1)} aria-label={fa ? `افزودن ${name}` : `Add ${name}`} className="absolute inset-0 active:bg-p-brand-soft/70" />
+        )
+      ) : null}
+
+      <span className="absolute end-1.5 top-1.5 z-10">
+        {typing ? (
+          <input
+            autoFocus
+            inputMode="numeric"
+            pattern="[0-9]*"
+            enterKeyHint="done"
+            defaultValue={count ? num(lang, count) : ""}
+            aria-label={fa ? `تعداد ${name}` : `How many ${name}`}
+            onFocus={(e) => e.currentTarget.select()}
+            onBlur={(e) => commit(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") {
+                // Put the old count back so the blur that follows changes nothing.
+                e.currentTarget.value = num(lang, count);
+                e.currentTarget.blur();
+              }
+            }}
+            className="tabular h-8 w-14 rounded-full border-2 border-p-brand bg-p-surface text-center text-sm font-bold"
+            // The thick border already shows focus; the portal-wide ring would double it.
+            style={{ outline: "none" }}
+          />
+        ) : (
+          <button
+            type="button"
+            disabled={!can.edit}
+            onClick={() => (count ? setTyping(true) : step(1))}
+            aria-label={count ? (fa ? `${num(lang, count)} عدد؛ بزنید تا تعداد را بنویسید` : `${count}; tap to type a number`) : fa ? `افزودن ${name}` : `Add ${name}`}
+            className={cn(
+              "tabular grid h-8 min-w-8 place-items-center rounded-full px-1.5 text-xs font-bold",
+              count ? "bg-p-brand text-p-brand-ink underline decoration-dotted underline-offset-2" : "bg-p-sunken text-p-ink-2",
+            )}
+          >
+            {count ? num(lang, count) : <Plus className="size-3.5" />}
+          </button>
+        )}
+      </span>
+    </li>
   );
 }
 

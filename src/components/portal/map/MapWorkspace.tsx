@@ -46,6 +46,7 @@ import { BoothPanel, type PanelTab } from "./BoothPanel";
 import { FeaturePanel } from "./FeaturePanel";
 import { HallCanvas, type CanvasBooth, type CanvasFeature, type CanvasTool } from "./HallCanvas";
 import { HallSetupSheet } from "./HallSetupSheet";
+import { usePageTour } from "../Tour";
 
 type Layer = "sales" | "equipment";
 type Op = { table: "booths" | "hall_features"; id: string; before: AnyRow | null; after: AnyRow | null };
@@ -85,6 +86,7 @@ export function isLocked(f: { style: unknown }) {
 export function MapWorkspace() {
   const { lang, store, can, toast, user } = usePortal();
   const x = useExhibition();
+  usePageTour("map");
   const fa = lang === "fa";
   const params = useSearchParams();
   const router = useRouter();
