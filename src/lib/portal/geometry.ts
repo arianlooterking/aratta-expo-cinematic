@@ -110,6 +110,61 @@ export function fitLabel(text: string, width: number, depth: number, maxSize: nu
   return { size, label };
 }
 
+/** Average glyph width as a share of the font size (Persian and Latin). */
+const GLYPH = 0.52;
+
+function wrapWords(text: string, maxChars: number): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    // A single word longer than a line is split.
+    let w = word;
+    while (w.length > maxChars) {
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+      lines.push(w.slice(0, maxChars));
+      w = w.slice(maxChars);
+    }
+    if (!w) continue;
+    const next = line ? `${line} ${w}` : w;
+    if (next.length <= maxChars) line = next;
+    else {
+      if (line) lines.push(line);
+      line = w;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+/**
+ * The whole text, wrapped onto as many lines as fit a box, at the largest
+ * size (in metres) between `minSize` and `maxSize`. Only when even the
+ * smallest size cannot hold it all is the last line shortened.
+ */
+export function wrapLabel(text: string, boxWidth: number, boxHeight: number, maxSize: number, minSize = 0.18) {
+  const clean = text.trim();
+  if (!clean || boxWidth <= 0 || boxHeight <= 0) return { size: minSize, lines: [] as string[], complete: true };
+  const lineHeight = 1.18;
+  let size = Math.max(minSize, Math.min(maxSize, boxHeight / lineHeight));
+  for (;;) {
+    const maxChars = Math.max(2, Math.floor(boxWidth / (size * GLYPH)));
+    const lines = wrapWords(clean, maxChars);
+    if (lines.length * size * lineHeight <= boxHeight + 1e-9) return { size, lines, complete: true };
+    if (size <= minSize) {
+      const fit = Math.max(1, Math.floor(boxHeight / (size * lineHeight)));
+      const kept = lines.slice(0, fit);
+      const last = kept[fit - 1] ?? "";
+      kept[fit - 1] = `${last.slice(0, Math.max(1, Math.min(last.length, maxChars - 1))).trimEnd()}…`;
+      return { size, lines: kept, complete: false };
+    }
+    size = Math.max(minSize, size * 0.92);
+  }
+}
+
 /** The next free code after the highest one with the same letter prefix ("B12" → "B13"). */
 export function nextCode(codes: readonly string[], prefix?: string) {
   const parsed = codes

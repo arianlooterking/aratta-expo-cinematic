@@ -1,8 +1,15 @@
 "use client";
 
 import {
+  Armchair,
+  Building2,
   Columns3,
+  Copy,
   DoorOpen,
+  Hand,
+  Keyboard,
+  Lock,
+  LockOpen,
   Grid3x3,
   List,
   Map as MapIcon,
@@ -33,7 +40,7 @@ import type { Booth, BoothStatus, FeatureKind, Hall, HallFeature, Patch } from "
 import { useExhibition } from "../ExhibitionProvider";
 import { usePortal } from "../PortalProvider";
 import { normalizeSearch } from "../SearchPalette";
-import { Button, Empty, IconButton, Segmented, Sheet, Skeleton, TonePill } from "../ui";
+import { Button, Empty, IconButton, Kbd, MenuItem, Segmented, Sheet, Skeleton, TonePill } from "../ui";
 import { BoothPanel, type PanelTab } from "./BoothPanel";
 import { FeaturePanel } from "./FeaturePanel";
 import { HallCanvas, type CanvasBooth, type CanvasFeature, type CanvasTool } from "./HallCanvas";
@@ -69,6 +76,11 @@ const TOOLS: Array<{ tool: CanvasTool; icon: React.ReactNode }> = [
 
 const MORE_FEATURES: FeatureKind[] = ["door", "loading", "stage", "service"];
 
+/** Structure (corridors, columns, entrances...) can be locked so it never moves by accident. */
+export function isLocked(f: { style: unknown }) {
+  return Boolean(f.style && typeof f.style === "object" && (f.style as { locked?: boolean }).locked);
+}
+
 export function MapWorkspace() {
   const { lang, store, can, toast } = usePortal();
   const x = useExhibition();
@@ -89,6 +101,10 @@ export function MapWorkspace() {
   const [setup, setSetup] = useState<"new" | "edit" | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null);
   const [assignDealId, setAssignDealId] = useState<string | null>(params.get("assign"));
+  const [menu, setMenu] = useState<{ id: string; kind: "booth" | "feature"; x: number; y: number } | null>(null);
+  const [structureInfo, setStructureInfo] = useState<string | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [assignFor, setAssignFor] = useState<string | null>(null);
   const undo = useRef<Op[][]>([]);
   const redo = useRef<Op[][]>([]);
   const [counts, setCounts] = useState({ undo: 0, redo: 0 });
@@ -138,7 +154,7 @@ export function MapWorkspace() {
         else if (to && !from) await store.insert(op.table, to as never);
         else if (to) {
           const patch: Record<string, unknown> = {};
-          for (const key of ["x", "y", "width", "depth", "code", "status", "deal_id", "notes", "open_sides", "area_m2", "area_is_manual", "price_override", "kind", "label_fa", "label_en", "rotation", "zone"]) {
+          for (const key of ["x", "y", "width", "depth", "code", "status", "deal_id", "notes", "open_sides", "area_m2", "area_is_manual", "price_override", "kind", "label_fa", "label_en", "rotation", "zone", "style"]) {
             if (key in to && to[key] !== from?.[key]) patch[key] = to[key];
           }
           if (Object.keys(patch).length) await store.update(op.table, op.id, patch as never);
@@ -175,6 +191,27 @@ export function MapWorkspace() {
     syncCounts();
     await apply(ops, "do");
   }, [apply]);
+
+  // Keys that work whether or not the plan is being edited.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest("input, textarea, select, [role=dialog]")) return;
+      if (e.key === "?") {
+        e.preventDefault();
+        setShortcutsOpen(true);
+      } else if (e.key === "/") {
+        e.preventDefault();
+        document.querySelector<HTMLInputElement>("[data-map-search]")?.focus();
+      } else if (e.key === "Escape" && !editing) {
+        setSelected(new Set());
+        setMenu(null);
+        setStructureInfo(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editing]);
 
   useEffect(() => {
     if (!editing) return;
@@ -309,6 +346,64 @@ export function MapWorkspace() {
     else deleteIds(ids);
   };
 
+  const setLocked = (id: string, locked: boolean) => {
+    const f = x.features.find((ff) => ff.id === id);
+    if (!f) return;
+    const style = f.style && typeof f.style === "object" && !Array.isArray(f.style) ? f.style : {};
+    updateRow("hall_features", id, { style: { ...style, locked } });
+    toast(locked ? (fa ? "قفل شد؛ دیگر جابجا نمی شود" : "Locked in place") : fa ? "قفل باز شد" : "Unlocked");
+  };
+
+  /** Add several hall features in one undoable step (columns along a corridor, a copy...). */
+  const addFeatures = (rows: Array<Partial<HallFeature> & Rect & { kind: FeatureKind }>) => {
+    if (!hall || !x.exhibition) return;
+    const now = new Date().toISOString();
+    const ops: Op[] = rows.map((r) => {
+      const row = {
+        id: newId(),
+        hall_id: hall.id,
+        exhibition_id: x.exhibition!.id,
+        label_fa: null,
+        label_en: null,
+        rotation: 0,
+        style: {},
+        created_at: now,
+        updated_at: now,
+        ...r,
+      } as unknown as AnyRow;
+      return { table: "hall_features", id: row.id, before: null, after: row };
+    });
+    commit(ops);
+    return ops.map((o) => o.id);
+  };
+
+  const duplicate = (id: string) => {
+    const f = x.features.find((ff) => ff.id === id);
+    if (!f || !hall) return;
+    const offset = Math.max(hall.grid_m || 1, 1);
+    const ids = addFeatures([
+      {
+        kind: f.kind,
+        label_fa: f.label_fa,
+        label_en: f.label_en,
+        x: Math.min(hall.width_m - f.width, f.x + offset),
+        y: Math.min(hall.depth_m - f.depth, f.y + offset),
+        width: f.width,
+        depth: f.depth,
+      },
+    ]);
+    if (ids?.[0]) setSelected(new Set([ids[0]]));
+  };
+
+  const copyText = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(fa ? "کپی شد" : "Copied");
+    } catch {
+      toast(text);
+    }
+  };
+
   /* ---------------------------------------------------------- visuals */
 
   const flagged = useMemo(() => (editing ? overlapping(hallBooths) : new Set<string>()), [editing, hallBooths]);
@@ -339,6 +434,16 @@ export function MapWorkspace() {
         else subtitle = eq.toDeliver ? (fa ? `${num(lang, eq.toDeliver)} مانده تحویل` : `${eq.toDeliver} to deliver`) : fa ? "تحویل کامل" : "All delivered";
         if (eq && eq.pieces) progress = strike || eq.collected > 0 ? (eq.delivered ? eq.collected / eq.delivered : 0) : (eq.pieces - eq.toDeliver) / eq.pieces;
       }
+      const statusText = boothStatusLabel[b.status][lang];
+      const hoverLines = [
+        `${b.code} · ${area(lang, b.area_m2)} · ${num(lang, b.width, 1)}×${num(lang, b.depth, 1)} ${fa ? "متر" : "m"}`,
+        layer === "sales"
+          ? [statusText, share != null ? (fa ? `${percent(lang, share)} پرداخت شده` : `${percent(lang, share)} paid`) : null, balance && balance.balance > 0 ? (fa ? `مانده ${compact(lang, balance.balance)}` : `${compact(lang, balance.balance)} due`) : null]
+              .filter(Boolean)
+              .join(" · ")
+          : subtitle,
+      ];
+      if (layer === "equipment" && eq?.issues) hoverLines.push(fa ? `${num(lang, eq.issues)} مشکل باز` : `${eq.issues} open issues`);
       return {
         booth: b,
         companyName,
@@ -359,6 +464,7 @@ export function MapWorkspace() {
           progress,
           dim: !visible,
           flagged: flagged.has(b.id),
+          hover: { title: companyName || statusText, lines: hoverLines },
         } satisfies CanvasBooth,
       };
     });
@@ -374,6 +480,7 @@ export function MapWorkspace() {
         width: f.width,
         depth: f.depth,
         label: pick(lang, f.label_fa, f.label_en) || null,
+        locked: isLocked(f),
       })),
     [hallFeatures, lang],
   );
@@ -459,6 +566,9 @@ export function MapWorkspace() {
               { value: "list", label: <span className="sr-only sm:not-sr-only">{fa ? "فهرست" : "List"}</span>, icon: <List className="size-3.5" /> },
             ]}
           />
+          <IconButton label={fa ? "راهنمای ماوس، کیبورد و لمس (?)" : "Mouse, keyboard and touch help (?)"} size="sm" onClick={() => setShortcutsOpen(true)} className="hidden sm:inline-flex" data-tour="map-help">
+            <Keyboard className="size-4" />
+          </IconButton>
           {hall && can.edit ? (
             <>
               <IconButton label={fa ? "تنظیمات سالن" : "Hall settings"} size="sm" onClick={() => setSetup("edit")}>
@@ -500,6 +610,7 @@ export function MapWorkspace() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={fa ? "کد یا شرکت" : "Code or company"}
+                data-map-search
                 className="h-8 w-full rounded-lg border border-p-line bg-p-surface-2 ps-8 pe-2 text-[13px] outline-none focus:border-p-brand"
               />
             </label>
@@ -589,7 +700,58 @@ export function MapWorkspace() {
               onResize={onResize}
               onDraw={onDraw}
               onDelete={() => requestDelete([...selected])}
+              onContext={(id, kind, point) => {
+                setStructureInfo(null);
+                setMenu({ id, kind, ...point });
+              }}
+              onStructureTap={(id) => {
+                setSelected(new Set());
+                setStructureInfo(id);
+              }}
             />
+            {menu ? (
+              <QuickMenu
+                menu={menu}
+                onClose={() => setMenu(null)}
+                booth={menu.kind === "booth" ? (hallBooths.find((b) => b.id === menu.id) ?? null) : null}
+                feature={menu.kind === "feature" ? (hallFeatures.find((f) => f.id === menu.id) ?? null) : null}
+                editing={editing}
+                onOpen={(t) => {
+                  setSelected(new Set([menu.id]));
+                  setTab(t);
+                }}
+                onAssign={() => {
+                  setSelected(new Set([menu.id]));
+                  setTab("sales");
+                  setAssignFor(menu.id);
+                }}
+                onBoothStatus={(status) => updateRow("booths", menu.id, { status })}
+                onCopy={copyText}
+                onEditStructure={() => {
+                  setEditing(true);
+                  setTool("select");
+                  setView("map");
+                  setSelected(new Set([menu.id]));
+                }}
+                onLock={(locked) => setLocked(menu.id, locked)}
+                onDuplicate={() => duplicate(menu.id)}
+                onDelete={() => requestDelete([menu.id])}
+              />
+            ) : null}
+            {structureInfo && !editing ? (
+              <StructureCard
+                feature={hallFeatures.find((f) => f.id === structureInfo) ?? null}
+                onClose={() => setStructureInfo(null)}
+                onEdit={() => {
+                  const id = structureInfo;
+                  setStructureInfo(null);
+                  setEditing(true);
+                  setTool("select");
+                  setView("map");
+                  setSelected(new Set([id]));
+                }}
+              />
+            ) : null}
             {editing ? (
               <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-center px-3">
                 <div className="pointer-events-auto flex max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-p-line bg-p-surface p-1 shadow-[var(--p-shadow-lg)]">
@@ -675,6 +837,8 @@ export function MapWorkspace() {
                   onUpdate={(patch: Patch<"booths">) => updateRow("booths", selectedBooth.id, patch as Record<string, unknown>)}
                   onDelete={() => requestDelete([selectedBooth.id])}
                   assignDeal={assignDeal}
+                  assignOpen={assignFor === selectedBooth.id}
+                  onAssignOpen={(open) => setAssignFor(open ? selectedBooth.id : null)}
                   onAssigned={() => {
                     setAssignDealId(null);
                     router.replace(`/${lang}/staff/map`);
@@ -683,9 +847,14 @@ export function MapWorkspace() {
               ) : selectedFeature ? (
                 <FeaturePanel
                   feature={selectedFeature as HallFeature}
+                  hall={hall}
+                  locked={isLocked(selectedFeature)}
                   onClose={() => setSelected(new Set())}
                   onUpdate={(patch) => updateRow("hall_features", selectedFeature.id, patch as Record<string, unknown>)}
                   onDelete={() => requestDelete([selectedFeature.id])}
+                  onLock={(locked) => setLocked(selectedFeature.id, locked)}
+                  onDuplicate={() => duplicate(selectedFeature.id)}
+                  onAddFeatures={(rows) => addFeatures(rows)}
                 />
               ) : (
                 <div className="grid gap-3 p-4">
@@ -721,6 +890,8 @@ export function MapWorkspace() {
           </span>
         </div>
       ) : null}
+
+      <ShortcutsSheet open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
 
       <HallSetupSheet
         open={setup !== null}
@@ -816,5 +987,251 @@ function BoothList({
       </table>
       {sorted.length === 0 ? <p className="py-12 text-center text-sm text-p-ink-3">{fa ? "غرفه ای با این فیلتر نیست" : "No booths match"}</p> : null}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------ quick menu */
+
+function QuickMenu({
+  menu,
+  onClose,
+  booth,
+  feature,
+  editing,
+  onOpen,
+  onAssign,
+  onBoothStatus,
+  onCopy,
+  onEditStructure,
+  onLock,
+  onDuplicate,
+  onDelete,
+}: {
+  menu: { x: number; y: number };
+  onClose: () => void;
+  booth: Booth | null;
+  feature: HallFeature | null;
+  editing: boolean;
+  onOpen: (tab: PanelTab) => void;
+  onAssign: () => void;
+  onBoothStatus: (status: BoothStatus) => void;
+  onCopy: (text: string) => void;
+  onEditStructure: () => void;
+  onLock: (locked: boolean) => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+}) {
+  const { lang, can } = usePortal();
+  const x = useExhibition();
+  const fa = lang === "fa";
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ left: menu.x, top: menu.y });
+
+  useEffect(() => {
+    const el = ref.current;
+    const parent = el?.parentElement;
+    if (!el || !parent) return;
+    const left = Math.max(8, Math.min(parent.clientWidth - el.offsetWidth - 8, menu.x));
+    const top = Math.max(8, Math.min(parent.clientHeight - el.offsetHeight - 8, menu.y));
+    setPos({ left, top });
+    el.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [menu.x, menu.y]);
+
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) onClose();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    const t = window.setTimeout(() => document.addEventListener("pointerdown", onDown), 0);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(t);
+      document.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  const run = (fn: () => void) => () => {
+    fn();
+    onClose();
+  };
+
+  const deal = booth?.deal_id ? x.dealById.get(booth.deal_id) : undefined;
+  const company = deal ? x.companyById.get(deal.company_id) : undefined;
+  const locked = feature ? isLocked(feature) : false;
+
+  return (
+    <div
+      ref={ref}
+      role="menu"
+      className="animate-fade absolute z-40 w-64 rounded-2xl border border-p-line bg-p-surface p-1.5 shadow-[var(--p-shadow-lg)]"
+      style={{ left: pos.left, top: pos.top }}
+    >
+      {booth ? (
+        <>
+          <div className="px-2.5 pb-1.5 pt-1">
+            <p className="text-sm font-bold" dir="ltr">
+              {booth.code}
+            </p>
+            <p className="text-xs leading-snug text-p-ink-3">{company ? pick(lang, company.name_fa, company.name_en) : boothStatusLabel[booth.status][lang]}</p>
+          </div>
+          <MenuItem icon={<Building2 className="size-4" />} onClick={run(() => onOpen("sales"))}>
+            {fa ? "فروش و مالی" : "Sales and money"}
+          </MenuItem>
+          <MenuItem icon={<Armchair className="size-4" />} onClick={run(() => onOpen("equipment"))}>
+            {fa ? "فهرست تجهیزات و مبلمان" : "Furniture and equipment"}
+          </MenuItem>
+          {can.edit && !booth.deal_id && booth.status !== "blocked" ? (
+            <MenuItem icon={<Plus className="size-4" />} onClick={run(onAssign)}>
+              {fa ? "واگذاری به شرکت…" : "Give to a company…"}
+            </MenuItem>
+          ) : null}
+          {can.edit && !booth.deal_id && booth.status === "available" ? (
+            <MenuItem icon={<Hand className="size-4" />} onClick={run(() => onBoothStatus("held"))}>
+              {fa ? "نگه داشتن" : "Put on hold"}
+            </MenuItem>
+          ) : null}
+          {can.edit && booth.status === "held" ? (
+            <MenuItem icon={<Undo2 className="size-4" />} onClick={run(() => onBoothStatus("available"))}>
+              {fa ? "آزاد کردن" : "Release hold"}
+            </MenuItem>
+          ) : null}
+          <MenuItem icon={<Copy className="size-4" />} onClick={run(() => onCopy(company ? `${booth.code} · ${pick(lang, company.name_fa, company.name_en)}` : booth.code))}>
+            {fa ? "کپی کد غرفه" : "Copy booth code"}
+          </MenuItem>
+          {editing && can.manage ? (
+            <MenuItem icon={<Trash2 className="size-4" />} danger onClick={run(onDelete)}>
+              {fa ? "حذف غرفه" : "Delete booth"}
+            </MenuItem>
+          ) : null}
+        </>
+      ) : feature ? (
+        <>
+          <div className="px-2.5 pb-1.5 pt-1">
+            <p className="text-sm font-bold">{pick(lang, feature.label_fa, feature.label_en) || featureLabel[feature.kind][lang]}</p>
+            <p className="text-xs text-p-ink-3" dir="ltr">
+              {num(lang, feature.width, 1)} × {num(lang, feature.depth, 1)} {fa ? "متر" : "m"}
+            </p>
+          </div>
+          {can.edit ? (
+            <>
+              <MenuItem icon={<Pencil className="size-4" />} onClick={run(onEditStructure)}>
+                {fa ? "ویرایش ابعاد و جای آن" : "Edit size and position"}
+              </MenuItem>
+              <MenuItem icon={locked ? <LockOpen className="size-4" /> : <Lock className="size-4" />} onClick={run(() => onLock(!locked))}>
+                {locked ? (fa ? "باز کردن قفل" : "Unlock") : fa ? "قفل کردن" : "Lock in place"}
+              </MenuItem>
+              {editing ? (
+                <>
+                  <MenuItem icon={<Copy className="size-4" />} onClick={run(onDuplicate)}>
+                    {fa ? "تکثیر" : "Duplicate"}
+                  </MenuItem>
+                  <MenuItem icon={<Trash2 className="size-4" />} danger disabled={locked} onClick={run(onDelete)}>
+                    {fa ? "حذف" : "Delete"}
+                  </MenuItem>
+                </>
+              ) : null}
+            </>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+function StructureCard({ feature, onClose, onEdit }: { feature: HallFeature | null; onClose: () => void; onEdit: () => void }) {
+  const { lang, can } = usePortal();
+  const fa = lang === "fa";
+  if (!feature) return null;
+  const name = pick(lang, feature.label_fa, feature.label_en) || featureLabel[feature.kind][lang];
+  const narrow = Math.min(feature.width, feature.depth);
+  return (
+    <div className="animate-sheet absolute inset-x-3 bottom-3 z-30 mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-p-line bg-p-surface p-3 shadow-[var(--p-shadow-lg)]">
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-p-sunken text-p-ink-2">
+        {feature.kind === "column" ? <Grid3x3 className="size-5" /> : feature.kind === "entrance" || feature.kind === "door" ? <DoorOpen className="size-5" /> : <SquareDashed className="size-5" />}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="flex items-center gap-1.5 truncate text-sm font-semibold">
+          {name}
+          {isLocked(feature) ? <Lock className="size-3.5 text-p-ink-3" aria-label={fa ? "قفل" : "Locked"} /> : null}
+        </p>
+        <p className="text-xs text-p-ink-3">
+          {featureLabel[feature.kind][lang]} · {num(lang, feature.width, 1)} × {num(lang, feature.depth, 1)} {fa ? "متر" : "m"}
+          {feature.kind === "aisle" ? ` · ${fa ? "عرض عبور" : "clear width"} ${num(lang, narrow, 1)} ${fa ? "متر" : "m"}` : ""}
+        </p>
+      </div>
+      {can.edit ? (
+        <Button size="sm" tone="primary" icon={<Pencil className="size-3.5" />} onClick={onEdit}>
+          {fa ? "ویرایش" : "Edit"}
+        </Button>
+      ) : null}
+      <IconButton size="sm" label={fa ? "بستن" : "Close"} onClick={onClose}>
+        <X className="size-4" />
+      </IconButton>
+    </div>
+  );
+}
+
+function ShortcutsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { lang } = usePortal();
+  const fa = lang === "fa";
+  const groups: Array<{ title: string; rows: Array<[React.ReactNode, string]> }> = [
+    {
+      title: fa ? "ماوس و تاچ پد" : "Mouse and trackpad",
+      rows: [
+        [fa ? "کلیک" : "Click", fa ? "باز کردن غرفه" : "Open a booth"],
+        [fa ? "کلیک راست" : "Right click", fa ? "منوی سریع غرفه یا راهرو" : "Quick menu for a booth or corridor"],
+        [fa ? "کشیدن" : "Drag", fa ? "جابجایی نقشه" : "Pan the plan"],
+        [fa ? "چرخ ماوس" : "Scroll wheel", fa ? "بزرگنمایی" : "Zoom"],
+        [<>Shift + {fa ? "چرخ" : "wheel"}</>, fa ? "جابجایی افقی" : "Pan sideways"],
+        [<>Shift + {fa ? "کلیک" : "click"}</>, fa ? "انتخاب چند مورد (ویرایش)" : "Select several (editing)"],
+      ],
+    },
+    {
+      title: fa ? "لمسی (موبایل و تبلت)" : "Touch (phone and tablet)",
+      rows: [
+        [fa ? "ضربه" : "Tap", fa ? "باز کردن غرفه" : "Open a booth"],
+        [fa ? "نگه داشتن انگشت" : "Press and hold", fa ? "منوی سریع" : "Quick menu"],
+        [fa ? "یک انگشت" : "One finger", fa ? "جابجایی نقشه" : "Pan"],
+        [fa ? "دو انگشت" : "Two fingers", fa ? "بزرگنمایی و جابجایی" : "Zoom and pan"],
+      ],
+    },
+    {
+      title: fa ? "کیبورد" : "Keyboard",
+      rows: [
+        [<Kbd key="k1">+</Kbd>, fa ? "بزرگنمایی" : "Zoom in"],
+        [<Kbd key="k2">−</Kbd>, fa ? "کوچک نمایی" : "Zoom out"],
+        [<Kbd key="k3">0</Kbd>, fa ? "نمایش کل سالن" : "Fit the hall"],
+        [fa ? "کلیدهای جهت" : "Arrow keys", fa ? "جابجایی نقشه، یا جابجایی انتخاب در ویرایش" : "Pan, or move the selection while editing"],
+        [<Kbd key="k4">/</Kbd>, fa ? "جستجوی غرفه یا شرکت" : "Search booths and companies"],
+        [<Kbd key="k5">Esc</Kbd>, fa ? "بستن پنل" : "Close the panel"],
+        [<>Ctrl + Z / Ctrl + Y</>, fa ? "واگرد و انجام دوباره (ویرایش)" : "Undo and redo (editing)"],
+        [<>V · B · A · C · W · E · L</>, fa ? "ابزارها: انتخاب، غرفه، راهرو، ستون، دیوار، ورودی، برچسب" : "Tools: select, booth, aisle, column, wall, entrance, label"],
+        [<>Delete</>, fa ? "حذف انتخاب (ویرایش)" : "Delete the selection (editing)"],
+      ],
+    },
+  ];
+  return (
+    <Sheet open={open} onClose={onClose} title={fa ? "کار با نقشه" : "Working the map"} closeLabel={fa ? "بستن" : "Close"} wide>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {groups.map((g) => (
+          <section key={g.title} className={cn("grid content-start gap-2", g.rows.length > 6 && "sm:col-span-2")}>
+            <h3 className="text-[13px] font-semibold text-p-ink-2">{g.title}</h3>
+            <dl className={cn("grid gap-1.5", g.rows.length > 6 && "sm:grid-cols-2 sm:gap-x-6")}>
+              {g.rows.map(([k, v], i) => (
+                <div key={i} className="flex items-center justify-between gap-3 rounded-xl bg-p-surface-2 px-3 py-2 text-sm">
+                  <dt className="shrink-0 font-medium" dir={typeof k === "string" ? undefined : "ltr"}>
+                    {k}
+                  </dt>
+                  <dd className="text-end text-p-ink-3">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ))}
+      </div>
+    </Sheet>
   );
 }

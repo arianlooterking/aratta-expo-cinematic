@@ -1,9 +1,9 @@
 "use client";
 
 import { Maximize2, Minus, Plus } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { cn } from "@/lib/cn";
-import { clampRect, fitLabel, fitView, focusView, rectFromPoints, round, snap, toPlan, zoomAt, type Rect, type View } from "@/lib/portal/geometry";
+import { clampRect, fitLabel, fitView, focusView, rectFromPoints, round, snap, toPlan, wrapLabel, zoomAt, type Rect, type View } from "@/lib/portal/geometry";
 import type { FeatureKind } from "@/lib/portal/types";
 import { IconButton } from "../ui";
 
@@ -18,9 +18,11 @@ export type CanvasBooth = Rect & {
   progress?: number | null;
   dim?: boolean;
   flagged?: boolean;
+  /** Shown in the hover card on desktop. */
+  hover?: { title: string; lines: string[] };
 };
 
-export type CanvasFeature = Rect & { id: string; kind: FeatureKind; label?: string | null };
+export type CanvasFeature = Rect & { id: string; kind: FeatureKind; label?: string | null; locked?: boolean; note?: string | null };
 
 export type CanvasTool = "select" | "booth" | FeatureKind;
 
@@ -51,6 +53,10 @@ export type HallCanvasProps = {
   onDraw: (rect: Rect) => void;
   onDelete: () => void;
   onOpen?: (id: string) => void;
+  /** Right click, or a long press on touch screens. The point is relative to the canvas. */
+  onContext?: (id: string, kind: Kind, point: { x: number; y: number }) => void;
+  /** A tap on a corridor, column or other structure while not editing. */
+  onStructureTap?: (id: string) => void;
 };
 
 const HANDLE_PX = 11;
@@ -69,7 +75,16 @@ export function HallCanvas(props: HallCanvasProps) {
   const [drag, setDrag] = useState<{ ids: string[]; dx: number; dy: number } | null>(null);
   const [resize, setResize] = useState<{ id: string; rect: Rect } | null>(null);
   const [draft, setDraft] = useState<Rect | null>(null);
+  const [hoverId, setHoverId] = useState<string | null>(null);
+  const hoverCard = useRef<HTMLDivElement>(null);
+  const lastPointer = useRef<{ x: number; y: number } | null>(null);
+  const pressTimer = useRef<number | null>(null);
   const step = hall.grid_m || 1;
+
+  const cancelPress = () => {
+    if (pressTimer.current != null) window.clearTimeout(pressTimer.current);
+    pressTimer.current = null;
+  };
 
   // Track the viewport size.
   useLayoutEffect(() => {
@@ -168,6 +183,8 @@ export function HallCanvas(props: HallCanvasProps) {
     svg.current?.setPointerCapture(e.pointerId);
     const p = local(e);
     pointers.current.set(e.pointerId, p);
+    setHoverId(null);
+    cancelPress();
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
       gesture.current = { type: "pinch", startView: view, dist: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
@@ -191,7 +208,20 @@ export function HallCanvas(props: HallCanvasProps) {
       const id = item.dataset.id!;
       const kind = item.dataset.kind as Kind;
       const additive = e.shiftKey || e.metaKey || e.ctrlKey;
-      if (editing && tool === "select") {
+      // Long press on touch opens the quick menu, like a right click.
+      if (e.pointerType !== "mouse" && props.onContext) {
+        pressTimer.current = window.setTimeout(() => {
+          pressTimer.current = null;
+          const g = gesture.current;
+          if (!g || (g.type !== "pan" && g.type !== "move") || g.moved) return;
+          gesture.current = null;
+          pointers.current.clear();
+          navigator.vibrate?.(12);
+          props.onContext?.(id, kind, p);
+        }, 520);
+      }
+      const locked = kind === "feature" && featureById.get(id)?.locked;
+      if (editing && tool === "select" && !locked) {
         if (!selected.has(id) || additive) props.onSelect(id, kind, additive);
         const ids = selected.has(id) && !additive ? [...selected].filter((s) => (kind === "booth" ? boothById.has(s) : featureById.has(s))) : [id];
         gesture.current = { type: "move", ids, kind, px: plan.x, py: plan.y, moved: false, sx: p.x, sy: p.y };
@@ -210,12 +240,44 @@ export function HallCanvas(props: HallCanvasProps) {
     gesture.current = { type: "pan", startView: view, sx: p.x, sy: p.y, moved: false, tapId: null, tapKind: null };
   }
 
+  // Place the card as soon as it mounts, not only on the next mouse move.
+  useLayoutEffect(() => {
+    if (hoverId) placeHoverCard();
+  });
+
+  /** Keeps the hover card next to the pointer and inside the canvas. */
+  function placeHoverCard() {
+    const card = hoverCard.current;
+    const box = wrap.current;
+    const p = lastPointer.current;
+    if (!card || !box || !p) return;
+    const maxX = box.clientWidth - card.offsetWidth - 8;
+    const maxY = box.clientHeight - card.offsetHeight - 8;
+    const left = Math.max(8, Math.min(maxX, p.x + 16));
+    const top = p.y + 18 > maxY ? Math.max(8, p.y - card.offsetHeight - 12) : p.y + 18;
+    card.style.transform = `translate(${left}px, ${top}px)`;
+  }
+
   function onPointerMove(e: ReactPointerEvent<SVGSVGElement>) {
-    if (!pointers.current.has(e.pointerId)) return;
+    if (!pointers.current.has(e.pointerId)) {
+      // Plain mouse movement: the hover card follows the pointer.
+      if (e.pointerType !== "mouse") return;
+      const item = (e.target as Element).closest<SVGElement>("[data-kind='booth']");
+      const id = item?.dataset.id ?? null;
+      lastPointer.current = local(e);
+      if (id !== hoverId) setHoverId(id);
+      else if (id) placeHoverCard();
+      return;
+    }
     const p = local(e);
     pointers.current.set(e.pointerId, p);
     const g = gesture.current;
     if (!g) return;
+    if (pressTimer.current != null && g.type !== "pinch") {
+      const sx = "sx" in g ? g.sx : p.x;
+      const sy = "sy" in g ? g.sy : p.y;
+      if (Math.hypot(p.x - sx, p.y - sy) > 6) cancelPress();
+    }
     if (g.type === "pinch") {
       const [a, b] = [...pointers.current.values()];
       if (!a || !b) return;
@@ -258,6 +320,7 @@ export function HallCanvas(props: HallCanvasProps) {
 
   function onPointerUp(e: ReactPointerEvent<SVGSVGElement>) {
     pointers.current.delete(e.pointerId);
+    cancelPress();
     const g = gesture.current;
     if (g?.type === "pinch") {
       if (pointers.current.size === 0) gesture.current = null;
@@ -270,6 +333,10 @@ export function HallCanvas(props: HallCanvasProps) {
     gesture.current = null;
     if (!g) return;
     if (g.type === "pan" && !g.moved) {
+      if (!editing && g.tapKind === "feature" && g.tapId) {
+        props.onStructureTap?.(g.tapId);
+        return;
+      }
       props.onSelect(g.tapId, g.tapKind, e.shiftKey || e.metaKey || e.ctrlKey);
       if (g.tapId && e.detail === 2) props.onOpen?.(g.tapId);
     }
@@ -315,7 +382,32 @@ export function HallCanvas(props: HallCanvasProps) {
       className="relative h-full min-h-0 w-full overflow-hidden"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (!editing) return;
+        if ((e.target as HTMLElement).closest("input, textarea, select, button")) return;
+        // Zoom and pan work in every mode.
+        if (e.key === "+" || e.key === "=") {
+          e.preventDefault();
+          zoomBy(1.25);
+          return;
+        }
+        if (e.key === "-" || e.key === "_") {
+          e.preventDefault();
+          zoomBy(1 / 1.25);
+          return;
+        }
+        if (e.key === "0") {
+          e.preventDefault();
+          setView(fit(editing));
+          return;
+        }
+        if (!editing || !selected.size) {
+          const pan: Record<string, [number, number]> = { ArrowLeft: [80, 0], ArrowRight: [-80, 0], ArrowUp: [0, 80], ArrowDown: [0, -80] };
+          const d = pan[e.key];
+          if (d) {
+            e.preventDefault();
+            setView((v) => ({ ...v, x: v.x + d[0], y: v.y + d[1] }));
+          }
+          return;
+        }
         if (e.key === "Delete" || e.key === "Backspace") {
           e.preventDefault();
           props.onDelete();
@@ -338,7 +430,18 @@ export function HallCanvas(props: HallCanvasProps) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        onContextMenu={(e) => e.preventDefault()}
+        onPointerLeave={(e) => {
+          if (e.pointerType === "mouse") setHoverId(null);
+        }}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          const item = (e.target as Element).closest<SVGElement>("[data-id]");
+          if (!item || !props.onContext) return;
+          // Touch screens report a long press here too; the timer above handles those.
+          if ((e.nativeEvent as PointerEvent).pointerType && (e.nativeEvent as PointerEvent).pointerType !== "mouse") return;
+          setHoverId(null);
+          props.onContext(item.dataset.id!, item.dataset.kind as Kind, local(e));
+        }}
         role="application"
         aria-label={lang === "fa" ? "نقشه سالن" : "Hall map"}
       >
@@ -410,6 +513,11 @@ export function HallCanvas(props: HallCanvasProps) {
         </g>
       </svg>
 
+      {/* Hover card (mouse only) */}
+      {hoverId && !drag && !resize ? (
+        <HoverCard ref={hoverCard} booth={boothById.get(hoverId) ?? null} />
+      ) : null}
+
       {/* Zoom controls */}
       <div className="absolute bottom-3 end-3 flex flex-col overflow-hidden rounded-2xl border border-p-line bg-p-surface shadow-[var(--p-shadow-lg)]">
         <IconButton label={lang === "fa" ? "بزرگنمایی" : "Zoom in"} onClick={() => zoomBy(1.35)}>
@@ -431,14 +539,29 @@ function BoothShape({ b, scale, selected, lang }: { b: CanvasBooth; scale: numbe
   const wPx = b.width * scale;
   const dPx = b.depth * scale;
   const showCode = wPx > 22 && dPx > 14;
-  const showTitle = Boolean(b.title) && wPx > 46 && dPx > 30;
-  const showSub = Boolean(b.subtitle) && wPx > 60 && dPx > 52;
   const codeSize = Math.min(0.75, b.depth * 0.18, b.width * 0.2, 13 / scale);
-  const title = b.title ? fitLabel(b.title, b.width, b.depth, Math.min(0.85, 13.5 / scale)) : null;
-  const sub = b.subtitle ? fitLabel(b.subtitle, b.width, b.depth, Math.min(0.62, 11 / scale)) : null;
   const pad = Math.min(0.3, b.width * 0.06);
   const cx = b.x + b.width / 2;
   const cy = b.y + b.depth / 2;
+  const barH = Math.min(0.28, b.depth * 0.07);
+  const hasBar = b.progress != null && wPx > 30;
+  // The full company name, wrapped over as many lines as the booth allows.
+  const boxTop = b.y + pad + (showCode ? codeSize * 1.15 : 0);
+  const boxBottomBase = b.y + b.depth - pad - (hasBar ? barH + pad * 0.6 : 0);
+  const boxWidth = b.width - pad * 2;
+  const subSize = Math.min(0.62, 11 / scale, b.depth * 0.12);
+  let showSub = Boolean(b.subtitle) && wPx > 56 && dPx > 48;
+  const titleMax = Math.min(0.9, 15 / scale);
+  let title = b.title ? wrapLabel(b.title, boxWidth, boxBottomBase - boxTop - (showSub ? subSize * 1.35 : 0), titleMax) : null;
+  if (title && !title.complete && showSub) {
+    showSub = false;
+    title = wrapLabel(b.title!, boxWidth, boxBottomBase - boxTop, titleMax);
+  }
+  const showTitle = Boolean(title?.lines.length) && title!.size * scale >= 4.5 && wPx > 30 && dPx > 22;
+  const sub = showSub && b.subtitle ? fitLabel(b.subtitle, b.width, b.depth, subSize) : null;
+  const lineH = title ? title.size * 1.18 : 0;
+  const blockH = (showTitle ? title!.lines.length * lineH : 0) + (sub ? sub.size * 1.35 : 0);
+  const blockTop = boxTop + Math.max(0, (boxBottomBase - boxTop - blockH) / 2);
   const transform = b.rotation ? `rotate(${b.rotation} ${cx} ${cy})` : undefined;
   return (
     <g
@@ -460,20 +583,24 @@ function BoothShape({ b, scale, selected, lang }: { b: CanvasBooth; scale: numbe
         </text>
       ) : null}
       {showTitle && title ? (
+        <text className="booth-text" fontSize={title.size} fontWeight={600} textAnchor="middle" direction={lang === "fa" ? "rtl" : "ltr"}>
+          {title.lines.map((line, i) => (
+            <tspan key={i} x={cx} y={blockTop + lineH * i + title.size * 0.92}>
+              {line}
+            </tspan>
+          ))}
+        </text>
+      ) : null}
+      {sub ? (
         <text
           className="booth-text"
           x={cx}
-          y={cy + (showSub ? -title.size * 0.15 : title.size * 0.35)}
-          fontSize={title.size}
-          fontWeight={600}
+          y={blockTop + (showTitle && title ? title.lines.length * lineH : 0) + sub.size * 1.15}
+          fontSize={sub.size}
+          opacity={0.8}
           textAnchor="middle"
           direction={lang === "fa" ? "rtl" : "ltr"}
         >
-          {title.label}
-        </text>
-      ) : null}
-      {showSub && sub ? (
-        <text className="booth-text" x={cx} y={cy + title!.size * 0.95} fontSize={sub.size} opacity={0.8} textAnchor="middle" direction={lang === "fa" ? "rtl" : "ltr"}>
           {sub.label}
         </text>
       ) : null}
@@ -495,14 +622,14 @@ function BoothShape({ b, scale, selected, lang }: { b: CanvasBooth; scale: numbe
           </text>
         </g>
       ) : null}
-      {b.progress != null && wPx > 30 ? (
+      {hasBar ? (
         <g style={{ pointerEvents: "none" }}>
-          <rect x={b.x + pad} y={b.y + b.depth - pad - Math.min(0.28, b.depth * 0.07)} width={b.width - pad * 2} height={Math.min(0.28, b.depth * 0.07)} rx={0.1} fill="var(--tone-stroke)" opacity={0.25} />
+          <rect x={b.x + pad} y={b.y + b.depth - pad - barH} width={b.width - pad * 2} height={barH} rx={0.1} fill="var(--tone-stroke)" opacity={0.25} />
           <rect
             x={b.x + pad}
-            y={b.y + b.depth - pad - Math.min(0.28, b.depth * 0.07)}
-            width={Math.max(0, (b.width - pad * 2) * b.progress)}
-            height={Math.min(0.28, b.depth * 0.07)}
+            y={b.y + b.depth - pad - barH}
+            width={Math.max(0, (b.width - pad * 2) * (b.progress ?? 0))}
+            height={barH}
             rx={0.1}
             fill="var(--tone-text)"
             opacity={0.85}
@@ -552,7 +679,12 @@ function Feature({
   const cx = f.x + f.width / 2;
   const cy = f.y + f.depth / 2;
   return (
-    <g data-id={f.id} data-kind="feature" className={editing ? "cursor-pointer" : undefined} style={editing ? undefined : { pointerEvents: f.kind === "aisle" || f.kind === "label" ? "none" : undefined }}>
+    <g
+      data-id={f.id}
+      data-kind="feature"
+      className={editing ? (f.locked ? "cursor-not-allowed" : "cursor-pointer") : undefined}
+      style={editing ? undefined : { pointerEvents: f.kind === "label" ? "none" : undefined }}
+    >
       <rect
         x={f.x}
         y={f.y}
@@ -579,11 +711,36 @@ function Feature({
           opacity={f.kind === "aisle" ? 0.75 : 1}
         >
           {f.label}
+          {editing && (f.kind === "aisle" || f.kind === "entrance" || f.kind === "door") ? ` · ${round(vertical ? f.width : f.depth, 2)} m` : ""}
         </text>
+      ) : null}
+      {editing && f.locked && minSide * scale > 14 ? (
+        <g transform={`translate(${f.x + f.width - Math.min(0.5, minSide * 0.3) - 0.1} ${f.y + 0.1}) scale(${Math.min(0.5, minSide * 0.3) / 10})`} style={{ pointerEvents: "none" }}>
+          <rect x={1.5} y={4.5} width={7} height={5.5} rx={1} fill="var(--p-ink-2)" />
+          <path d="M3 4.5 V3 a2 2 0 0 1 4 0 V4.5" fill="none" stroke="var(--p-ink-2)" strokeWidth={1.4} />
+        </g>
       ) : null}
     </g>
   );
 }
+
+const HoverCard = forwardRef<HTMLDivElement, { booth: CanvasBooth | null }>(function HoverCard({ booth }, ref) {
+  if (!booth?.hover) return null;
+  return (
+    <div
+      ref={ref}
+      className="pointer-events-none absolute z-30 max-w-72 rounded-2xl border border-p-line bg-p-surface px-3.5 py-2.5 shadow-[var(--p-shadow-lg)]"
+      style={{ left: 0, top: 0, transform: "translate(-9999px, -9999px)" }}
+    >
+      <p className="text-[13px] font-bold leading-snug text-p-ink">{booth.hover.title}</p>
+      {booth.hover.lines.map((line, i) => (
+        <p key={i} className="mt-0.5 text-xs leading-snug text-p-ink-3">
+          {line}
+        </p>
+      ))}
+    </div>
+  );
+});
 
 function Handles({ id, kind, r, px }: { id: string; kind: Kind; r: Rect; px: number }) {
   const h = HANDLE_PX * px;

@@ -9,7 +9,8 @@ import type { Booth, EquipmentOrder } from "@/lib/portal/types";
 import { useExhibition } from "./ExhibitionProvider";
 import { usePortal } from "./PortalProvider";
 import { normalizeSearch } from "./SearchPalette";
-import { EquipmentLine, equipmentPatch, nextEquipmentStep } from "./map/BoothPanel";
+import { equipmentPatch, nextEquipmentStep } from "@/lib/portal/furniture";
+import { EquipmentLine } from "./map/BoothPanel";
 import { Button, Card, Empty, Progress, Segmented, Skeleton } from "./ui";
 
 type Mode = "deliver" | "collect" | "issues";

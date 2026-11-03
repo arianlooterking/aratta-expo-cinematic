@@ -1,14 +1,11 @@
 "use client";
 
 import {
-  Armchair,
   Ban,
   Building2,
   Check,
   CheckCircle2,
   Hand,
-  PackageCheck,
-  PackageOpen,
   Phone,
   PhoneCall,
   Plus,
@@ -18,16 +15,19 @@ import {
   Undo2,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { area, compact, date, money, num, percent, pick, relativeTime } from "@/lib/portal/format";
 import { boothStatusLabel, dealStageLabel, equipmentStageLabel } from "@/lib/portal/i18n";
 import { boothListPrice, paidShare, ZERO_BALANCE } from "@/lib/portal/money";
+import { equipmentPatch, nextEquipmentStep } from "@/lib/portal/furniture";
 import { newId } from "@/lib/portal/store";
 import type { Booth, BoothStatus, Company, Deal, DealStage, EquipmentOrder, Patch } from "@/lib/portal/types";
 import { useExhibition } from "../ExhibitionProvider";
 import { useCollection, useNow, usePortal } from "../PortalProvider";
-import { Button, Combobox, Field, IconButton, Input, Pill, Progress, Segmented, Select, Sheet, Textarea, TonePill } from "../ui";
+import { AssignSheet } from "./AssignSheet";
+import { FurnitureTab } from "./FurnitureTab";
+import { Button, Field, IconButton, Input, Pill, Progress, Segmented, Select, Sheet, Textarea, TonePill } from "../ui";
 
 export type PanelTab = "sales" | "equipment" | "details";
 
@@ -42,6 +42,8 @@ export function BoothPanel({
   onDelete,
   assignDeal,
   onAssigned,
+  assignOpen,
+  onAssignOpen,
 }: {
   booth: Booth;
   tab: PanelTab;
@@ -52,6 +54,9 @@ export function BoothPanel({
   onDelete: () => void;
   assignDeal: Deal | null;
   onAssigned: () => void;
+  /** Whether the "give to a company" sheet is open. */
+  assignOpen: boolean;
+  onAssignOpen: (open: boolean) => void;
 }) {
   const { lang } = usePortal();
   const x = useExhibition();
@@ -87,20 +92,21 @@ export function BoothPanel({
           onChange={onTab}
           options={[
             { value: "sales", label: fa ? "فروش و مالی" : "Sales" },
-            { value: "equipment", label: fa ? "تجهیزات" : "Equipment" },
+            { value: "equipment", label: fa ? "مبلمان و تجهیزات" : "Furniture" },
             { value: "details", label: fa ? "مشخصات" : "Details" },
           ]}
         />
       </div>
       <div className="thin-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-4">
         {tab === "sales" ? (
-          <SalesTab booth={booth} deal={deal} company={company} onUpdate={onUpdate} assignDeal={assignDeal} onAssigned={onAssigned} />
+          <SalesTab booth={booth} deal={deal} company={company} onUpdate={onUpdate} assignDeal={assignDeal} onAssigned={onAssigned} onAssignOpen={onAssignOpen} />
         ) : tab === "equipment" ? (
-          <EquipmentTab booth={booth} />
+          <FurnitureTab booth={booth} />
         ) : (
           <DetailsTab booth={booth} onUpdate={onUpdate} onDelete={onDelete} />
         )}
       </div>
+      {!deal ? <AssignSheet booth={booth} open={assignOpen} onClose={() => onAssignOpen(false)} onUpdate={onUpdate} /> : null}
     </div>
   );
 }
@@ -114,6 +120,7 @@ function SalesTab({
   onUpdate,
   assignDeal,
   onAssigned,
+  onAssignOpen,
 }: {
   booth: Booth;
   deal: Deal | null;
@@ -121,47 +128,17 @@ function SalesTab({
   onUpdate: (patch: Patch<"booths">) => void;
   assignDeal: Deal | null;
   onAssigned: () => void;
+  onAssignOpen: (open: boolean) => void;
 }) {
-  const { lang, store, can, toast } = usePortal();
+  const { lang, can, toast } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
-  const [picking, setPicking] = useState(false);
   const exhibition = x.exhibition!;
   const listPrice = boothListPrice(booth, exhibition.space_rate);
   const balance = deal ? (x.balanceByDeal.get(deal.id) ?? ZERO_BALANCE) : ZERO_BALANCE;
   const share = paidShare(balance);
 
-  async function assignCompany(target: Company | { create: string }) {
-    let companyId: string;
-    if ("create" in target) {
-      companyId = newId();
-      const res = await store.insert("companies", { id: companyId, name_fa: target.create, kind: "exhibitor" });
-      if (!res.ok) return;
-    } else companyId = target.id;
-    let dealRow = x.deals.find((d) => d.company_id === companyId) ?? null;
-    if (!dealRow) {
-      const id = newId();
-      const res = await store.insert("deals", {
-        id,
-        exhibition_id: exhibition.id,
-        company_id: companyId,
-        stage: "negotiation",
-        expected_area_m2: booth.area_m2,
-      });
-      if (!res.ok || !res.row) return;
-      dealRow = res.row;
-    }
-    onUpdate({ deal_id: dealRow.id });
-    setPicking(false);
-    toast(fa ? `غرفه ${booth.code} رزرو شد` : `Booth ${booth.code} reserved`);
-  }
-
   if (!deal) {
-    const candidates = [...x.companies].sort((a, b) => {
-      const da = x.deals.some((d) => d.company_id === a.id) ? 0 : 1;
-      const db = x.deals.some((d) => d.company_id === b.id) ? 0 : 1;
-      return da - db || a.name_fa.localeCompare(b.name_fa, "fa");
-    });
     const assignCompanyRow = assignDeal ? x.companyById.get(assignDeal.company_id) : null;
     return (
       <div className="grid gap-4">
@@ -181,27 +158,17 @@ function SalesTab({
                 {fa ? `رزرو برای ${assignCompanyRow.name_fa}` : `Reserve for ${pick(lang, assignCompanyRow.name_fa, assignCompanyRow.name_en)}`}
               </Button>
             ) : null}
-            {picking ? (
-              <Combobox
-                autoFocus
-                items={candidates}
-                getKey={(c) => c.id}
-                getLabel={(c) => pick(lang, c.name_fa, c.name_en)}
-                getHint={(c) => {
-                  const d = x.deals.find((dd) => dd.company_id === c.id);
-                  return d ? dealStageLabel[d.stage][lang] : c.sector;
-                }}
-                placeholder={fa ? "نام شرکت را بنویسید" : "Type a company name"}
-                emptyText={fa ? "شرکتی پیدا نشد" : "No company found"}
-                createLabel={(q) => (fa ? `افزودن «${q}» به عنوان شرکت جدید` : `Add “${q}” as a new company`)}
-                onCreate={(q) => assignCompany({ create: q })}
-                onPick={(c) => assignCompany(c)}
-              />
-            ) : (
-              <Button tone={assignDeal ? "secondary" : "primary"} size="lg" className="w-full" icon={<Building2 className="size-4" />} onClick={() => setPicking(true)}>
-                {fa ? "واگذاری به شرکت" : "Assign to a company"}
-              </Button>
-            )}
+            <Button
+              tone={assignDeal ? "secondary" : "primary"}
+              size="lg"
+              className="w-full"
+              data-tour="assign"
+              icon={<Building2 className="size-4" />}
+              onClick={() => onAssignOpen(true)}
+              disabled={booth.status === "blocked"}
+            >
+              {fa ? "واگذاری به شرکت (جدید یا ثبت شده)" : "Give to a company (new or existing)"}
+            </Button>
             <div className="grid grid-cols-2 gap-2">
               {booth.status === "held" ? (
                 <Button icon={<Undo2 className="size-4" />} onClick={() => onUpdate({ status: "available" })}>
@@ -542,132 +509,6 @@ function RecordPayment({ deal }: { deal: Deal }) {
 }
 
 /* ------------------------------------------------------------ Equipment */
-
-export function nextEquipmentStep(o: EquipmentOrder, returnable: boolean): "deliver" | "collect" | null {
-  if (o.stage === "cancelled" || o.stage === "collected") return null;
-  if (o.stage === "delivered" || (o.stage === "issue" && o.delivered_qty > 0)) return returnable ? "collect" : null;
-  return "deliver";
-}
-
-export function equipmentPatch(o: EquipmentOrder, step: "deliver" | "collect"): Patch<"equipment_orders"> {
-  const now = new Date().toISOString();
-  if (step === "deliver") return { stage: "delivered", delivered_qty: o.quantity, delivered_at: now };
-  return { stage: "collected", collected_qty: Math.max(0, o.delivered_qty - o.damaged_qty), collected_at: now };
-}
-
-function EquipmentTab({ booth }: { booth: Booth }) {
-  const { lang, store, can, toast } = usePortal();
-  const x = useExhibition();
-  const fa = lang === "fa";
-  const orders = useMemo(() => (x.ordersByBooth.get(booth.id) ?? []).filter((o) => o.stage !== "cancelled"), [x.ordersByBooth, booth.id]);
-  const summary = x.equipmentByBooth.get(booth.id);
-  const [adding, setAdding] = useState(false);
-  const [itemId, setItemId] = useState("");
-  const [qty, setQty] = useState(1);
-  const items = x.items.filter((i) => !i.archived_at);
-
-  const pending = orders.filter((o) => nextEquipmentStep(o, x.itemById.get(o.item_id)?.returnable ?? true) === "deliver");
-  const collectable = orders.filter((o) => nextEquipmentStep(o, x.itemById.get(o.item_id)?.returnable ?? true) === "collect");
-
-  async function bulk(step: "deliver" | "collect") {
-    const list = step === "deliver" ? pending : collectable;
-    await Promise.all(list.map((o) => store.update("equipment_orders", o.id, equipmentPatch(o, step))));
-    toast(step === "deliver" ? (fa ? "همه اقلام تحویل شد" : "Everything delivered") : fa ? "همه اقلام جمع آوری شد" : "Everything collected");
-  }
-
-  return (
-    <div className="grid gap-4">
-      {summary ? (
-        <div className="grid grid-cols-3 gap-2 text-center">
-          {[
-            [fa ? "کل اقلام" : "Pieces", summary.pieces],
-            [fa ? "مانده تحویل" : "To deliver", summary.toDeliver],
-            [fa ? "مانده جمع آوری" : "To collect", summary.toCollect],
-          ].map(([label, value]) => (
-            <div key={label as string} className="rounded-xl bg-p-surface-2 px-2 py-2">
-              <p className="text-[11px] text-p-ink-3">{label}</p>
-              <p className="tabular text-base font-bold">{num(lang, value as number)}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
-      {can.edit && (pending.length > 0 || collectable.length > 0) ? (
-        <div className="grid grid-cols-2 gap-2">
-          <Button tone="primary" icon={<PackageCheck className="size-4" />} disabled={!pending.length} onClick={() => bulk("deliver")}>
-            {fa ? "تحویل همه" : "Deliver all"}
-          </Button>
-          <Button icon={<PackageOpen className="size-4" />} disabled={!collectable.length} onClick={() => bulk("collect")}>
-            {fa ? "جمع آوری همه" : "Collect all"}
-          </Button>
-        </div>
-      ) : null}
-      {orders.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-p-line-strong px-4 py-6 text-center text-sm text-p-ink-3">
-          {fa ? "برای این غرفه تجهیزاتی ثبت نشده" : "No equipment for this booth yet"}
-        </p>
-      ) : (
-        <ul className="grid gap-2">
-          {orders.map((o) => (
-            <EquipmentLine key={o.id} order={o} />
-          ))}
-        </ul>
-      )}
-      {can.edit ? (
-        adding ? (
-          <form
-            className="grid gap-3 rounded-2xl border border-p-line p-3"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!itemId) return;
-              const item = x.itemById.get(itemId);
-              const res = await store.insert("equipment_orders", {
-                id: newId(),
-                exhibition_id: booth.exhibition_id,
-                booth_id: booth.id,
-                deal_id: booth.deal_id,
-                item_id: itemId,
-                quantity: qty,
-                unit_price: item?.rental_rate ?? null,
-                stage: "requested",
-              });
-              if (res.ok) {
-                setAdding(false);
-                setQty(1);
-                setItemId("");
-              }
-            }}
-          >
-            <Field label={fa ? "قلم" : "Item"}>
-              <Select value={itemId} onChange={(e) => setItemId(e.target.value)} required autoFocus>
-                <option value="">{fa ? "انتخاب کنید" : "Choose"}</option>
-                {items.map((i) => (
-                  <option key={i.id} value={i.id}>
-                    {pick(lang, i.name_fa, i.name_en)}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <div className="flex items-end gap-2">
-              <Field label={fa ? "تعداد" : "Quantity"} className="flex-1">
-                <Input type="number" min={1} value={qty} onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))} dir="ltr" />
-              </Field>
-              <Button tone="ghost" onClick={() => setAdding(false)}>
-                {fa ? "انصراف" : "Cancel"}
-              </Button>
-              <Button tone="primary" type="submit">
-                {fa ? "افزودن" : "Add"}
-              </Button>
-            </div>
-          </form>
-        ) : (
-          <Button icon={<Armchair className="size-4" />} onClick={() => setAdding(true)}>
-            {fa ? "افزودن تجهیزات" : "Add equipment"}
-          </Button>
-        )
-      ) : null}
-    </div>
-  );
-}
 
 const stageTone: Record<string, "neutral" | "warn" | "info" | "ok" | "danger" | "violet"> = {
   requested: "warn",
