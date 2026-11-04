@@ -580,6 +580,7 @@ export type Database = {
           space_rate: number | null;
           booth_build_rate: number | null;
           notes: string | null;
+          venue_plan_path: string | null;
           import_key: string | null;
           created_by: string | null;
           created_at: string;
@@ -607,6 +608,7 @@ export type Database = {
           space_rate?: number | null;
           booth_build_rate?: number | null;
           notes?: string | null;
+          venue_plan_path?: string | null;
           import_key?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -634,6 +636,7 @@ export type Database = {
           space_rate?: number | null;
           booth_build_rate?: number | null;
           notes?: string | null;
+          venue_plan_path?: string | null;
           import_key?: string | null;
           created_by?: string | null;
           created_at?: string;

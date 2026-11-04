@@ -28,6 +28,8 @@ import type { Booth, BoothStatus, Company, Deal, DealStage, EquipmentOrder, Patc
 import { useExhibition } from "../ExhibitionProvider";
 import { useCollection, useNow, usePortal } from "../PortalProvider";
 import { HandoverStamp } from "../crew";
+import { DatePicker } from "../DatePicker";
+import { todayIso } from "../fields";
 import { PeoplePicker, PeopleLine } from "../people";
 import { AssignSheet } from "./AssignSheet";
 import { FurnitureTab } from "./FurnitureTab";
@@ -527,7 +529,7 @@ function RecordPayment({ deal }: { deal: Deal }) {
           ) : null}
           <div className="grid grid-cols-2 gap-3">
             <Field label={fa ? "تاریخ" : "Date"}>
-              <Input name="paid_on" type="date" defaultValue={new Date().toISOString().slice(0, 10)} />
+              <DatePicker name="paid_on" defaultValue={todayIso()} clearable={false} />
             </Field>
             <Field label={fa ? "روش" : "Method"}>
               <Select name="method" defaultValue="bank_transfer">

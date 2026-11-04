@@ -3,7 +3,8 @@
 import { ChevronDown, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
-import { date as formatDate, num } from "@/lib/portal/format";
+import { num } from "@/lib/portal/format";
+import { DatePicker } from "./DatePicker";
 import { usePortal } from "./PortalProvider";
 import { Combobox, Input } from "./ui";
 
@@ -207,8 +208,7 @@ export function DateQuick({
         ) : null}
       </div>
       <div className="flex items-center gap-2">
-        <Input type="date" name={name} value={value ?? ""} onChange={(e) => onChange(e.target.value || null)} dir="ltr" className="max-w-44" />
-        {value ? <span className="text-xs font-medium text-p-ink-2">{formatDate(lang, `${value}T12:00:00`, "long")}</span> : null}
+        <DatePicker name={name} value={value} onChange={onChange} clearable={allowEmpty} className="w-full max-w-64" />
       </div>
     </div>
   );

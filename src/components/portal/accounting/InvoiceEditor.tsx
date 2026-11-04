@@ -10,6 +10,7 @@ import { currencyName, date, money, num, pick, sep } from "@/lib/portal/format";
 import { invoiceKindLabel, paymentMethodLabel, serviceKindLabel, unitLabel } from "@/lib/portal/labels";
 import { newId } from "@/lib/portal/store";
 import type { Booth, Company, Exhibition, Insert, Invoice, InvoiceLine, Payment } from "@/lib/portal/types";
+import { DatePicker } from "../DatePicker";
 import { useExhibition } from "../ExhibitionProvider";
 import { parseDigits, PickerField, todayIso } from "../fields";
 import { useCollection, useNow, usePortal } from "../PortalProvider";
@@ -931,11 +932,9 @@ function DetailsCard({ invoice, patch }: { invoice: Invoice; patch: (p: Partial<
 }
 
 function DayField({ label, value, onChange, disabled, placeholder }: { label: string; value: string | null; onChange: (v: string | null) => void; disabled?: boolean; placeholder?: string }) {
-  const { lang } = usePortal();
   return (
     <Field label={label}>
-      <Input type="date" value={value ?? ""} disabled={disabled} onChange={(e) => onChange(e.target.value || null)} dir="ltr" className="w-full" />
-      <span className="text-xs text-p-ink-3">{value ? date(lang, value) : (placeholder ?? "—")}</span>
+      <DatePicker value={value} disabled={disabled} onChange={onChange} placeholder={placeholder} />
     </Field>
   );
 }
