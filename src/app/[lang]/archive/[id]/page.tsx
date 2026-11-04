@@ -9,6 +9,7 @@ import { isLang, languages } from "@/lib/lang";
 import {
   archiveEntries,
   archiveDate,
+  archiveExcerpt,
   localizeSourceLink,
 } from "@/lib/legacy-archive";
 import { siteUrl } from "@/lib/seo";
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!item || !isLang(lang)) return {};
   const title = `${item.title} | اَرَتَ`;
   const description =
-    item.paragraphs.find((p) => p.length > 60)?.slice(0, 180) || item.title;
+    archiveExcerpt(item, 180) || item.title;
   return {
     title,
     description,

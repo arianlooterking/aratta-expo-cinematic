@@ -66,9 +66,15 @@ export function ExhibitorJourney({ lang, heading = true }: { lang: Lang; heading
             <span className="pointer-events-none absolute -bottom-5 end-3 font-latin text-[5rem] font-black leading-none text-white/[0.04]">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span className="font-latin text-xs font-black uppercase tracking-[0.2em] text-[var(--gold)]">
-              {String(i + 1).padStart(2, "0")} · {step.kicker.en}
-            </span>
+            {lang === "fa" ? (
+              <span className="text-xs font-black text-[var(--gold)]">
+                گام {(i + 1).toLocaleString("fa-IR")} · {step.kicker.fa}
+              </span>
+            ) : (
+              <span className="font-latin text-xs font-black uppercase tracking-[0.2em] text-[var(--gold)]">
+                {String(i + 1).padStart(2, "0")} · {step.kicker.en}
+              </span>
+            )}
             <h3 className="mt-3 text-lg font-black leading-8 text-white sm:text-xl">{t(lang, step.title)}</h3>
             <p className="mt-2 text-sm leading-7 text-white/60">{t(lang, step.body)}</p>
           </li>

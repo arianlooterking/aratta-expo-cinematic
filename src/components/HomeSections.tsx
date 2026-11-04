@@ -16,11 +16,13 @@ import {
   Wrench,
 } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
+import { telHref } from "@/data/site-nav";
 import { AboutExperience } from "@/components/AboutExperience";
 import { AnimatedTabs } from "@/components/AnimatedTabs";
 import { BlogCards } from "@/components/BlogCards";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
 import { GoogleMapPanel } from "@/components/GoogleMapPanel";
+import { PartnersSection } from "@/components/PartnersSection";
 import { ArchiveOverview } from "@/components/ArchiveSections";
 import { ExhibitorJourney, FaqList, QuickActions } from "@/components/SiteGuides";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -43,6 +45,7 @@ export function HomeSections({ content, upcoming }: HomeProps) {
       </section>
       <UpcomingSection content={content} upcoming={upcoming} />
       <AboutExperience content={content} />
+      <PartnersSection lang={content.lang} />
       <AnimatedTabs content={content} />
       <section id="journey" className="py-20 sm:py-24">
         <div className="section-shell">
@@ -101,8 +104,8 @@ function RegistrationSection({ content }: HomeSectionsProps) {
           <p className="mt-5 flex items-start gap-2 text-sm leading-7 text-white/52">
             <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={17} />
             {fa
-              ? "هر دو مسیر فقط پیش‌نویس ایمیل می‌سازند. هیچ پرداخت یا رزرو خودکاری در سایت انجام نمی‌شود."
-              : "Both only prepare an email draft. The website never takes payments or makes automatic bookings."}
+              ? "درخواست با ایمیل به دفتر اَرَتَ می‌رسد؛ قرارداد و پرداخت فقط پس از هماهنگی با کارشناس فروش انجام می‌شود."
+              : "Requests reach the Aratta office by email; contracts and payment are arranged only with a sales specialist."}
           </p>
         </div>
 
@@ -225,9 +228,7 @@ function RelatedNewsSection({ content }: HomeSectionsProps) {
                 </span>
               </div>
               <div className="p-5">
-                <time className="font-latin text-xs font-black uppercase tracking-[0.2em] text-[var(--gold)]">
-                  {item.date}
-                </time>
+                <time className="text-xs font-black text-[var(--gold)]">{item.date}</time>
                 <h3 className="mt-3 text-xl font-black leading-8 text-white">{item.title}</h3>
                 <p className="mt-3 line-clamp-2 text-sm leading-7 text-white/60">{item.body}</p>
               </div>
@@ -317,14 +318,14 @@ function ContactSection({ content }: HomeSectionsProps) {
             </ContactRow>
             <ContactRow icon={<Phone size={21} />} label={content.contact.phoneLabel}>
               {content.contact.phones.map((phone) => (
-                <a key={phone} href={`tel:${phone}`} className="me-4 inline-block">
+                <a key={phone} href={telHref(phone)} className="font-latin me-4 inline-block">
                   {phone}
                 </a>
               ))}
             </ContactRow>
           </div>
           <div className="mt-8 grid grid-cols-3 gap-2">
-            <a href={`tel:${content.contact.phones[0]}`} className="liquid-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 font-black text-white">
+            <a href={telHref(content.contact.phones[0])} className="liquid-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 font-black text-white">
               <Phone size={17} />
               {content.lang === "fa" ? "تماس" : "Call"}
             </a>

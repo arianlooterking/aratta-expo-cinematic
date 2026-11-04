@@ -3,13 +3,11 @@
 import { motion } from "framer-motion";
 import {
   ArrowUpRight,
-  CheckCircle2,
   Cpu,
   FileText,
   Handshake,
   Images,
   Layers3,
-  RadioTower,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,71 +42,37 @@ const serviceMeta = [
 const sectionCopy = {
   fa: {
     intro:
-      "هر مسیر اجرایی در این بخش به یک صفحه واقعی وصل است: نمایشگاه‌ها، فرم‌ها، تجهیزات و رسانه. کاربر باید از همین نقطه بتواند تصمیم بگیرد و وارد مسیر درست شود.",
-    activeLabel: "مسیر فعال",
-    open: "باز کردن مسیر",
-    deliverables: "خروجی قابل تحویل",
-    liveRoute: "صفحه آماده بازدید",
-    tabsLabel: "ماژول‌های اجرایی",
-    proofTitle: "ریتم اجرای پروژه",
-    proof: [
-      {
-        label: "Brief",
-        title: "دریافت و دسته‌بندی نیاز",
-        body: "هدف مشارکت، متراژ، صنعت، زمان‌بندی و فایل‌های رسمی در یک مسیر روشن جمع می‌شود.",
-      },
-      {
-        label: "Plan",
-        title: "طراحی تجربه و جریان سالن",
-        body: "جانمایی، مسیر بازدید، برنامه ارتباطی و نیازهای غرفه به برنامه اجرایی تبدیل می‌شود.",
-      },
-      {
-        label: "Operate",
-        title: "تحویل، رسانه و پیگیری",
-        body: "تجهیزات، فرم‌ها، تصویر، خبر و کانال تماس تا پایان رویداد قابل پیگیری می‌ماند.",
-      },
-    ],
+      "از انتخاب رویداد و ثبت‌نام تا غرفه‌سازی، تجهیزات و پوشش رسانه‌ای؛ تیم اَرَتَ هر مرحله را در کنار مشارکت‌کننده مدیریت می‌کند.",
+    serviceLabel: "خدمت",
+    deliverables: "آنچه دریافت می‌کنید",
+    tabsLabel: "خدمات اَرَتَ",
+    count: "۴ خدمت",
+    open: ["تقویم نمایشگاه‌ها", "فرم‌ها و فایل‌ها", "اجاره تجهیزات", "گالری و گزارش‌ها"],
     tracks: [
-      ["نقشه سالن", "تقویم اجرایی", "هماهنگی حامیان", "مسیر بازدیدکننده"],
-      ["فرم شرکت", "فهرست مشارکت‌کنندگان", "دانلود رسمی", "پیگیری امن درخواست"],
-      ["لیست تجهیزات", "نیازسنجی غرفه", "هماهنگی لجستیک", "آماده‌سازی اجرا"],
-      ["آرشیو تصویر", "خبر رویداد", "گالری قابل انتشار", "محتوای معرفی نمایشگاه"],
+      ["نقشه و جانمایی سالن", "زمان‌بندی دوره", "هماهنگی با حامیان", "برنامه بازدیدکنندگان"],
+      ["فرم رسمی شرکت", "فهرست مشارکت‌کنندگان", "دانلود مستقیم فایل‌ها", "پیگیری با کارشناس فروش"],
+      ["فهرست تجهیزات", "نیازسنجی غرفه", "تحویل در روزهای غرفه‌سازی", "جمع‌آوری پس از نمایشگاه"],
+      ["آرشیو تصاویر", "خبر و گزارش هر دوره", "گالری عکس", "معرفی در رسانه‌های تخصصی"],
     ],
   },
   en: {
     intro:
-      "Every operational lane connects to a real page: exhibitions, forms, equipment, and media. Visitors can decide, verify, and continue without dead ends.",
-    activeLabel: "Active lane",
-    open: "Open lane",
-    deliverables: "Deliverables",
-    liveRoute: "Live page",
-    tabsLabel: "Operating modules",
-    proofTitle: "Project rhythm",
-    proof: [
-      {
-        label: "Brief",
-        title: "Capture and classify demand",
-        body: "Participation goal, area, industry, timeline, and official files enter one clear path.",
-      },
-      {
-        label: "Plan",
-        title: "Design the hall experience",
-        body: "Placement, visitor movement, communications, and booth needs become an execution plan.",
-      },
-      {
-        label: "Operate",
-        title: "Deliver, publish, and follow up",
-        body: "Equipment, forms, imagery, news, and contact channels remain traceable through the event.",
-      },
-    ],
+      "From choosing an event and registering to booth building, equipment and media coverage, the Aratta team runs every step alongside each exhibitor.",
+    serviceLabel: "Service",
+    deliverables: "What you get",
+    tabsLabel: "Aratta services",
+    count: "4 services",
+    open: ["Exhibition calendar", "Forms and files", "Equipment rental", "Gallery and reports"],
     tracks: [
-      ["Hall map", "Execution calendar", "Sponsor coordination", "Visitor circulation"],
-      ["Participation form", "Participant list", "Official downloads", "Safe inquiry follow-up"],
-      ["Equipment list", "Booth requirements", "Logistics coordination", "Show-floor readiness"],
-      ["Image archive", "Event news", "Publishable gallery", "Exhibition communication"],
+      ["Hall and booth layout", "Edition timetable", "Sponsor coordination", "Visitor programme"],
+      ["Official participation form", "Participant lists", "Direct file downloads", "Follow-up with a sales specialist"],
+      ["Equipment list", "Booth needs assessment", "Delivery during build-up", "Collection after the show"],
+      ["Photo archive", "News and reports for every edition", "Photo gallery", "Specialist media coverage"],
     ],
   },
 } as const;
+
+const faDigits = (value: number) => value.toLocaleString("fa-IR", { minimumIntegerDigits: 2 });
 
 type AnimatedTabsProps = {
   content: SiteContent;
@@ -121,6 +85,8 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
   const activeMeta = serviceMeta[active] ?? serviceMeta[0];
   const ActiveIcon = activeMeta.icon;
   const activeTracks = copy.tracks[active] ?? copy.tracks[0];
+  const number = (index: number) =>
+    content.lang === "fa" ? faDigits(index + 1) : String(index + 1).padStart(2, "0");
 
   return (
     <section id="forms" className="relative overflow-hidden py-24 sm:py-28">
@@ -144,7 +110,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: "easeOut" }}
-            className="industrial-card relative min-h-[660px] overflow-hidden rounded-[2rem]"
+            className="industrial-card relative min-h-[500px] overflow-hidden rounded-[2rem] lg:min-h-[600px]"
           >
             <Image
               src={activeMeta.frame}
@@ -155,19 +121,14 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
               className="object-cover"
               priority={false}
             />
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(1,8,10,0.98)_0%,rgba(1,8,10,0.9)_35%,rgba(1,8,10,0.28)_68%,rgba(1,8,10,0.62)_100%)] ltr:bg-[linear-gradient(90deg,rgba(1,8,10,0.62)_0%,rgba(1,8,10,0.28)_32%,rgba(1,8,10,0.9)_65%,rgba(1,8,10,0.98)_100%)]" />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.78))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(270deg,rgba(1,8,10,0.94)_0%,rgba(1,8,10,0.8)_45%,rgba(1,8,10,0.5)_100%)] ltr:bg-[linear-gradient(90deg,rgba(1,8,10,0.94)_0%,rgba(1,8,10,0.8)_45%,rgba(1,8,10,0.5)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_12%,rgba(0,0,0,0.2)_30%,rgba(0,0,0,0.84)_54%,rgba(0,0,0,0.9)_100%)]" />
 
-            <div className="relative z-10 flex min-h-[660px] max-w-2xl flex-col justify-between p-6 sm:p-8 lg:p-10">
+            <div className="relative z-10 flex min-h-[500px] max-w-2xl lg:min-h-[600px] flex-col justify-between p-6 sm:p-8 lg:p-10">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="font-latin inline-flex items-center gap-2 rounded-full border border-cyan-100/22 bg-cyan-100/8 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-[var(--cyan)]">
-                    <RadioTower size={15} />
-                    {copy.activeLabel} 0{active + 1}
-                  </span>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-200/8 px-4 py-2 text-xs font-bold text-[var(--gold)]">
-                    <CheckCircle2 size={15} />
-                    {copy.liveRoute}
+                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-100/22 bg-cyan-100/8 px-4 py-2 text-xs font-black text-[var(--cyan)]">
+                    {copy.serviceLabel} {number(active)}
                   </span>
                 </div>
 
@@ -198,8 +159,8 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                         index > 1 ? "border-t border-white/12" : "",
                       )}
                     >
-                      <span className="font-latin text-xs font-black text-[var(--gold)]">
-                        0{index + 1}
+                      <span className="text-xs font-black text-[var(--gold)]">
+                        {number(index)}
                       </span>
                       <span>{track}</span>
                     </div>
@@ -210,7 +171,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                   href={`/${content.lang}/${activeMeta.route}`}
                   className="liquid-button mt-7 inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 text-sm font-black text-white"
                 >
-                  {copy.open}
+                  {copy.open[active] ?? copy.open[0]}
                   <ArrowUpRight size={18} />
                 </Link>
               </div>
@@ -220,9 +181,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
           <div className="grid content-start gap-4">
             <div className="mb-1 flex items-center justify-between gap-4">
               <div className="text-sm font-black text-white">{copy.tabsLabel}</div>
-              <div className="font-latin text-xs font-black uppercase tracking-[0.22em] text-white/38">
-                04 lanes
-              </div>
+              <div className="text-xs font-bold text-white/42">{copy.count}</div>
             </div>
 
             {content.services.items.map((item, index) => {
@@ -261,8 +220,8 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                       <RowIcon size={23} strokeWidth={1.7} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="font-latin block text-xs font-black uppercase tracking-[0.2em] text-white/38">
-                        0{index + 1}
+                      <span className="block text-xs font-black text-white/40">
+                        {number(index)}
                       </span>
                       <span className="mt-2 block text-lg font-black leading-7 text-white">
                         {item.title}
@@ -278,25 +237,6 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between gap-4">
-          <h3 className="text-2xl font-black text-white">{copy.proofTitle}</h3>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/14 to-transparent" />
-        </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {copy.proof.map((item) => (
-            <div
-              key={item.label}
-              className="industrial-card rounded-[1.5rem] p-5 transition hover:-translate-y-1 hover:border-cyan-200/32"
-            >
-              <div className="font-latin text-xs font-black uppercase tracking-[0.22em] text-[var(--gold)]">
-                {item.label}
-              </div>
-              <h3 className="mt-4 text-xl font-black text-white">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-white/58">{item.body}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

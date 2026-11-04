@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpenText, Clock3, UserRound } from "lucide-react";
 import { BlogCards } from "@/components/BlogCards";
 import { SiteChrome } from "@/components/SiteChrome";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   getContent,
   getPublishedBlogPost,
@@ -157,6 +158,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           ) : null}
         </article>
       </main>
+      <SiteFooter content={content} />
     </>
   );
 }

@@ -302,15 +302,15 @@ const fa: SiteContent = {
     metrics: [
       { value: "۱۰۰+", label: "غرفه در SIMEX 2020" },
       { value: "۸۰", label: "شرکت در SICE 2023" },
-      { value: "۸,۰۰۰", label: "مترمربع فضای SIMEX 2020" },
-      { value: "۶", label: "کشور حاضر در SIMEX 2020" },
+      { value: "۸٬۰۰۰", label: "مترمربع فضای SIMEX 2020" },
+      { value: "۶", label: "کشور مبدأ برندهای حاضر در SIMEX 2020" },
     ],
   },
   exhibitions: {
-    kicker: "Archive / نمایشگاه‌ها",
+    kicker: "آرشیو نمایشگاه‌ها",
     title: "رویدادهای تخصصی اَرَتَ",
     note:
-      "رویدادهای منتشرشده در این صفحه برگزار شده‌اند یا تاریخ اعلام شده آنها گذشته است. برای دریافت تقویم جدید، با دفتر اَرَتَ تماس بگیرید.",
+      "دوره‌های زیر برگزار شده‌اند. تاریخ دوره‌های بعد به محض اعلام رسمی در تقویم پیش رو منتشر می‌شود.",
     items: faExhibitions,
   },
   services: {
@@ -319,27 +319,27 @@ const fa: SiteContent = {
     items: [
       {
         title: "طراحی و سازماندهی رویداد",
-        body: "ساختار سالن، نقشه مشارکت، زمان‌بندی، ارتباط با حامیان و مسیرهای عملیاتی در یک تجربه قابل پیگیری.",
+        body: "طراحی سالن و نقشه غرفه‌ها، زمان‌بندی دوره، هماهنگی با حامیان و برنامه بازدید؛ از اولین جلسه تا روز افتتاح.",
       },
       {
         title: "ثبت نام و فرم‌های رسمی",
-        body: "دسترسی روشن به فرم شرکت، فهرست مشارکت‌کنندگان و کانال امن برای درخواست غرفه یا پیگیری اطلاعات.",
+        body: "فرم رسمی شرکت در نمایشگاه، فهرست مشارکت‌کنندگان و یک مسیر ساده برای درخواست غرفه و پیگیری با کارشناس فروش.",
       },
       {
         title: "اجاره تجهیزات و پشتیبانی اجرا",
-        body: "نمایش لیست تجهیزات، نیازسنجی غرفه، هماهنگی لجستیک و آماده‌سازی فضای نمایشگاهی.",
+        body: "مبلمان، نمایشگر، برق و پذیرایی غرفه؛ نیازسنجی، تحویل در روزهای غرفه‌سازی و جمع‌آوری پس از پایان نمایشگاه.",
       },
       {
         title: "رسانه، اخبار و گالری",
-        body: "آرشیو رویدادها، تصاویر، خبرها و محتوای قابل استفاده برای معرفی حرفه‌ای هر نمایشگاه.",
+        body: "خبر و گزارش تصویری هر دوره، گالری عکس و معرفی نمایشگاه در رسانه‌های تخصصی معدن و صنعت.",
       },
     ],
   },
   registration: {
-    kicker: "Registration",
+    kicker: "ثبت‌نام",
     title: "آغاز فرآیند حضور در نمایشگاه",
     body:
-      "فرم‌های رسمی را دانلود کنید یا اطلاعات درخواست غرفه را آماده سازید. درخواست شما به صورت پیش‌نویس ایمیل آماده می‌شود و پس از ارسال، تیم اَرَتَ ادامه فرآیند را هماهنگ می‌کند.",
+      "فرم رسمی را دانلود کنید یا درخواست غرفه را در سه قدم آماده کنید. درخواست با ایمیل به دفتر اَرَتَ می‌رسد و کارشناس فروش برای متراژ، جانمایی و قرارداد با شما تماس می‌گیرد.",
     formTitle: "پیش‌نویس درخواست غرفه",
     fields: {
       name: "نام و نام خانوادگی",
@@ -390,7 +390,7 @@ const fa: SiteContent = {
     ],
   },
   gallery: {
-    kicker: "Gallery",
+    kicker: "گالری",
     title: "تصویر واقعی از کف نمایشگاه",
     items: [
       { src: "/gallery/simex-2019-01.jpg", alt: "نمایشگاه سیمکس ۲۰۱۹", caption: "سیمکس ۲۰۱۹" },
@@ -406,70 +406,70 @@ const fa: SiteContent = {
     ],
   },
   news: {
-    kicker: "Newsroom",
-    title: "آخرین خبرهای رسمی در قالب آرشیو",
+    kicker: "اتاق خبر",
+    title: "آخرین خبرهای رسمی اَرَتَ",
     items: [
       {
-        date: "۱۲ مه ۲۰۲۵",
+        date: "۲۲ اردیبهشت ۱۴۰۴",
         title: "نهمین نمایشگاه بین‌المللی معدن، صنایع معدنی و ماشین‌آلات وابسته",
         body: "اطلاعیه و مدارک منتشرشده برای رویداد کرمان، همراه با یادداشت تعلیق موقت نمایشگاه‌های تجاری در زمان انتشار.",
         href: faExhibitions[0].href,
       },
       {
-        date: "۱۵ دسامبر ۲۰۲۴",
+        date: "۲۵ آذر ۱۴۰۳",
         title: "پنجمین نمایشگاه زنجیره تامین فولاد، مس، انرژی و تجهیزات وابسته",
-        body: "خبر رسمی رویداد زنجیره تامین با مسیر مستقیم به ثبت درخواست و فرم‌های نمایشگاه.",
+        body: "اطلاعیه رسمی پنجمین دوره نمایشگاه زنجیره تأمین فولاد، مس و انرژی در کرمان، همراه با فرم ثبت‌نام.",
         href: "https://arattaexpo.ir/%d9%be%d9%86%d8%ac%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81%d9%88%d9%84%d8%a7%d8%af%d8%8c-%d9%85/",
       },
       {
-        date: "۵ سپتامبر ۲۰۲۴",
+        date: "۱۵ شهریور ۱۴۰۳",
         title: "دومین نمایشگاه نهضت تولید در معدن و زنجیره فولاد و مس",
         body: "سیرجان میزبان فعالان معدنی، فولاد، مس و شرکت‌های صنعتی منطقه بود.",
         href: "https://arattaexpo.ir/%d8%af%d9%88%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d9%86%d9%87%d8%b6%d8%aa-%d8%aa%d9%88%d9%84%db%8c%d8%af-%d8%af%d8%b1-%d9%85%d8%b9%d8%af%d9%86%d8%8c-%d8%b5%d9%86%d8%a7/",
       },
       {
-        date: "۷ ژانویه ۲۰۲۴",
+        date: "۱۷ دی ۱۴۰۲",
         title: "هشتمین نمایشگاه بین‌المللی معدن و تجهیزات وابسته کرمان",
         body: "گزارش رویداد تخصصی معدن، ماشین‌آلات، راه‌سازی و تجهیزات وابسته در کرمان.",
         href: "https://arattaexpo.ir/%d9%87%d8%b4%d8%aa%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%a8%db%8c%d9%86-%d8%a7%d9%84%d9%85%d9%84%d9%84%db%8c-%d9%85%d8%b9%d8%af%d9%86%d8%8c-%d8%b5%d9%86%d8%a7%db%8c/",
       },
       {
-        date: "۲۲ سپتامبر ۲۰۲۰",
+        date: "۱ مهر ۱۳۹۹",
         title: "ویدئو - بازدید و گفتگوی نمایشگاهی",
         body: "گفتگو و گزارش ویدئویی از فضای نمایشگاه و فعالان صنعتی حاضر در رویداد.",
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
       },
     ],
-    relatedKicker: "Industry Signals",
+    relatedKicker: "اخبار صنعت",
     relatedTitle: "اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین",
     relatedBody:
       "گزارش‌ها، گفتگوها و مطالب آموزشی مرتبط با بازارهای معدن، فولاد، مس و زنجیره تامین؛ هر مطلب با تاریخ، حوزه و لینک منبع نمایش داده می‌شود.",
     relatedItems: [
       {
-        date: "۴ ژانویه ۲۰۲۴",
+        date: "۱۴ دی ۱۴۰۲",
         title: "پایان چهارمین نمایشگاه زنجیره تامین فولاد، مس، انرژی و تجهیزات وابسته",
         body:
-          "گزارش رسمی از حضور فعالان زنجیره تامین در کرمان؛ برای نمایش ارتباط رویدادهای اَرَتَ با تامین، انرژی، فولاد و مس در بخش اخبار مرتبط.",
+          "چهارمین دوره نمایشگاه زنجیره تأمین فولاد و مس (SICE 2023) با حضور ۸۰ شرکت بومی و غیربومی در کرمان به کار خود پایان داد.",
         href: "https://arattaexpo.ir/%d9%be%d8%a7%db%8c%d8%a7%d9%86-%da%86%d9%87%d8%a7%d8%b1%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81/",
         source: "arattaexpo.ir",
         sector: "فولاد، مس و انرژی",
         image: "/official-archive/steel-supply-news-2024.jpg",
       },
       {
-        date: "۷ ژانویه ۲۰۲۴",
+        date: "۱۷ دی ۱۴۰۲",
         title: "کارگاه آموزشی راهبردهای نوآورانه در بازاریابی و فروش",
         body:
-          "موضوع مکمل برای مشارکت‌کنندگان و غرفه داران؛ تمرکز بر آماده‌سازی تجاری، فروش نمایشگاهی و ارتباط موثر با مخاطبان صنعتی.",
+          "کارگاهی برای غرفه‌داران و مدیران فروش درباره تبلیغات هدفمند، فروش نمایشگاهی و ارتباط مؤثر با مخاطبان صنعتی.",
         href: "https://arattaexpo.ir/%da%a9%d8%a7%d8%b1%da%af%d8%a7%d9%87-%d8%a2%d9%85%d9%88%d8%b2%d8%b4%db%8c-%d8%b1%d8%a7%d9%87-%d8%a8%d8%b1%d8%af%d9%87%d8%a7%db%8c-%d9%86%d9%88%d8%a2%d9%88%d8%b1%d8%a7%d9%86%d9%87-%d8%af%d8%b1-%d8%a8/",
         source: "arattaexpo.ir",
         sector: "بازاریابی نمایشگاهی",
         image: "/gallery/archive-05.jpg",
       },
       {
-        date: "۲۲ سپتامبر ۲۰۲۰",
+        date: "۱ مهر ۱۳۹۹",
         title: "گفتگو و محتوای ویدئویی از فضای نمایشگاهی",
         body:
-          "آرشیو ویدئویی برای تکمیل روایت رسانه‌ای اَرَتَ و استفاده در صفحه اخبار مرتبط، بدون ادعای تازه بودن رویداد.",
+          "گفت‌وگوی ویدئویی با فعالان صنعتی حاضر در نمایشگاه و گزارشی کوتاه از فضای غرفه‌ها و بازدیدها.",
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
         source: "arattaexpo.ir",
         sector: "رسانه و گزارش تصویری",
@@ -478,7 +478,7 @@ const fa: SiteContent = {
     ],
   },
   blog: {
-    kicker: "Aratta Journal / مجله اَرَتَ",
+    kicker: "مجله اَرَتَ",
     title: "راهنمای عملی برای ساخت و مدیریت نمایشگاه",
     body:
       "مقاله‌های کوتاه و اجرایی برای تیم‌های برگزارکننده، غرفه‌داران و مدیران عملیات؛ از برنامه‌ریزی سالن تا تحویل تجهیزات و پیگیری تجاری.",
@@ -502,7 +502,7 @@ const fa: SiteContent = {
           "در پایان، یک بازبینی کوتاه با نام مسئول، ساعت کنترل و عکس مرجع ثبت کنید. این سابقه در زمان جمع‌آوری تجهیزات و حل اختلاف‌ها بسیار ارزشمند است.",
         ],
         category: "راهنمای اجرا",
-        publishedAt: "۱۵ ژوئیه ۲۰۲۶",
+        publishedAt: "۲۴ تیر ۱۴۰۵",
         readTime: "۷ دقیقه",
         author: "تیم عملیات اَرَتَ",
         coverImage: "/hero-v6/desktop/stage-06.webp",
@@ -526,7 +526,7 @@ const fa: SiteContent = {
           "در پایان هر شیفت، اقلام دارای کسری، اقلام آماده تحویل و اقلام جمع‌آوری‌نشده را در یک صف اقدام کوتاه به تیم بعدی تحویل دهید.",
         ],
         category: "تجهیزات و لجستیک",
-        publishedAt: "۱۰ ژوئیه ۲۰۲۶",
+        publishedAt: "۱۹ تیر ۱۴۰۵",
         readTime: "۶ دقیقه",
         author: "تیم لجستیک اَرَتَ",
         coverImage: "/gallery/expo-floor-02.jpg",
@@ -550,7 +550,7 @@ const fa: SiteContent = {
           "پس از نمایشگاه نیز همان پرونده برای جمع‌آوری تجهیزات، ثبت رضایت، پیگیری فرصت بعدی و برنامه‌ریزی رویداد آینده استفاده می‌شود.",
         ],
         category: "فروش و CRM",
-        publishedAt: "۵ ژوئیه ۲۰۲۶",
+        publishedAt: "۱۴ تیر ۱۴۰۵",
         readTime: "۵ دقیقه",
         author: "تیم تجاری اَرَتَ",
         coverImage: "/gallery/simex-2020-01.jpg",
@@ -562,14 +562,14 @@ const fa: SiteContent = {
     ],
   },
   about: {
-    kicker: "About Aratta",
+    kicker: "درباره اَرَتَ",
     title: "زیرساخت قابل اعتماد برای رویدادهای تخصصی صنعتی",
     body:
       "شرکت توسعه تجارت اَرَتَ برگزارکننده رویدادهای تخصصی در حوزه معدن، صنایع معدنی، فولاد، مس و زنجیره تامین است؛ بستری برای معرفی توانمندی‌ها، ارتباط تامین‌کنندگان با صنایع و شکل گیری همکاری‌های تجاری.",
     proof: ["معدن و صنایع معدنی", "فولاد و مس", "ماشین‌آلات و تجهیزات", "رسانه و مشارکت"],
   },
   contact: {
-    kicker: "Contact",
+    kicker: "تماس",
     title: "تماس مستقیم با دفتر کرمان",
     addressLabel: "آدرس دفتر",
     address: "کرمان، بلوار جهاد، نبش کوچه ۴۳، ساختمان بانک پارسیان",
@@ -648,15 +648,15 @@ const en: SiteContent = {
     metrics: [
       { value: "100+", label: "booths at SIMEX 2020" },
       { value: "80", label: "companies at SICE 2023" },
-      { value: "8,000", label: "sqm at SIMEX 2020" },
-      { value: "6", label: "countries at SIMEX 2020" },
+      { value: "8,000", label: "square metres at SIMEX 2020" },
+      { value: "6", label: "countries of origin for SIMEX 2020 brands" },
     ],
   },
   exhibitions: {
     kicker: "Archive / Exhibitions",
     title: "Aratta's specialized events",
     note:
-      "The events shown here have concluded or their published dates have passed. Contact the Aratta office for the next confirmed calendar.",
+      "The editions below have been held. Dates for the next editions appear in the upcoming calendar as soon as they are officially announced.",
     items: enExhibitions,
   },
   services: {
@@ -665,19 +665,19 @@ const en: SiteContent = {
     items: [
       {
         title: "Event organization",
-        body: "Hall structure, participation maps, schedules, sponsor coordination, and operational paths in one clear experience.",
+        body: "Hall design and booth plans, the edition timetable, sponsor coordination and the visitor programme, from the first meeting to opening day.",
       },
       {
         title: "Registration and official forms",
-        body: "Clear access to participation forms, participant lists, and a safe inquiry path for booth requests.",
+        body: "The official participation form, participant lists and a simple way to request a booth and follow up with a sales specialist.",
       },
       {
         title: "Equipment rental and show support",
-        body: "Equipment list visibility, booth needs discovery, logistics coordination, and exhibition-floor readiness.",
+        body: "Furniture, screens, power and hospitality for your booth: needs assessment, delivery during build-up and collection after the show.",
       },
       {
         title: "Media, news, and gallery",
-        body: "Event archives, photography, news, and reusable content for professional exhibition communication.",
+        body: "News and photo reports for every edition, a photo gallery, and coverage in specialist mining and industry media.",
       },
     ],
   },
@@ -685,7 +685,7 @@ const en: SiteContent = {
     kicker: "Registration",
     title: "Start your exhibition participation inquiry",
     body:
-      "Download the official documents or prepare a structured booth inquiry. Your request opens as an email draft, and the Aratta team coordinates the next steps after you send it.",
+      "Download the official form or prepare a booth request in three steps. It reaches the Aratta office by email, and a sales specialist calls you about area, placement and the contract.",
     formTitle: "Booth inquiry draft",
     fields: {
       name: "Full name",
@@ -753,7 +753,7 @@ const en: SiteContent = {
   },
   news: {
     kicker: "Newsroom",
-    title: "Official updates presented as an archive",
+    title: "Latest official news from Aratta",
     items: [
       {
         date: "May 12, 2025",
@@ -764,7 +764,7 @@ const en: SiteContent = {
       {
         date: "December 15, 2024",
         title: "5th steel, copper, energy, and equipment supply chain exhibition",
-        body: "Official event update with direct paths to inquiry and exhibition form downloads.",
+        body: "Official notice for the 5th steel, copper and energy supply-chain exhibition in Kerman, with the registration form.",
         href: "https://arattaexpo.ir/%d9%be%d9%86%d8%ac%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81%d9%88%d9%84%d8%a7%d8%af%d8%8c-%d9%85/",
       },
       {
@@ -795,7 +795,7 @@ const en: SiteContent = {
         date: "January 4, 2024",
         title: "4th steel, copper, energy, and equipment supply-chain exhibition concluded",
         body:
-          "Official archive context connecting Aratta's program to supply-chain, energy, steel, and copper operators in Kerman.",
+          "The 4th steel and copper supply-chain exhibition (SICE 2023) closed in Kerman after hosting 80 companies from across the country.",
         href: "https://arattaexpo.ir/%d9%be%d8%a7%db%8c%d8%a7%d9%86-%da%86%d9%87%d8%a7%d8%b1%d9%85%db%8c%d9%86-%d9%86%d9%85%d8%a7%db%8c%d8%b4%da%af%d8%a7%d9%87-%d8%b2%d9%86%d8%ac%db%8c%d8%b1%d9%87-%d8%aa%d8%a7%d9%85%db%8c%d9%86-%d9%81/",
         source: "arattaexpo.ir",
         sector: "Steel, copper, and energy",
@@ -805,7 +805,7 @@ const en: SiteContent = {
         date: "January 7, 2024",
         title: "Training workshop on innovative marketing and sales strategies",
         body:
-          "Useful adjacent content for exhibitors preparing sales teams, booth conversations, and professional trade-show follow-up.",
+          "A workshop for exhibitors and sales managers on targeted advertising, trade-show selling and reaching industrial buyers.",
         href: "https://arattaexpo.ir/%da%a9%d8%a7%d8%b1%da%af%d8%a7%d9%87-%d8%a2%d9%85%d9%88%d8%b2%d8%b4%db%8c-%d8%b1%d8%a7%d9%87-%d8%a8%d8%b1%d8%af%d9%87%d8%a7%db%8c-%d9%86%d9%88%d8%a2%d9%88%d8%b1%d8%a7%d9%86%d9%87-%d8%af%d8%b1-%d8%a8/",
         source: "arattaexpo.ir",
         sector: "Exhibition marketing",
@@ -815,7 +815,7 @@ const en: SiteContent = {
         date: "September 22, 2020",
         title: "Exhibition interview and video media archive",
         body:
-          "Media archive entry that supports Aratta's story without falsely presenting old coverage as current news.",
+          "Video interviews with industry leaders at the exhibition and a short report from the booths and visits.",
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
         source: "arattaexpo.ir",
         sector: "Media and photo reports",
