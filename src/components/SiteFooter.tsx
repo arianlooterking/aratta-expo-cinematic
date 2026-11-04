@@ -27,6 +27,12 @@ export function SiteFooter({ content }: { content: SiteContent }) {
           >
             {content.lang === "fa" ? "آرشیو کامل" : "Complete archive"}
           </Link>
+          <Link
+            className="min-h-11 py-3 hover:text-[var(--gold)]"
+            href={`/${content.lang}/app`}
+          >
+            {content.lang === "fa" ? "اپلیکیشن کارکنان" : "Staff app"}
+          </Link>
         </nav>
         <div className="flex flex-col gap-4 text-sm text-white/50 md:flex-row md:justify-between">
           <p>{content.footer.copyright}</p>

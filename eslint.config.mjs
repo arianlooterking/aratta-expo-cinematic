@@ -14,6 +14,11 @@ const eslintConfig = defineConfig([
     "build/**",
     "qa/**",
     "next-env.d.ts",
+    // Native app projects and the Deno edge functions have their own toolchains.
+    "android/**",
+    "ios/**",
+    "mobile/shell/**",
+    "supabase/functions/**",
   ]),
 ]);
 

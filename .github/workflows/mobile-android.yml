@@ -1,0 +1,136 @@
+# Builds the Android staff app.
+#
+# Every run uploads an installable APK (for phones outside the Play Store) and
+# an AAB (for Google Play) as build artifacts. Running it by hand also
+# replaces the APK on the fixed "android-app" release, so the install link
+# never changes: https://github.com/<owner>/<repo>/releases/download/android-app/aratta-staff.apk
+# The download pages (/fa/app and the portal's Phone app page) read that release.
+# With "Send to Google Play" it also uploads the AAB to a Play testing track.
+#
+# Secrets (Settings → Secrets and variables → Actions), all optional:
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD
+#       Release signing key (alias and key password default to the Aratta key's).
+#       Without it the build is signed with a throwaway debug key and nothing is published.
+#   GOOGLE_SERVICES_JSON   Firebase config for push notifications (file contents).
+#   PLAY_SERVICE_ACCOUNT_JSON   Google Play API access for uploads.
+# Variables: ARATTA_APP_URL (portal address the app opens; defaults to the Vercel site).
+name: Mobile · Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish an install link (GitHub release)"
+        type: boolean
+        default: true
+      play_track:
+        description: "Send to Google Play (track)"
+        type: choice
+        options: [none, internal, alpha]
+        default: none
+  push:
+    paths:
+      - "android/**"
+      - "mobile/**"
+      - "capacitor.config.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/mobile-android.yml"
+
+concurrency:
+  group: mobile-android-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # publishing the install link (GitHub release)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      ARATTA_APP_URL: ${{ vars.ARATTA_APP_URL }}
+      APP_VERSION_CODE: ${{ github.run_number }}
+      APP_VERSION_NAME: 1.0.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - run: npm ci
+
+      - name: Android SDK (preinstalled on the runner)
+        run: echo "Using $ANDROID_HOME" && test -d "$ANDROID_HOME"
+
+      - name: Sync web shell and plugins
+        run: npm run mobile:sync -- android
+
+      - name: Firebase config (push notifications)
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        if: env.GOOGLE_SERVICES_JSON != ''
+        run: printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
+      - name: Release signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        if: env.ANDROID_KEYSTORE_BASE64 != ''
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Build APK and AAB
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease bundleRelease
+          if [ -z "${ANDROID_KEYSTORE_FILE:-}" ]; then
+            echo "::warning::No release key set: this build is signed with a temporary debug key. Phones must uninstall it before installing a properly signed build."
+          fi
+
+      - name: Name the files
+        run: |
+          mkdir -p dist-mobile
+          cp android/app/build/outputs/apk/release/app-release.apk "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab "dist-mobile/aratta-staff-${APP_VERSION_NAME}.aab"
+
+      - name: Publish install link
+        if: github.event_name == 'workflow_dispatch' && inputs.publish && env.ANDROID_KEYSTORE_FILE != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk" "$RUNNER_TEMP/aratta-staff.apk"
+          link=$(mobile/scripts/publish-release.sh android-app \
+            "Aratta Staff for Android ${APP_VERSION_NAME}" \
+            "Install on Android: open this page on the phone, tap aratta-staff.apk, then allow installs from your browser when asked. Updates install over the previous version and keep you signed in. Version ${APP_VERSION_NAME}, built from ${GITHUB_SHA::7}." \
+            "$RUNNER_TEMP/aratta-staff.apk")
+          echo "Install link: $link" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: aratta-staff-android-${{ env.APP_VERSION_NAME }}
+          path: dist-mobile/
+          retention-days: 30
+
+      - name: Upload to Google Play
+        if: github.event_name == 'workflow_dispatch' && inputs.play_track != 'none'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ir.arattaexpo.staff
+          releaseFiles: dist-mobile/aratta-staff-${{ env.APP_VERSION_NAME }}.aab
+          track: ${{ inputs.play_track }}
+          status: completed

@@ -73,7 +73,8 @@ the last active owner can't be removed.
 5. **URL configuration.** In Supabase → Authentication → URL Configuration, set
    the Site URL to the production domain and add
    `https://<domain>/auth/callback` (plus `http://localhost:3000/auth/callback`
-   for development) to the redirect allow-list.
+   for development) to the redirect allow-list. For the iOS / Android apps also
+   add `ir.arattaexpo.staff://auth/callback` (see `docs/mobile-apps.md`).
 6. **Environment variables.** Set `NEXT_PUBLIC_SUPABASE_URL` and
    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Vercel (see `.env.example`).
 
