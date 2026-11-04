@@ -16,6 +16,7 @@ store update. A new store build is only needed when the native part changes
 | Portal glue | `src/components/native/NativeBridge.tsx`, `src/lib/native/*` |
 | Push sender | `supabase/functions/push`, table `push_devices` |
 | Builds | `.github/workflows/mobile-android.yml`, `.github/workflows/mobile-ios.yml` |
+| Download pages | `/fa/app` (public, linked from the footer and the sign-in card) and `/fa/staff/app` (portal sidebar → Phone app) |
 
 ## What the app adds to the portal
 
@@ -38,7 +39,7 @@ store update. A new store build is only needed when the native part changes
 
 ### 1. Supabase
 
-1. Apply the migrations as usual (`supabase db push`). `20261103090700_push_devices.sql`
+1. Apply the migrations as usual (`supabase db push`). `20261103091000_push_devices.sql`
    adds the phone registry.
 2. Authentication → URL Configuration → **Redirect URLs**: add
    `ir.arattaexpo.staff://auth/callback`. Without it sign-in in the app returns
@@ -51,11 +52,12 @@ store update. A new store build is only needed when the native part changes
    `aratta-staff`, key password = keystore password; `ANDROID_KEY_ALIAS` and
    `ANDROID_KEY_PASSWORD` can override them). Keep the key backed up: every
    update must be signed with the same key.
-2. Actions → **Mobile · Android** → Run workflow. A signed run publishes a
-   GitHub release, and the team installs from one fixed link:
-   `https://github.com/arianlooterking/aratta-expo-cinematic/releases/latest/download/aratta-staff.apk`
-   (allow "Install unknown apps" for the browser when asked). Every run also
-   keeps the `.apk` and the `.aab` for Google Play under **Artifacts**.
+2. Actions → **Mobile · Android** → Run workflow. A signed run replaces the
+   APK on the fixed `android-app` release, so the link never changes:
+   `https://github.com/arianlooterking/aratta-expo-cinematic/releases/download/android-app/aratta-staff.apk`
+   The download pages pick it up within ten minutes and show the version.
+   Every run also keeps the `.apk` and the `.aab` for Google Play under
+   **Artifacts**.
 
 ### 3. Google Play internal testing (optional)
 
@@ -67,7 +69,21 @@ store update. A new store build is only needed when the native part changes
    as the `PLAY_SERVICE_ACCOUNT_JSON` secret. Then run the workflow with
    "Send to Google Play" = internal.
 
-### 4. iOS and TestFlight (Apple Developer Program, $99/year)
+### 4. iPhone without a developer account (sideloading)
+
+Actions → **Mobile · iOS** → Run workflow (leave "Send to TestFlight" off).
+It builds the app for iPhones without signing and replaces
+`aratta-staff.ipa` on the fixed `ios-app` release:
+`https://github.com/arianlooterking/aratta-expo-cinematic/releases/download/ios-app/aratta-staff.ipa`
+
+People install it from a Mac or Windows computer with
+[Sideloadly](https://sideloadly.io) or AltStore, which sign it with their own
+Apple ID. The download pages explain the steps. Limits: with a free Apple ID
+the app has to be reinstalled every 7 days (AltStore refreshes it on its
+own), at most 3 sideloaded apps per Apple ID, and no push notifications.
+TestFlight removes all three.
+
+### 5. iOS and TestFlight (Apple Developer Program, $99/year)
 
 1. App Store Connect → Apps → **+** → New app, bundle ID `ir.arattaexpo.staff`
    (register the identifier first at developer.apple.com → Identifiers, with
@@ -84,7 +100,11 @@ Later options: **TestFlight external testing** (up to 10,000 people, light
 review) or a **private custom app** through Apple Business Manager, which is
 how internal company apps are normally distributed outside the public store.
 
-### 5. Push notifications
+With external testing, TestFlight gives a public invite link. Save it as the
+Vercel environment variable `IOS_TESTFLIGHT_URL` and the download pages show
+"Install with TestFlight" instead of the sideloading steps.
+
+### 6. Push notifications
 
 Android uses Firebase Cloud Messaging; iOS uses Apple's push service directly.
 

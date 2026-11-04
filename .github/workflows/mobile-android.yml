@@ -2,8 +2,9 @@
 #
 # Every run uploads an installable APK (for phones outside the Play Store) and
 # an AAB (for Google Play) as build artifacts. Running it by hand also
-# publishes a GitHub release with the APK, so the team always has one install
-# link: https://github.com/<owner>/<repo>/releases/latest/download/aratta-staff.apk
+# replaces the APK on the fixed "android-app" release, so the install link
+# never changes: https://github.com/<owner>/<repo>/releases/download/android-app/aratta-staff.apk
+# The download pages (/fa/app and the portal's Phone app page) read that release.
 # With "Send to Google Play" it also uploads the AAB to a Play testing track.
 #
 # Secrets (Settings → Secrets and variables → Actions), all optional:
@@ -37,7 +38,7 @@ on:
       - ".github/workflows/mobile-android.yml"
 
 concurrency:
-  group: mobile-android-${{ github.ref }}
+  group: mobile-android-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
@@ -111,13 +112,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk" dist-mobile/aratta-staff.apk
-          gh release create "android-v${APP_VERSION_NAME}" \
-            --target "$GITHUB_SHA" --latest \
-            --title "Aratta Staff for Android ${APP_VERSION_NAME}" \
-            --notes "Install on Android: open this page on the phone, tap aratta-staff.apk, then allow installs from your browser when asked. Updates install over the previous version and keep you signed in. Built from ${GITHUB_SHA::7}." \
-            dist-mobile/aratta-staff.apk "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk"
-          echo "Install link: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/aratta-staff.apk" >> "$GITHUB_STEP_SUMMARY"
+          cp "dist-mobile/aratta-staff-${APP_VERSION_NAME}.apk" "$RUNNER_TEMP/aratta-staff.apk"
+          link=$(mobile/scripts/publish-release.sh android-app \
+            "Aratta Staff for Android ${APP_VERSION_NAME}" \
+            "Install on Android: open this page on the phone, tap aratta-staff.apk, then allow installs from your browser when asked. Updates install over the previous version and keep you signed in. Version ${APP_VERSION_NAME}, built from ${GITHUB_SHA::7}." \
+            "$RUNNER_TEMP/aratta-staff.apk")
+          echo "Install link: $link" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v5
         with:

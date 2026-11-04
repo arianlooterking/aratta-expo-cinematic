@@ -1,8 +1,14 @@
 # Builds the iOS staff app.
 #
-# Every run compiles the app for the simulator to prove the project builds.
-# Running it by hand with "Send to TestFlight" archives a signed build and
-# uploads it to App Store Connect, where it appears in TestFlight.
+# Every run builds the app for iPhones without signing and keeps it as an .ipa
+# artifact. Running it by hand also replaces the .ipa on the fixed "ios-app"
+# release (https://github.com/<owner>/<repo>/releases/download/ios-app/aratta-staff.ipa),
+# which the download pages offer for sideloading with Sideloadly or AltStore
+# until TestFlight is set up. Sideloading signs the file with the person's own
+# Apple ID, so no Apple Developer account is needed for it.
+#
+# Running it by hand with "Send to TestFlight" instead archives a signed build
+# and uploads it to App Store Connect, where it appears in TestFlight.
 #
 # Secrets (Settings → Secrets and variables → Actions) for TestFlight:
 #   APPLE_TEAM_ID         10-character team ID (developer.apple.com → Membership)
@@ -16,6 +22,10 @@ name: Mobile · iOS
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: "Publish the iPhone file (.ipa) on the download pages"
+        type: boolean
+        default: true
       testflight:
         description: "Send to TestFlight"
         type: boolean
@@ -30,11 +40,11 @@ on:
       - ".github/workflows/mobile-ios.yml"
 
 concurrency:
-  group: mobile-ios-${{ github.ref }}
+  group: mobile-ios-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write # publishing the .ipa (GitHub release)
 
 jobs:
   build:
@@ -43,6 +53,7 @@ jobs:
     env:
       ARATTA_APP_URL: ${{ vars.ARATTA_APP_URL }}
       BUILD_NUMBER: ${{ github.run_number }}
+      APP_VERSION_NAME: 1.0.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v5
 
@@ -60,13 +71,44 @@ jobs:
       - name: Sync web shell and plugins
         run: npm run mobile:sync -- ios
 
-      - name: Build for the simulator
+      - name: Build for iPhone (unsigned)
         if: ${{ !inputs.testflight }}
         run: |
-          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO build | tail -n 40
-          exit "${PIPESTATUS[0]}"
+          set -o pipefail
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$APP_VERSION_NAME" \
+            build | tail -n 40
+
+      - name: Package the .ipa
+        if: ${{ !inputs.testflight }}
+        run: |
+          app="$RUNNER_TEMP/dd/Build/Products/Release-iphoneos/App.app"
+          test -d "$app"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload" dist-mobile
+          cp -R "$app" "$RUNNER_TEMP/ipa/Payload/"
+          (cd "$RUNNER_TEMP/ipa" && zip -qry "$GITHUB_WORKSPACE/dist-mobile/aratta-staff-${APP_VERSION_NAME}.ipa" Payload)
+          ls -lh dist-mobile
+
+      - uses: actions/upload-artifact@v5
+        if: ${{ !inputs.testflight }}
+        with:
+          name: aratta-staff-ios-${{ env.APP_VERSION_NAME }}
+          path: dist-mobile/
+          retention-days: 30
+
+      - name: Publish the .ipa
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && !inputs.testflight }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp "dist-mobile/aratta-staff-${APP_VERSION_NAME}.ipa" "$RUNNER_TEMP/aratta-staff.ipa"
+          link=$(mobile/scripts/publish-release.sh ios-app \
+            "Aratta Staff for iPhone ${APP_VERSION_NAME}" \
+            "Unsigned iPhone build for sideloading: on a Mac or Windows computer, open aratta-staff.ipa with Sideloadly (or AltStore) and sign in with your Apple ID, then trust it on the iPhone under Settings > General > VPN & Device Management. With a free Apple ID it must be reinstalled every 7 days. Version ${APP_VERSION_NAME}, built from ${GITHUB_SHA::7}." \
+            "$RUNNER_TEMP/aratta-staff.ipa")
+          echo "Download link: $link" >> "$GITHUB_STEP_SUMMARY"
 
       - name: App Store Connect key
         if: ${{ inputs.testflight }}
@@ -92,7 +134,7 @@ jobs:
                 -authenticationKeyIssuerID "$ASC_ISSUER_ID")
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
             -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" CURRENT_PROJECT_VERSION="$BUILD_NUMBER" MARKETING_VERSION="$APP_VERSION_NAME" \
             "${AUTH[@]}" archive | tail -n 40
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>

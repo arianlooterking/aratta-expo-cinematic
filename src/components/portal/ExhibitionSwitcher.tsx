@@ -50,7 +50,7 @@ export function ExhibitionSwitcher({ variant }: { variant: "sidebar" | "compact"
             {name}
           </span>
           {exhibition ? (
-            <span className={cn("mt-1 flex items-center gap-1.5 text-xs", variant === "sidebar" ? "text-p-side-muted" : "text-p-ink-3")}>
+            <span className={cn("mt-1 flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-xs", variant === "sidebar" ? "text-p-side-muted" : "text-p-ink-3")}>
               <span className={cn("size-1.5 rounded-full", phaseTone[phase])} />
               {countdownText(lang, exhibition)}
             </span>

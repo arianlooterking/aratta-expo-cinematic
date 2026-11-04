@@ -64,3 +64,48 @@ test("small helpers", () => {
   assert.equal(langFromPath("/en/staff"), "en");
   assert.equal(langFromPath("/fa/staff"), "fa");
 });
+
+import { downloadUrl, formatSize, parseRelease } from "../src/lib/native/releases.ts";
+
+test("download links are fixed per platform", () => {
+  assert.equal(downloadUrl("android"), "https://github.com/arianlooterking/aratta-expo-cinematic/releases/download/android-app/aratta-staff.apk");
+  assert.equal(downloadUrl("ios"), "https://github.com/arianlooterking/aratta-expo-cinematic/releases/download/ios-app/aratta-staff.ipa");
+});
+
+test("a published release shows version, size and date", () => {
+  const body = {
+    name: "Aratta Staff for Android 1.0.12",
+    assets: [
+      { name: "other.txt", size: 3 },
+      {
+        name: "aratta-staff.apk",
+        size: 6_710_886,
+        updated_at: "2026-11-04T09:00:00Z",
+        browser_download_url: "https://github.com/arianlooterking/aratta-expo-cinematic/releases/download/android-app/aratta-staff.apk",
+      },
+    ],
+  };
+  assert.deepEqual(parseRelease("android", 200, body), {
+    status: "ready",
+    url: "https://github.com/arianlooterking/aratta-expo-cinematic/releases/download/android-app/aratta-staff.apk",
+    version: "1.0.12",
+    size: 6_710_886,
+    updatedAt: "2026-11-04T09:00:00Z",
+  });
+});
+
+test("no release or no file yet means coming soon; other failures still offer the link", () => {
+  assert.deepEqual(parseRelease("ios", 404, null), { status: "pending" });
+  assert.deepEqual(parseRelease("ios", 200, { name: "x", assets: [{ name: "aratta-staff.apk" }] }), { status: "pending" });
+  assert.deepEqual(parseRelease("ios", 403, null), { status: "unknown", url: downloadUrl("ios") });
+  // A download URL pointing anywhere but GitHub is ignored.
+  const odd = parseRelease("android", 200, { assets: [{ name: "aratta-staff.apk", browser_download_url: "https://evil.example/x.apk" }] });
+  assert.equal(odd.status, "ready");
+  assert.equal(odd.url, downloadUrl("android"));
+  assert.equal(odd.version, null);
+});
+
+test("sizes read naturally in both languages", () => {
+  assert.equal(formatSize(6_710_886, "en"), "6.4 MB");
+  assert.equal(formatSize(6_710_886, "fa"), "۶٫۴ مگابایت");
+});
