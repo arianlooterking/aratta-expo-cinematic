@@ -121,7 +121,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     <section
       id="home"
       ref={rootRef}
-      className="relative h-[720svh] bg-black md:h-[620svh]"
+      className="relative h-[600svh] bg-black md:h-[540svh]"
       aria-label={content.hero.title}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-black">
@@ -364,7 +364,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
                   className="rounded-full border border-white/18 bg-black/38 px-4 py-3 text-sm font-black text-white shadow-xl shadow-black/25 backdrop-blur-md transition hover:bg-white/12"
                 >
                   <FileDown className="me-2 inline-block" size={17} />
-                  {content.lang === "fa" ? "فرم ها" : "Forms"}
+                  {content.lang === "fa" ? "فرم‌ها" : "Forms"}
                 </Link>
                 <Link
                   href="#about"

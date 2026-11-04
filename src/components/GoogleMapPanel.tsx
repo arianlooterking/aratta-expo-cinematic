@@ -15,6 +15,7 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
   return (
     <div className={compact ? "glass grid min-h-[390px] overflow-hidden rounded-[2rem] p-3 sm:p-4" : "glass grid min-h-[560px] overflow-hidden rounded-[2rem] p-3 sm:p-5"}>
       <div className={compact ? "relative min-h-[360px] overflow-hidden rounded-[1.5rem] border border-white/12 bg-black/25" : "relative min-h-[520px] overflow-hidden rounded-[1.5rem] border border-white/12 bg-black/25"}>
+        <MapBackdrop fa={fa} />
         <iframe
           title={fa ? "نقشه گوگل دفتر اَرَتَ در کرمان" : "Google map for Aratta office in Kerman"}
           src={content.contact.mapEmbedUrl}
@@ -68,8 +69,9 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
           <div className="absolute inset-x-3 bottom-3 z-10 sm:inset-x-5 sm:bottom-5">
             <div className="grid gap-2 rounded-[1.2rem] border border-white/14 bg-black/48 p-2.5 backdrop-blur-xl sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-3 sm:p-3">
               <div className="min-w-0">
-                <div className="font-latin text-[0.68rem] font-black uppercase tracking-[0.22em] text-[var(--cyan)]">
-                  Google Maps / {content.contact.plusCode}
+                <div className="text-[0.72rem] font-bold text-white/60">
+                  {fa ? "کد مکان گوگل" : "Google plus code"}{" "}
+                  <span className="font-latin font-black text-[var(--cyan)]">{content.contact.plusCode}</span>
                 </div>
               </div>
               <MapActions content={content} fa={fa} />
@@ -87,8 +89,9 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
               <div className="section-kicker">{content.contact.mapLabel}</div>
               <h2 className="mt-1 text-xl font-black leading-8 text-white">{content.contact.placeName}</h2>
               <p className="mt-1 text-sm leading-7 text-white/68">{content.contact.address}</p>
-              <div className="font-latin mt-2 text-[0.68rem] font-black uppercase tracking-[0.22em] text-[var(--cyan)]">
-                Google Maps / {content.contact.plusCode}
+              <div className="mt-2 text-[0.72rem] font-bold text-white/60">
+                {fa ? "کد مکان گوگل" : "Google plus code"}{" "}
+                <span className="font-latin font-black text-[var(--cyan)]">{content.contact.plusCode}</span>
               </div>
             </div>
           </div>
@@ -121,5 +124,43 @@ function MapActions({ content, fa }: { content: SiteContent; fa: boolean }) {
         {fa ? "مسیریابی" : "Directions"}
       </a>
     </>
+  );
+}
+
+// Drawn street plan under the live map: it is what visitors see while Google
+// Maps loads, or if the embed is blocked on their network.
+function MapBackdrop({ fa }: { fa: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="absolute inset-0 h-full w-full"
+      viewBox="0 0 600 520"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <radialGradient id="map-glow" cx="50%" cy="46%" r="55%">
+          <stop offset="0" stopColor="rgba(214,174,101,0.18)" />
+          <stop offset="1" stopColor="rgba(214,174,101,0)" />
+        </radialGradient>
+        <pattern id="map-blocks" width="46" height="46" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)">
+          <rect width="46" height="46" fill="none" stroke="rgba(255,255,255,0.055)" strokeWidth="1" />
+        </pattern>
+      </defs>
+      <rect width="600" height="520" fill="#0b1014" />
+      <rect width="600" height="520" fill="url(#map-blocks)" />
+      <path d="M40 470 C150 420 210 330 300 300 S470 170 590 120" fill="none" stroke="rgba(125,220,232,0.08)" strokeWidth="26" strokeLinecap="round" />
+      <ellipse cx="455" cy="395" rx="78" ry="46" fill="rgba(110,231,183,0.06)" />
+      <path d="M-20 250 L620 205" stroke="rgba(214,174,101,0.38)" strokeWidth="9" strokeLinecap="round" />
+      <path d="M-20 250 L620 205" stroke="rgba(255,236,196,0.5)" strokeWidth="1.5" strokeDasharray="10 12" />
+      <path d="M300 -20 L282 540" stroke="rgba(255,255,255,0.16)" strokeWidth="6" />
+      <path d="M120 -20 L160 540 M470 -20 L430 540 M-20 400 L620 360 M-20 110 L620 70" stroke="rgba(255,255,255,0.09)" strokeWidth="3" />
+      <rect width="600" height="520" fill="url(#map-glow)" />
+      <text x="470" y="196" fill="rgba(255,236,196,0.62)" fontSize="15" fontWeight="700" textAnchor="middle" transform="rotate(-4 470 196)">
+        {fa ? "بلوار جهاد" : "Jahad Blvd"}
+      </text>
+      <text x="96" y="478" fill="rgba(255,255,255,0.3)" fontSize="13" fontWeight="700" textAnchor="middle">
+        {fa ? "کرمان" : "Kerman"}
+      </text>
+    </svg>
   );
 }

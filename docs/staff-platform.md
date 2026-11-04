@@ -109,6 +109,32 @@ Before applying, set these in the plan:
 The workbook contains personal phone numbers. `imports/` and `*.xlsx` are
 git-ignored. Keep both off shared drives and out of the repository.
 
+## Upcoming exhibitions on the website
+
+The landing page and the exhibitions page show an "upcoming" calendar.
+
+- In the portal, **Upcoming work** (`/fa/staff/upcoming`) lists every
+  exhibition with two switches for managers: **Show on website** and
+  **Booth inquiries open**, plus an optional one-line intro per language.
+- The website reads only the `website_exhibitions` view
+  (`supabase/migrations/20261103090800_website_calendar.sql`) with the
+  publishable key. It exposes listed, non-archived exhibitions and only their
+  names, venue, city, dates, colour and the two switches. Prices, notes,
+  booths and companies never leave the staff side.
+- Pages refresh the calendar every ten minutes. Without Supabase settings, or
+  if the request fails, the site shows Aratta's recurring series
+  (`src/data/exhibition-series.ts`) as "dates to be announced", never with
+  a made-up date.
+- Every button on the public calendar, booth request and equipment request
+  only prepares an email draft or a calendar file. Nothing is booked or paid
+  through the website.
+
+The same page gives staff one agenda across all exhibitions: milestones
+(build-up, opening, last day, hall cleared), tasks, deal follow-ups,
+equipment deliveries and pickups (merged per exhibition and day) and unpaid
+invoices due (finance roles only). Overdue work is pinned on top, and the
+"Add to my calendar" button exports the visible agenda as an `.ics` file.
+
 ## Tests
 
 ```bash
