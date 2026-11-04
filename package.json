@@ -15,6 +15,7 @@
     "import:workbook": "node scripts/workbook/cli.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "framer-motion": "^12.40.0",

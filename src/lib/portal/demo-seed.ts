@@ -395,6 +395,7 @@ export function demoSeed(): DemoSnapshot {
       space_rate: spec.rate,
       booth_build_rate: 18_000_000,
       notes: null,
+      venue_plan_path: null,
       import_key: null,
       created_by: DEMO_STAFF_ID,
     });
