@@ -42,7 +42,8 @@ export function CompanyForm({
   );
 }
 
-function CompanyFormBody({
+/** The form itself, for flows that show it inside their own sheet (e.g. a new sales file). */
+export function CompanyFormBody({
   company,
   initialName,
   onClose,
