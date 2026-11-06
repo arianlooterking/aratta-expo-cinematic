@@ -12,7 +12,6 @@ import {
   Search,
   Sparkles,
   Trash2,
-  TriangleAlert,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
@@ -33,7 +32,10 @@ import {
 } from "@/lib/portal/furniture";
 import { equipmentStageLabel } from "@/lib/portal/i18n";
 import { newId } from "@/lib/portal/store";
-import type { Booth, EquipmentOrder, InventoryItem } from "@/lib/portal/types";
+import type { Booth, Deal, EquipmentOrder, InventoryItem } from "@/lib/portal/types";
+import { summariseEquipment } from "@/lib/portal/metrics";
+import { lineProblemStep } from "@/lib/portal/workflow";
+import { ProblemButton } from "../ProblemFlag";
 import { useExhibition } from "../ExhibitionProvider";
 import { usePortal } from "../PortalProvider";
 import { normalizeSearch } from "../SearchPalette";
@@ -67,12 +69,21 @@ const stageTone: Record<string, "neutral" | "warn" | "info" | "ok" | "danger"> =
  * A booth's furniture list. In the catalogue, tap the count side of a card to add one, the
  * name side to take one off, or the number to type it. Lines can be changed until they go out.
  */
-export function FurnitureTab({ booth }: { booth: Booth }) {
+export function FurnitureTab({ booth: boothProp, deal: dealProp, floor = true }: { booth?: Booth | null; deal?: Deal | null; floor?: boolean }) {
   const { lang, store, can, toast } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
-  const orders = useMemo(() => (x.ordersByBooth.get(booth.id) ?? []).filter((o) => o.stage !== "cancelled"), [x.ordersByBooth, booth.id]);
-  const summary = x.equipmentByBooth.get(booth.id);
+  // On the map this is one booth. On a company page it is the company's booth once it has one,
+  // and until then a list that waits on the company and moves onto its booth when it gets one.
+  const booth = boothProp ?? (dealProp ? (x.boothsByDeal.get(dealProp.id)?.[0] ?? null) : null);
+  const dealId = booth?.deal_id ?? dealProp?.id ?? null;
+  const orders = useMemo(
+    () =>
+      (booth ? (x.ordersByBooth.get(booth.id) ?? []) : x.orders.filter((o) => o.deal_id === dealId && !o.booth_id)).filter((o) => o.stage !== "cancelled"),
+    [x.ordersByBooth, x.orders, booth, dealId],
+  );
+  const summary = booth ? x.equipmentByBooth.get(booth.id) : orders.length ? summariseEquipment(orders, (id) => x.itemById.get(id)?.returnable ?? true) : undefined;
+  const boothArea = booth?.area_m2 ?? Number(dealProp?.expected_area_m2 ?? 12);
   const items = useMemo(() => x.items.filter((i) => !i.archived_at), [x.items]);
   const [catalogOpen, setCatalogOpen] = useState(orders.length === 0);
   // Lines inserted this session, so quick repeated taps top up the same line.
@@ -105,9 +116,9 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
     recent.current.set(itemId, id);
     await store.insert("equipment_orders", {
       id,
-      exhibition_id: booth.exhibition_id,
-      booth_id: booth.id,
-      deal_id: booth.deal_id,
+      exhibition_id: booth?.exhibition_id ?? x.exhibition!.id,
+      booth_id: booth?.id ?? null,
+      deal_id: dealId,
       item_id: itemId,
       quantity,
       unit_price: item?.rental_rate ?? null,
@@ -165,9 +176,9 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
   const otherBooths = useMemo(
     () =>
       x.booths
-        .filter((b) => b.id !== booth.id && (x.ordersByBooth.get(b.id)?.some((o) => o.stage !== "cancelled") ?? false))
+        .filter((b) => b.id !== booth?.id && (x.ordersByBooth.get(b.id)?.some((o) => o.stage !== "cancelled") ?? false))
         .sort((a, b) => a.code.localeCompare(b.code, "en", { numeric: true })),
-    [x.booths, x.ordersByBooth, booth.id],
+    [x.booths, x.ordersByBooth, booth?.id],
   );
 
   return (
@@ -187,8 +198,8 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
         </div>
       ) : null}
 
-      {can.edit && (pending.length > 0 || collectable.length > 0) ? <CrewBar /> : null}
-      {can.edit && (pending.length > 0 || collectable.length > 0) ? (
+      {floor && booth && can.edit && (pending.length > 0 || collectable.length > 0) ? <CrewBar /> : null}
+      {floor && booth && can.edit && (pending.length > 0 || collectable.length > 0) ? (
         <div className="grid grid-cols-2 gap-2">
           <Button tone="primary" icon={<PackageCheck className="size-4" />} disabled={!pending.length} onClick={() => bulk("deliver")}>
             {fa ? "تحویل همه" : "Deliver all"}
@@ -202,13 +213,15 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
       {orders.length === 0 ? (
         <div className="grid justify-items-center gap-3 rounded-2xl border border-dashed border-p-line-strong px-4 py-5 text-center">
           <Armchair className="size-6 text-p-ink-3" />
-          <p className="text-sm text-p-ink-3">{fa ? "برای این غرفه هنوز تجهیزاتی ثبت نشده." : "No furniture for this booth yet."}</p>
+          <p className="text-sm text-p-ink-3">
+            {booth ? (fa ? "برای این غرفه هنوز تجهیزاتی ثبت نشده." : "No furniture for this booth yet.") : fa ? "هنوز چیزی ثبت نشده. هر چه شرکت خواست اینجا بزنید؛ وقتی غرفه گرفت روی نقشه می رود." : "Nothing yet. Add what the company asks for; it moves onto the map when they get a booth."}
+          </p>
           {can.edit ? (
             <Button
               tone="quiet"
               size="sm"
               icon={<Sparkles className="size-4" />}
-              onClick={() => applyKit(standardKit(booth.area_m2, items), fa ? "بسته استاندارد" : "Standard kit")}
+              onClick={() => applyKit(standardKit(boothArea, items), fa ? "بسته استاندارد" : "Standard kit")}
             >
               {fa ? "بسته استاندارد این متراژ" : "Standard kit for this size"}
             </Button>
@@ -217,7 +230,7 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
       ) : (
         <ul className="grid gap-2">
           {orders.map((o) => (
-            <FurnitureLine key={o.id} order={o} onQuantity={(q) => setQuantity(o, q)} />
+            <FurnitureLine key={o.id} order={o} onQuantity={(q) => setQuantity(o, q)} floor={floor && Boolean(booth)} />
           ))}
         </ul>
       )}
@@ -253,7 +266,7 @@ export function FurnitureTab({ booth }: { booth: Booth }) {
   );
 }
 
-function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuantity: (q: number) => void }) {
+function FurnitureLine({ order: o, onQuantity, floor }: { order: EquipmentOrder; onQuantity: (q: number) => void; floor: boolean }) {
   const { lang, store, can, toast } = usePortal();
   const x = useExhibition();
   const fa = lang === "fa";
@@ -291,14 +304,8 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
             >
               <CheckCircle2 className="size-4 text-p-ok" />
             </IconButton>
-          ) : o.stage !== "collected" ? (
-            <IconButton
-              size="sm"
-              label={fa ? "گزارش مشکل" : "Report an issue"}
-              onClick={() => store.update("equipment_orders", o.id, { stage: "issue", notes: o.notes ?? (fa ? "نیاز به بررسی" : "Needs a look") })}
-            >
-              <TriangleAlert className="size-4" />
-            </IconButton>
+          ) : o.stage !== "collected" && o.booth_id ? (
+            <ProblemButton orderId={o.id} boothId={o.booth_id} step={lineProblemStep(o)} variant="icon" label={fa ? "گزارش مشکل" : "Report a problem"} />
           ) : null
         ) : null}
       </div>
@@ -352,7 +359,7 @@ function FurnitureLine({ order: o, onQuantity }: { order: EquipmentOrder; onQuan
             </IconButton>
           )
         ) : null}
-        {can.edit && !confirm ? (
+        {can.edit && !confirm && floor ? (
           step ? (
             <Button size="sm" tone={step === "deliver" ? "primary" : "secondary"} onClick={() => store.update("equipment_orders", o.id, equipmentPatch(o, step, crew))}>
               {step === "deliver" ? (fa ? "تحویل" : "Deliver") : fa ? "جمع آوری" : "Collect"}

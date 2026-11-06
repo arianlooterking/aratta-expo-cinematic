@@ -16,6 +16,7 @@ export type PortalTable =
   | "inventory_items"
   | "equipment_orders"
   | "tasks"
+  | "problems"
   | "staff_members"
   | "notifications";
 
@@ -37,6 +38,7 @@ export type Payment = Row<"payments">;
 export type InventoryItem = Row<"inventory_items">;
 export type EquipmentOrder = Row<"equipment_orders">;
 export type Task = Row<"tasks">;
+export type Problem = Row<"problems">;
 export type StaffMember = Row<"staff_members">;
 export type Notification = Row<"notifications">;
 
@@ -44,6 +46,7 @@ export type BoothStatus = Enums<"booth_status">;
 export type DealStage = Enums<"deal_stage">;
 export type EquipmentStage = Enums<"equipment_stage">;
 export type FeatureKind = Enums<"feature_kind">;
+export type ProblemStep = Enums<"problem_step">;
 export type ExhibitionStatus = Enums<"exhibition_status">;
 export type Currency = Enums<"currency_code">;
 export type StaffRole = Enums<"staff_role">;

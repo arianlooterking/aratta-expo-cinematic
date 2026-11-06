@@ -158,6 +158,7 @@ export type Database = {
           updated_at: string;
           deal_id: string | null;
           manager_ids: string[];
+          steps: Json;
         };
         Insert: {
           id?: string;
@@ -183,6 +184,7 @@ export type Database = {
           updated_at?: string;
           deal_id?: string | null;
           manager_ids?: string[];
+          steps?: Json;
         };
         Update: {
           id?: string;
@@ -207,6 +209,7 @@ export type Database = {
           updated_at?: string;
           deal_id?: string | null;
           manager_ids?: string[];
+          steps?: Json;
         };
         Relationships: [
           { foreignKeyName: "booths_deal_id_fkey"; columns: ["deal_id"]; isOneToOne: false; referencedRelation: "deals"; referencedColumns: ["id"] },
@@ -418,6 +421,9 @@ export type Database = {
           last_contact_at: string | null;
           lost_reason: string | null;
           sponsorship_tier: string | null;
+          furniture_notes: string | null;
+          furniture_confirmed_at: string | null;
+          furniture_confirmed_by: string | null;
           notes: string | null;
           stage_changed_at: string;
           won_at: string | null;
@@ -440,6 +446,9 @@ export type Database = {
           last_contact_at?: string | null;
           lost_reason?: string | null;
           sponsorship_tier?: string | null;
+          furniture_notes?: string | null;
+          furniture_confirmed_at?: string | null;
+          furniture_confirmed_by?: string | null;
           notes?: string | null;
           stage_changed_at?: string;
           won_at?: string | null;
@@ -462,6 +471,9 @@ export type Database = {
           last_contact_at?: string | null;
           lost_reason?: string | null;
           sponsorship_tier?: string | null;
+          furniture_notes?: string | null;
+          furniture_confirmed_at?: string | null;
+          furniture_confirmed_by?: string | null;
           notes?: string | null;
           stage_changed_at?: string;
           won_at?: string | null;
@@ -1091,6 +1103,65 @@ export type Database = {
           { foreignKeyName: "payments_recorded_by_fkey"; columns: ["recorded_by"]; isOneToOne: false; referencedRelation: "staff_members"; referencedColumns: ["id"] },
         ];
       };
+      problems: {
+        Row: {
+          id: string;
+          exhibition_id: string;
+          booth_id: string | null;
+          deal_id: string | null;
+          order_id: string | null;
+          step: Database["public"]["Enums"]["problem_step"];
+          note: string | null;
+          raised_by: string | null;
+          raised_at: string;
+          assignee_id: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          resolution: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          exhibition_id: string;
+          booth_id?: string | null;
+          deal_id?: string | null;
+          order_id?: string | null;
+          step?: Database["public"]["Enums"]["problem_step"];
+          note?: string | null;
+          raised_by?: string | null;
+          raised_at?: string;
+          assignee_id?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolution?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          exhibition_id?: string;
+          booth_id?: string | null;
+          deal_id?: string | null;
+          order_id?: string | null;
+          step?: Database["public"]["Enums"]["problem_step"];
+          note?: string | null;
+          raised_by?: string | null;
+          raised_at?: string;
+          assignee_id?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          resolution?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "problems_booth_id_fkey"; columns: ["booth_id"]; isOneToOne: false; referencedRelation: "booths"; referencedColumns: ["id"] },
+          { foreignKeyName: "problems_deal_id_fkey"; columns: ["deal_id"]; isOneToOne: false; referencedRelation: "deals"; referencedColumns: ["id"] },
+          { foreignKeyName: "problems_exhibition_id_fkey"; columns: ["exhibition_id"]; isOneToOne: false; referencedRelation: "exhibitions"; referencedColumns: ["id"] },
+          { foreignKeyName: "problems_order_id_fkey"; columns: ["order_id"]; isOneToOne: false; referencedRelation: "equipment_orders"; referencedColumns: ["id"] },
+        ];
+      };
       staff_members: {
         Row: {
           id: string;
@@ -1305,6 +1376,7 @@ export type Database = {
       deal_stage: "lead" | "contacted" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
       department: "executive" | "sales" | "operations" | "finance" | "logistics" | "marketing";
       equipment_category: "furniture" | "av" | "appliance" | "cooling" | "electrical" | "lighting" | "connectivity" | "signage" | "other";
+      problem_step: "furniture_list" | "build" | "power" | "delivery" | "handover" | "collection" | "clearance" | "payment" | "other";
       equipment_stage: "requested" | "reserved" | "prepared" | "delivered" | "collected" | "issue" | "cancelled";
       exhibition_status: "planning" | "selling" | "build" | "live" | "strike" | "closed" | "archived";
       feature_kind: "column" | "wall" | "door" | "entrance" | "loading" | "aisle" | "zone" | "stage" | "service" | "utility" | "label";
@@ -1339,6 +1411,7 @@ export const Constants = {
       deal_stage: ["lead", "contacted", "qualified", "proposal", "negotiation", "won", "lost"],
       department: ["executive", "sales", "operations", "finance", "logistics", "marketing"],
       equipment_category: ["furniture", "av", "appliance", "cooling", "electrical", "lighting", "connectivity", "signage", "other"],
+      problem_step: ["furniture_list", "build", "power", "delivery", "handover", "collection", "clearance", "payment", "other"],
       equipment_stage: ["requested", "reserved", "prepared", "delivered", "collected", "issue", "cancelled"],
       exhibition_status: ["planning", "selling", "build", "live", "strike", "closed", "archived"],
       feature_kind: ["column", "wall", "door", "entrance", "loading", "aisle", "zone", "stage", "service", "utility", "label"],

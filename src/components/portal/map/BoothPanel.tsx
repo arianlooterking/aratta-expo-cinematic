@@ -31,9 +31,12 @@ import { HandoverStamp } from "../crew";
 import { PeoplePicker, PeopleLine } from "../people";
 import { AssignSheet } from "./AssignSheet";
 import { FurnitureTab } from "./FurnitureTab";
+import { WorkTab } from "./WorkTab";
+import { ProblemButton } from "../ProblemFlag";
+import { lineProblemStep, problemStepLabel } from "@/lib/portal/workflow";
 import { Button, Field, IconButton, Input, Pill, Progress, Segmented, Select, Sheet, Textarea, TonePill } from "../ui";
 
-export type PanelTab = "sales" | "equipment" | "details";
+export type PanelTab = "sales" | "equipment" | "work" | "details";
 
 const STAGES: DealStage[] = ["lead", "contacted", "qualified", "proposal", "negotiation", "won", "lost"];
 
@@ -68,6 +71,7 @@ export function BoothPanel({
   const hall = x.halls.find((h) => h.id === booth.hall_id);
   const deal = booth.deal_id ? (x.dealById.get(booth.deal_id) ?? null) : null;
   const company = deal ? (x.companyById.get(deal.company_id) ?? null) : null;
+  const openProblems = x.openProblemsByBooth.get(booth.id) ?? [];
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -84,6 +88,18 @@ export function BoothPanel({
             {booth.open_sides ? `${sep(lang)}${fa ? `${num(lang, booth.open_sides)} بر باز` : `${booth.open_sides} open sides`}` : ""}
           </p>
           {company ? <p className="mt-1 truncate text-sm font-semibold text-p-ink">{pick(lang, company.name_fa, company.name_en)}</p> : null}
+          {openProblems.length ? (
+            <button
+              type="button"
+              onClick={() => onTab("work")}
+              className="mt-2 flex w-full items-center gap-2 rounded-xl bg-p-danger px-3 py-1.5 text-start text-[13px] font-semibold text-white"
+            >
+              <TriangleAlert className="size-4 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">
+                {openProblems.map((p) => problemStepLabel[p.step][lang] + (p.note ? `: ${p.note}` : "")).join(fa ? "، " : " · ")}
+              </span>
+            </button>
+          ) : null}
           <BoothManagers booth={booth} onUpdate={onUpdate} />
         </div>
         <IconButton label={fa ? "بستن" : "Close"} size="sm" onClick={onClose}>
@@ -96,8 +112,9 @@ export function BoothPanel({
           value={tab}
           onChange={onTab}
           options={[
-            { value: "sales", label: fa ? "فروش و مالی" : "Sales" },
-            { value: "equipment", label: fa ? "مبلمان و تجهیزات" : "Furniture" },
+            { value: "sales", label: fa ? "فروش" : "Sales" },
+            { value: "equipment", label: fa ? "تجهیزات" : "Furniture" },
+            { value: "work", label: fa ? "روند کار" : "Work" },
             { value: "details", label: fa ? "مشخصات" : "Details" },
           ]}
         />
@@ -107,6 +124,8 @@ export function BoothPanel({
           <SalesTab booth={booth} deal={deal} company={company} onUpdate={onUpdate} assignDeal={assignDeal} onAssigned={onAssigned} onAssignOpen={onAssignOpen} />
         ) : tab === "equipment" ? (
           <FurnitureTab booth={booth} />
+        ) : tab === "work" ? (
+          <WorkTab booth={booth} onUpdate={onUpdate} onFurniture={() => onTab("equipment")} />
         ) : (
           <DetailsTab booth={booth} onUpdate={onUpdate} onDelete={onDelete} />
         )}
@@ -594,13 +613,7 @@ export function EquipmentLine({ order: o, compact, crew }: { order: EquipmentOrd
       {can.edit ? (
         <div className="flex shrink-0 items-center gap-1">
           {o.stage !== "issue" && o.stage !== "collected" ? (
-            <IconButton
-              size="sm"
-              label={fa ? "گزارش مشکل" : "Report an issue"}
-              onClick={() => store.update("equipment_orders", o.id, { stage: "issue", notes: o.notes ?? (fa ? "نیاز به بررسی" : "Needs a look") })}
-            >
-              <TriangleAlert className="size-4" />
-            </IconButton>
+            <ProblemButton orderId={o.id} boothId={o.booth_id} step={lineProblemStep(o)} variant="icon" label={fa ? "گزارش مشکل" : "Report a problem"} />
           ) : o.stage === "issue" ? (
             <IconButton
               size="sm"

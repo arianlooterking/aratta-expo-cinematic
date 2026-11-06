@@ -34,6 +34,19 @@ requires an invited, active account.
 - **Inventory and equipment orders.** Each order moves through
   requested → reserved → prepared → delivered → collected (or issue).
   `inventory_allocation` shows what is promised and what is still out at booths.
+  Sales can record a company's furniture on its deal before it has a booth
+  (`booth_id` empty); when the company gets a booth the lines move onto it,
+  and if the booth goes to someone else, lines that never went out go back to
+  the company. `deals.furniture_confirmed_at` marks the list as agreed.
+- **Booth work steps.** `booths.steps` holds the steps ticked on the floor
+  (`build`, `power`, `handover`, `clearance`) with who and when. Together with
+  the furniture list, delivery and collection (worked out from the equipment
+  lines) they make the booth's progress, shown on the map's "Work" layer.
+- **Problems.** One tap on any step, furniture line or company raises a row in
+  `problems` (step, optional note, optional assignee). The booth is red on
+  every map layer until someone marks it resolved. Booth managers, the deal's
+  salesperson and the assignee are notified; whoever raised it hears when it
+  is fixed.
 - **Build permits** for booth-builders with their clearance guarantee,
   insurance and documents. **Guest travel** covers flights and hotels.
 - **Tasks with comments.** Assigning a task, changing its status or commenting

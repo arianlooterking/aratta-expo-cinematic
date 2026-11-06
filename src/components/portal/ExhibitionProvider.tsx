@@ -16,6 +16,7 @@ import type {
   Invoice,
   InvoiceLine,
   Payment,
+  Problem,
   StaffMember,
   Task,
 } from "@/lib/portal/types";
@@ -48,6 +49,11 @@ export type ExhibitionData = {
   items: InventoryItem[];
   itemById: Map<string, InventoryItem>;
   tasks: Task[];
+  /** Every problem in this exhibition, open and resolved. */
+  problems: Problem[];
+  openProblems: Problem[];
+  openProblemsByBooth: Map<string, Problem[]>;
+  openProblemsByDeal: Map<string, Problem[]>;
   staff: StaffMember[];
   staffById: Map<string, StaffMember>;
 };
@@ -99,6 +105,7 @@ export function ExhibitionProvider({ children }: { children: ReactNode }) {
   const invoices = useCollection("invoices", filter, Boolean(exhibition));
   const orders = useCollection("equipment_orders", filter, Boolean(exhibition));
   const tasks = useCollection("tasks", filter, Boolean(exhibition));
+  const problems = useCollection("problems", filter, Boolean(exhibition));
   // Small shared tables, loaded whole.
   const companies = useCollection("companies");
   const lines = useCollection("invoice_lines");
@@ -126,6 +133,8 @@ export function ExhibitionProvider({ children }: { children: ReactNode }) {
       equipmentByBooth.set(boothId, summariseEquipment(list, (id) => itemById.get(id)?.returnable ?? true));
     }
     const boothRows = booths.rows as Booth[];
+    const problemRows = [...(problems.rows as Problem[])].sort((a, b) => b.raised_at.localeCompare(a.raised_at));
+    const openProblems = problemRows.filter((p) => !p.resolved_at);
     const staffRows = staff.rows as StaffMember[];
     const status = exhibition
       ? worst(halls.status, booths.status, deals.status, companies.status, orders.status)
@@ -156,6 +165,10 @@ export function ExhibitionProvider({ children }: { children: ReactNode }) {
       items: itemRows,
       itemById,
       tasks: tasks.rows as Task[],
+      problems: problemRows,
+      openProblems,
+      openProblemsByBooth: group(openProblems, (p) => p.booth_id),
+      openProblemsByDeal: group(openProblems, (p) => p.deal_id),
       staff: staffRows,
       staffById: byId(staffRows),
     };
@@ -171,6 +184,7 @@ export function ExhibitionProvider({ children }: { children: ReactNode }) {
     invoices,
     orders,
     tasks,
+    problems,
     companies,
     lines,
     payments,

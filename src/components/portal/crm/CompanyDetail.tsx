@@ -35,6 +35,7 @@ import { usePageTour } from "../Tour";
 import { TaskForm } from "../tasks/TaskForm";
 import { Button, Card, Empty, Field, IconButton, Input, Pill, Select, Sheet, Skeleton } from "../ui";
 import { ActivityForm } from "./ActivityForm";
+import { FurnitureNeeds } from "./FurnitureNeeds";
 import { CompanyForm } from "./CompanyForm";
 import { StaffAvatar } from "../people";
 import { Avatar, STAGES, StagePill } from "./shared";
@@ -166,6 +167,7 @@ export function CompanyDetail({ id }: { id: string }) {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="grid min-w-0 content-start gap-4">
           <DealCard companyId={company.id} />
+          <CompanyFurniture companyId={company.id} />
           <Timeline companyId={company.id} onLog={() => setLogging(true)} />
         </div>
         <div className="grid min-w-0 content-start gap-4">
@@ -304,6 +306,13 @@ function DealCard({ companyId }: { companyId: string }) {
       <LostSheet deal={lostFor} onClose={() => setLostFor(null)} />
     </Card>
   );
+}
+
+/** The furniture card follows the same sales record the deal card shows. */
+function CompanyFurniture({ companyId }: { companyId: string }) {
+  const x = useExhibition();
+  const deal = x.deals.find((d) => d.company_id === companyId && d.stage !== "lost") ?? null;
+  return deal ? <FurnitureNeeds key={deal.id} deal={deal} /> : null;
 }
 
 function DealFields({ deal }: { deal: Deal }) {
