@@ -452,6 +452,10 @@ export function demoSeed(): DemoSnapshot {
       space_rate: spec.rate,
       booth_build_rate: 18_000_000,
       notes: null,
+      website_listed: spec.status === "selling",
+      registration_open: spec.status === "selling",
+      website_summary_fa: null,
+      website_summary_en: null,
       import_key: null,
       created_by: DEMO_STAFF_ID,
     });

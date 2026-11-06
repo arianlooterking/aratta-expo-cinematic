@@ -13,14 +13,17 @@ import type { SiteContent } from "@/data/aratta-content";
 
 type GalleryLightboxProps = {
   content: SiteContent;
+  /** Show only the first n photos in the grid; the viewer still pages through all. */
+  limit?: number;
 };
 
-export function GalleryLightbox({ content }: GalleryLightboxProps) {
+export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
   const [active, setActive] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const fa = content.lang === "fa";
   const item = active === null ? null : content.gallery.items[active];
   const isOpen = active !== null;
+  const visible = limit ? content.gallery.items.slice(0, limit) : content.gallery.items;
   useEffect(() => {
     if (!isOpen) return;
     const dialog = dialogRef.current;
@@ -46,12 +49,12 @@ export function GalleryLightbox({ content }: GalleryLightboxProps) {
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {content.gallery.items.map((image, index) => (
+        {visible.map((image, index) => (
           <button
             key={image.src}
             type="button"
             onClick={() => setActive(index)}
-            className="group relative aspect-[4/3] overflow-hidden rounded-[1.6rem] border border-white/12 bg-white/[0.035] text-start shadow-2xl shadow-black/20"
+            className={`group relative aspect-[4/3] overflow-hidden ${index === 0 && visible.length % 3 === 1 ? "lg:col-span-2 lg:aspect-auto" : ""} rounded-[1.6rem] border border-white/12 bg-white/[0.035] text-start shadow-2xl shadow-black/20`}
           >
             <Image
               src={image.src}

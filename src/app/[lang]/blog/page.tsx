@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BookOpenText } from "lucide-react";
 import { BlogCards } from "@/components/BlogCards";
 import { SiteChrome } from "@/components/SiteChrome";
+import { SiteFooter } from "@/components/SiteFooter";
 import { getContent, getPublishedBlogPosts } from "@/data/aratta-content";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { isLang, languages } from "@/lib/lang";
@@ -97,6 +98,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
           </div>
         </section>
       </main>
+      <SiteFooter content={content} />
     </>
   );
 }
