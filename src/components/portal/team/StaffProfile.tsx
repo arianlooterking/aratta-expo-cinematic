@@ -30,6 +30,7 @@ import { departmentLabels, roleDescriptions, roleLabels } from "@/lib/platform/l
 import { date, num, pick, relativeTime } from "@/lib/portal/format";
 import { canEditProfile, canEditTeam, canManageAccess, grantableRoles, isEmail, normalizePhone, parseSkills, workloadFor } from "@/lib/portal/team";
 import type { Department, StaffMember, StaffRole, Team } from "@/lib/portal/types";
+import { DatePicker } from "../DatePicker";
 import { useExhibition } from "../ExhibitionProvider";
 import { useCollection, useNow, usePortal } from "../PortalProvider";
 import { AvatarChooser, personName, StaffAvatar } from "../people";
@@ -527,7 +528,7 @@ function ProfileForm({ person, onClose, adminEdit }: { person: StaffMember; onCl
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={fa ? "شروع همکاری" : "Start date"} hint={!adminEdit ? (fa ? "مدیر سامانه ثبت می کند." : "Set by an admin.") : undefined}>
-          <Input name="start_date" type="date" defaultValue={person.start_date ?? ""} disabled={!adminEdit} dir="ltr" />
+          <DatePicker name="start_date" defaultValue={person.start_date ?? null} disabled={!adminEdit} />
         </Field>
         <Field label={fa ? "زبان سامانه" : "Portal language"}>
           <Select name="locale" defaultValue={person.locale}>

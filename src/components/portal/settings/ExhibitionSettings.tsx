@@ -10,6 +10,7 @@ import { TEAM_COLORS } from "@/lib/portal/team";
 import type { Exhibition, ExhibitionStatus } from "@/lib/portal/types";
 import { PageHeader } from "../crm/shared";
 import { useExhibition } from "../ExhibitionProvider";
+import { DatePicker } from "../DatePicker";
 import { MoneyInput } from "../fields";
 import { usePortal } from "../PortalProvider";
 import { History } from "../team/History";
@@ -154,16 +155,16 @@ function SettingsForm({ exhibition: e, editable }: { exhibition: Exhibition; edi
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Field label={fa ? "شروع غرفه سازی" : "Build-up starts"}>
-              <Input name="build_starts_on" type="date" defaultValue={e.build_starts_on ?? ""} dir="ltr" />
+              <DatePicker name="build_starts_on" defaultValue={e.build_starts_on ?? null} />
             </Field>
             <Field label={fa ? "افتتاح" : "Opens"}>
-              <Input name="starts_on" type="date" defaultValue={e.starts_on ?? ""} dir="ltr" />
+              <DatePicker name="starts_on" defaultValue={e.starts_on ?? null} />
             </Field>
             <Field label={fa ? "پایان" : "Closes"}>
-              <Input name="ends_on" type="date" defaultValue={e.ends_on ?? ""} dir="ltr" />
+              <DatePicker name="ends_on" defaultValue={e.ends_on ?? null} />
             </Field>
             <Field label={fa ? "پایان جمع آوری" : "Strike ends"}>
-              <Input name="strike_ends_on" type="date" defaultValue={e.strike_ends_on ?? ""} dir="ltr" />
+              <DatePicker name="strike_ends_on" defaultValue={e.strike_ends_on ?? null} />
             </Field>
           </div>
           {e.starts_on ? <p className="text-xs text-p-ink-3">{fa ? `افتتاح: ${date(lang, e.starts_on, "long")}` : `Opens ${date(lang, e.starts_on, "long")}`}</p> : null}
