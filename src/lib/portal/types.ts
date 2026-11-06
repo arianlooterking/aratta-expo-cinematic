@@ -17,7 +17,10 @@ export type PortalTable =
   | "equipment_orders"
   | "tasks"
   | "staff_members"
-  | "notifications";
+  | "notifications"
+  | "chat_channels"
+  | "chat_members"
+  | "chat_messages";
 
 export type Row<T extends PortalTable> = Tables<T>;
 export type Insert<T extends PortalTable> = TablesInsert<T>;
@@ -39,6 +42,9 @@ export type EquipmentOrder = Row<"equipment_orders">;
 export type Task = Row<"tasks">;
 export type StaffMember = Row<"staff_members">;
 export type Notification = Row<"notifications">;
+export type ChatChannel = Row<"chat_channels">;
+export type ChatMember = Row<"chat_members">;
+export type ChatMessage = Row<"chat_messages">;
 
 export type BoothStatus = Enums<"booth_status">;
 export type DealStage = Enums<"deal_stage">;

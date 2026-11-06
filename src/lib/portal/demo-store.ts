@@ -1,5 +1,6 @@
 "use client";
 
+import { afterChatMessage, dmKey } from "./chat.ts";
 import { cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder } from "./rules.ts";
 import { DEMO_STAFF_ID } from "./demo-seed.ts";
 import { PortalStore, newId, type AnyRow, type Collection } from "./store.ts";
@@ -27,6 +28,9 @@ const TABLES: PortalTable[] = [
   "tasks",
   "staff_members",
   "notifications",
+  "chat_channels",
+  "chat_members",
+  "chat_messages",
 ];
 
 // Column defaults, as in the migrations, so demo rows look like database rows.
@@ -65,6 +69,12 @@ function defaults(table: PortalTable, now: string): Record<string, unknown> {
       return { ...stamps, user_id: null, display_name: null, job_title: null, role: "member", departments: [], status: "invited", phone: null, avatar_url: null, locale: "fa", invited_by: null, last_seen_at: null };
     case "notifications":
       return { created_at: now, actor_id: null, body: null, link: null, entity_type: null, entity_id: null, read_at: null };
+    case "chat_channels":
+      return { ...stamps, kind: "channel", slug: null, name: null, topic: null, is_private: false, is_default: false, exhibition_id: null, dm_key: null, created_by: null, last_message_at: null, last_message_preview: null, archived_at: null };
+    case "chat_members":
+      return { last_read_at: now, unread_count: 0, mention_count: 0, muted: false, joined_at: now };
+    case "chat_messages":
+      return { created_at: now, author_id: null, bot_name: null, kind: "text", body: "", mentions: [], attachments: [], reply_to: null, link: null, entity_type: null, entity_id: null, edited_at: null, deleted_at: null };
   }
 }
 
@@ -105,7 +115,14 @@ export class DemoStore extends PortalStore {
   private load(): Tables | null {
     try {
       const raw = typeof window === "undefined" ? null : window.localStorage.getItem(STORAGE_KEY);
-      return raw ? this.fromSnapshot(JSON.parse(raw) as DemoSnapshot) : null;
+      if (!raw) return null;
+      const saved = JSON.parse(raw) as DemoSnapshot;
+      // A demo saved before team chat existed gets the sample conversations.
+      if (!saved.chat_channels) {
+        const seed = this.seed();
+        for (const t of ["chat_channels", "chat_members", "chat_messages"] as const) saved[t] = seed[t] ?? [];
+      }
+      return this.fromSnapshot(saved);
     } catch {
       return null;
     }
@@ -182,6 +199,14 @@ export class DemoStore extends PortalStore {
     if (table === "deals" && before && before.stage !== next.stage) {
       next = { ...next, stage_changed_at: now, won_at: next.stage === "won" ? (next.won_at ?? now) : next.won_at };
     }
+    if (table === "chat_messages" && before) {
+      // Same as chat_message_before_write: removed stays removed, edits are stamped.
+      if (before.deleted_at) return before;
+      if (next.deleted_at) next = { ...next, deleted_at: now, body: "", attachments: [] };
+      else if (next.body !== before.body || JSON.stringify(next.attachments) !== JSON.stringify(before.attachments)) next = { ...next, edited_at: now };
+      next = { ...next, channel_id: before.channel_id, author_id: before.author_id, created_at: before.created_at };
+    }
+    if (table === "chat_channels" && typeof next.name === "string") next = { ...next, name: next.name.replace(/^#+/, "").trim() };
     if (table === "tasks" && before && before.status !== next.status) {
       if (next.status === "in_progress" && !next.started_at) next = { ...next, started_at: now };
       if (next.status === "done") next = { ...next, completed_at: now };
@@ -215,8 +240,47 @@ export class DemoStore extends PortalStore {
     if (before && row.status !== before.status && row.created_by && row.created_by !== actor) push(row.created_by, "task.status", row.status);
   }
 
+  private join(channelId: string, staffId: string) {
+    for (const m of this.tables.chat_members.values()) if (m.channel_id === channelId && m.staff_id === staffId) return m;
+    const now = new Date().toISOString();
+    const row = { ...defaults("chat_members", now), id: newId(), channel_id: channelId, staff_id: staffId } as AnyRow;
+    this.tables.chat_members.set(row.id, row);
+    return row;
+  }
+
+  // chat_channel_after_insert and chat_message_after_insert.
+  private afterChat(table: PortalTable, row: AnyRow) {
+    if (table === "chat_channels" && row.kind === "channel") {
+      if (row.is_default) for (const s of this.tables.staff_members.values()) this.join(row.id, s.id);
+      else if (row.created_by) this.join(row.id, String(row.created_by));
+      this.touched("chat_members");
+    }
+    if (table !== "chat_messages") return;
+    const channel = this.tables.chat_channels.get(String(row.channel_id));
+    if (!channel) return;
+    const now = new Date().toISOString();
+    if (row.author_id) {
+      const mine = this.join(channel.id, String(row.author_id));
+      this.tables.chat_members.set(mine.id, { ...mine, last_read_at: now, unread_count: 0, mention_count: 0 });
+    }
+    const members = [...this.tables.chat_members.values()].filter((m) => m.channel_id === channel.id);
+    const author = row.author_id ? this.tables.staff_members.get(String(row.author_id)) : undefined;
+    const sender = String(row.bot_name ?? author?.display_name ?? author?.email ?? "همکار");
+    const { counters, notices, preview } = afterChatMessage(row as never, channel as never, members as never, sender);
+    for (const c of counters) this.tables.chat_members.set(c.id, { ...this.tables.chat_members.get(c.id)!, ...c });
+    this.tables.chat_channels.set(channel.id, { ...channel, last_message_at: row.created_at, last_message_preview: preview });
+    for (const n of notices) {
+      const id = newId();
+      this.tables.notifications.set(id, { id, actor_id: row.author_id, entity_type: "chat", entity_id: channel.id, read_at: null, created_at: now, ...n });
+    }
+    this.touched("chat_members");
+    this.touched("chat_channels");
+    if (notices.length) this.touched("notifications");
+  }
+
   private afterWrite(table: PortalTable, row: AnyRow) {
     if (table === "tasks") this.notifyTask(row, undefined);
+    this.afterChat(table, row);
     // activity_after_insert: a logged conversation moves the deal forward.
     if (table === "activities" && row.deal_id && row.kind !== "system") {
       const deal = this.tables.deals.get(String(row.deal_id));
@@ -257,6 +321,12 @@ export class DemoStore extends PortalStore {
     if (!before) return { ok: false, error: "missing" };
     this.tables[table].delete(id);
     // The same cascades the foreign keys do.
+    if (table === "chat_channels") {
+      for (const t of ["chat_members", "chat_messages"] as const) {
+        for (const r of [...this.tables[t].values()]) if (r.channel_id === id) this.tables[t].delete(r.id);
+        this.touched(t);
+      }
+    }
     if (table === "booths") {
       for (const o of this.tables.equipment_orders.values()) if (o.booth_id === id) this.tables.equipment_orders.set(o.id, { ...o, booth_id: null });
       this.touched("equipment_orders");
@@ -281,6 +351,22 @@ export class DemoStore extends PortalStore {
       if (!n.read_at && (!ids || ids.includes(n.id))) this.tables.notifications.set(n.id, { ...n, read_at: now });
     }
     this.touched("notifications");
+  }
+
+  async openDirect(staffId: string) {
+    if (!this.isStaff(staffId)) return { ok: false as const, error: "missing" };
+    const key = dmKey(DEMO_STAFF_ID, staffId);
+    let channel = [...this.tables.chat_channels.values()].find((c) => c.dm_key === key);
+    if (!channel) {
+      const now = new Date().toISOString();
+      channel = { ...defaults("chat_channels", now), id: newId(), kind: "direct", dm_key: key, created_by: DEMO_STAFF_ID } as AnyRow;
+      this.tables.chat_channels.set(channel.id, channel);
+    }
+    this.join(channel.id, DEMO_STAFF_ID);
+    this.join(channel.id, staffId);
+    this.touched("chat_channels");
+    this.touched("chat_members");
+    return { ok: true as const, id: channel.id };
   }
 
   async setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>> {
