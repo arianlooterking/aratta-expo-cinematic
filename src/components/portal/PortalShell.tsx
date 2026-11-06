@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Bell,
   Building2,
@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   ListTodo,
   LogOut,
+  MessagesSquare,
   Map as MapIcon,
   Menu,
   Monitor,
@@ -42,6 +43,7 @@ import { QuickAdd } from "./QuickAdd";
 import { SearchPalette } from "./SearchPalette";
 import { TOUR_KEYS, TOUR_ROUTES, TourProvider, useTour } from "./Tour";
 import { AvatarChooser, StaffAvatar } from "./people";
+import { useChatBadge } from "./chat/useChat";
 import { IconButton, MenuItem, Popover } from "./ui";
 import { useToday } from "./useToday";
 
@@ -94,6 +96,12 @@ function Shell({
   const [searchOpen, setSearchOpen] = useState(false);
   const base = `/${lang}/staff`;
   const isMap = pathname.startsWith(`${base}/map`);
+  const isChat = pathname.startsWith(`${base}/chat`);
+  // Full-height screens manage their own scrolling.
+  const isFull = isMap || isChat;
+  const chat = useChatBadge();
+  const search = useSearchParams();
+  const inConversation = isChat && Boolean(search?.get("c"));
 
   const fa = lang === "fa";
   const groups: NavGroup[] = useMemo(() => {
@@ -137,14 +145,28 @@ function Shell({
         ],
       });
     const team: NavItem[] = [
+      {
+        href: `${base}/chat`,
+        label: fa ? "گفتگو" : "Chat",
+        icon: <MessagesSquare className={icon} />,
+        match: (p) => p.startsWith(`${base}/chat`),
+        badge: chat.badge,
+        tone: chat.mentions ? "danger" : "brand",
+      },
       { href: `${base}/tasks`, label: t(lang, "tasks"), icon: <ListTodo className={icon} />, match: (p) => p.startsWith(`${base}/tasks`), badge: today.myTasksDue, tone: "danger" },
     ];
     if (mode === "live") team.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className={icon} />, match: (p) => p.startsWith(`${base}/team`) });
     out.push({ label: fa ? "تیم" : "Team", items: team });
     return out;
-  }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue]);
+  }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue, chat.badge, chat.mentions]);
   const nav = groups.flatMap((g) => g.items);
-  const tabs: NavItem[] = [nav[0], nav[1], nav.find((n) => n.href === `${base}/crm/pipeline`)!, nav.find((n) => n.href === `${base}/tasks`)!];
+  const tabs: NavItem[] = [
+    nav[0],
+    nav[1],
+    nav.find((n) => n.href === `${base}/chat`)!,
+    nav.find((n) => n.href === `${base}/crm/pipeline`)!,
+    nav.find((n) => n.href === `${base}/tasks`)!,
+  ];
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -250,8 +272,8 @@ function Shell({
         </div>
       ) : null}
 
-      <div className={cn("flex flex-col lg:ps-64 print:ps-0", isMap ? "h-dvh" : "min-h-dvh")}>
-        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 backdrop-blur-md print:hidden">
+      <div className={cn("flex flex-col lg:ps-64 print:ps-0", isFull ? "h-dvh" : "min-h-dvh")}>
+        <header className={cn("sticky top-0 z-20 border-b border-p-line bg-p-bg/85 backdrop-blur-md print:hidden", inConversation && "hidden lg:block")}>
           <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
             <IconButton label={t(lang, "menu")} className="lg:hidden" onClick={() => setDrawer(true)}>
               <Menu className="size-5" />
@@ -290,11 +312,14 @@ function Shell({
           {mode === "demo" ? <DemoBanner /> : null}
         </header>
 
-        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-16 lg:pb-0" : "pb-24 lg:pb-10 print:pb-0")}>{children}</main>
+        <main className={cn("flex-1", isFull ? cn("flex min-h-0 flex-col lg:pb-0", inConversation ? "pb-0" : "pb-16") : "pb-24 lg:pb-10 print:pb-0")}>{children}</main>
 
         {/* Mobile tab bar */}
         <nav
-          className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-p-line bg-p-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden"
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-p-line bg-p-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden print:hidden",
+            inConversation && "hidden",
+          )}
           aria-label={t(lang, "menu")}
           data-tour="nav"
         >
@@ -534,6 +559,8 @@ function notificationKind(lang: "fa" | "en", kind: string) {
   if (kind === "task.status") return fa ? "تغییر وضعیت کار" : "Task status changed";
   if (kind === "task.comment") return fa ? "نظر تازه" : "New comment";
   if (kind.includes("payment")) return fa ? "پرداخت" : "Payment";
+  if (kind === "chat.direct") return fa ? "پیام تازه" : "New message";
+  if (kind === "chat.mention") return fa ? "از شما نام بردند" : "You were mentioned";
   return fa ? "اعلان" : "Notice";
 }
 
