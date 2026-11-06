@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Aratta Staff</string>
+    <string name="title_activity_main">Aratta Staff</string>
+    <string name="package_name">ir.arattaexpo.staff</string>
+    <string name="custom_url_scheme">ir.arattaexpo.staff</string>
+</resources>

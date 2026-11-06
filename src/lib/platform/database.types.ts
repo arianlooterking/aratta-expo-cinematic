@@ -1008,6 +1008,36 @@ export type Database = {
           { foreignKeyName: "invoices_exhibition_id_fkey"; columns: ["exhibition_id"]; isOneToOne: false; referencedRelation: "exhibitions"; referencedColumns: ["id"] },
         ];
       };
+      push_devices: {
+        Row: {
+          id: string;
+          staff_id: string;
+          token: string;
+          platform: "ios" | "android";
+          app_version: string | null;
+          created_at: string;
+          last_seen_at: string;
+        };
+        Insert: {
+          id?: string;
+          staff_id: string;
+          token: string;
+          platform: "ios" | "android";
+          app_version?: string | null;
+          created_at?: string;
+          last_seen_at?: string;
+        };
+        Update: {
+          id?: string;
+          staff_id?: string;
+          token?: string;
+          platform?: "ios" | "android";
+          app_version?: string | null;
+          created_at?: string;
+          last_seen_at?: string;
+        };
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;
@@ -1460,6 +1490,8 @@ export type Database = {
       in_department: { Args: { dept: Database["public"]["Enums"]["department"] }; Returns: boolean };
       can_manage_finance: { Args: Record<PropertyKey, never>; Returns: boolean };
       mark_notifications_read: { Args: { p_ids?: string[] }; Returns: number };
+      register_push_device: { Args: { p_token: string; p_platform: string; p_app_version?: string }; Returns: undefined };
+      unregister_push_device: { Args: { p_token: string }; Returns: undefined };
       set_my_avatar: { Args: { p_avatar: string | null }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
       update_my_profile: { Args: { p_display_name?: string; p_job_title?: string; p_phone?: string; p_locale?: string; p_bio?: string; p_skills?: string[] }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
     };

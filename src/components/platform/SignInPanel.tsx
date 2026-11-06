@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { AlertTriangle, Loader2, LogOut, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Loader2, LogOut, ShieldCheck, Smartphone } from "lucide-react";
 import type { Lang } from "@/lib/lang";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
+import { isNativeApp, startNativeSignIn } from "@/lib/native/app";
 
 type Provider = "google" | "apple";
 
@@ -37,6 +38,7 @@ const copy = {
     callbackError: "ورود کامل نشد. لطفا دوباره تلاش کنید.",
     providerError: "اتصال به سرویس ورود برقرار نشد.",
     unconfigured: "اتصال پایگاه داده هنوز تنظیم نشده است.",
+    getApp: "دریافت اپ موبایل برای اندروید و آیفون",
   },
   en: {
     eyebrow: "Staff portal",
@@ -58,6 +60,7 @@ const copy = {
     callbackError: "Sign-in didn’t finish. Please try again.",
     providerError: "Couldn’t reach the sign-in provider.",
     unconfigured: "The database connection hasn’t been configured yet.",
+    getApp: "Get the phone app for Android and iPhone",
   },
 } as const;
 
@@ -98,6 +101,17 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
     }
     setBusy(provider);
     setLocalError(null);
+    if (isNativeApp()) {
+      // In the iOS / Android app, sign-in runs in the system browser and
+      // returns through the app's link (see NativeBridge).
+      try {
+        await startNativeSignIn(provider, next, () => setBusy(null));
+      } catch {
+        setBusy(null);
+        setLocalError(t.providerError);
+      }
+      return;
+    }
     const redirectTo = new URL("/auth/callback", window.location.origin);
     redirectTo.searchParams.set("next", next);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -111,7 +125,7 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
   }
 
   return (
-    <main className="min-h-dvh bg-[#071713] text-[#e8f4ed]">
+    <main className="min-h-dvh bg-[#071713] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-[#e8f4ed]">
       <div className="mx-auto grid min-h-dvh max-w-6xl content-center items-center gap-8 px-4 py-8 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-[1.1fr_minmax(0,28rem)] lg:gap-16">
         <section className="space-y-6 sm:space-y-8">
           <div className="flex items-center gap-3">
@@ -197,6 +211,14 @@ export function SignInPanel({ lang, next, error, pending }: SignInPanelProps) {
               <div className="space-y-2 border-t border-[#10211d]/10 pt-5 text-xs leading-relaxed text-[#65726d]">
                 <p>{t.inviteOnly}</p>
                 <p>{t.appleNote}</p>
+                {/* Pointless inside the app itself (NativeBridge marks <html>). */}
+                <a
+                  href={`/${lang}/app`}
+                  className="inline-flex items-center gap-1.5 pt-1 font-semibold text-[#126f80] underline-offset-4 hover:underline [.native-app_&]:hidden"
+                >
+                  <Smartphone aria-hidden className="h-4 w-4" />
+                  {t.getApp}
+                </a>
               </div>
             </div>
           )}

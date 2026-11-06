@@ -16,3 +16,6 @@ qa/
 docs/
 scripts/
 netlify.toml
+android
+ios
+mobile

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { isNativeApp, shareTextFile } from "@/lib/native/app";
 import { dealStageLabel } from "@/lib/portal/i18n";
 import type { DealStage } from "@/lib/portal/types";
 import { usePortal } from "../PortalProvider";
@@ -41,8 +42,16 @@ export function StagePill({ stage, small }: { stage: DealStage; small?: boolean 
 
 export const STAGES: DealStage[] = ["lead", "contacted", "qualified", "proposal", "negotiation", "won", "lost"];
 
-/** Saves text as a file in the browser. */
+/** Saves text as a file: a download in the browser, the share sheet in the app. */
 export function downloadText(filename: string, text: string, type = "text/plain") {
+  if (isNativeApp()) {
+    void shareTextFile(filename, text).catch(() => browserDownload(filename, text, type));
+    return;
+  }
+  browserDownload(filename, text, type);
+}
+
+function browserDownload(filename: string, text: string, type: string) {
   const blob = new Blob([text], { type: `${type};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

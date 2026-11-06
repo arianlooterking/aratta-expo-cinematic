@@ -294,8 +294,12 @@ export function Sheet({
             <X className="size-4" />
           </IconButton>
         </div>
-        <div className="thin-scroll overflow-y-auto px-5 py-4">{children}</div>
-        {footer ? <div className="flex flex-wrap justify-end gap-2 border-t border-p-line px-5 py-3">{footer}</div> : null}
+        <div className={cn("thin-scroll overflow-y-auto px-5 py-4", !footer && "pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4")}>{children}</div>
+        {footer ? (
+          <div className="flex flex-wrap justify-end gap-2 border-t border-p-line px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-3">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </div>,
     host,

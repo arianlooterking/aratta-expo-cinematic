@@ -18,12 +18,12 @@ import {
   LogOut,
   Map as MapIcon,
   Menu,
-  Monitor,
   Moon,
   MoreHorizontal,
   PackageCheck,
   RefreshCw,
   Search,
+  Smartphone,
   SquareKanban,
   TriangleAlert,
   Sun,
@@ -71,7 +71,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
   return (
     <div className="portal min-h-dvh" data-theme={theme}>
       <TourProvider>
-        <Shell themePref={themePref} setThemePref={setThemePref}>
+        <Shell theme={theme} setThemePref={setThemePref}>
           {children}
         </Shell>
       </TourProvider>
@@ -81,11 +81,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
 
 function Shell({
   children,
-  themePref,
+  theme,
   setThemePref,
 }: {
   children: ReactNode;
-  themePref: "system" | "light" | "dark";
+  theme: "light" | "dark";
   setThemePref: (v: "system" | "light" | "dark") => void;
 }) {
   const { lang, mode, user, can, toasts, dismissToast } = usePortal();
@@ -225,6 +225,18 @@ function Shell({
       <div className="mt-auto grid gap-0.5 pt-4">
         <HelpMenu variant="sidebar" />
         <Link
+          href={`${base}/app`}
+          onClick={closeDrawer}
+          aria-current={pathname.startsWith(`${base}/app`) ? "page" : undefined}
+          className={cn(
+            "flex h-9 items-center gap-3 rounded-xl px-3 text-[13px] hover:bg-p-side-hover hover:text-p-side-ink",
+            pathname.startsWith(`${base}/app`) ? "bg-white/10 text-white" : "text-p-side-muted",
+          )}
+        >
+          <Smartphone className="size-4" />
+          {fa ? "اپ موبایل" : "Phone app"}
+        </Link>
+        <Link
           href={`${base}/classic`}
           className="flex h-9 items-center gap-3 rounded-xl px-3 text-[13px] text-p-side-muted hover:bg-p-side-hover hover:text-p-side-ink"
         >
@@ -249,14 +261,14 @@ function Shell({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side lg:block print:hidden">{sidebar}</aside>
+      <aside className="fixed inset-y-0 start-0 z-30 hidden w-64 bg-p-side pt-[env(safe-area-inset-top)] lg:block print:hidden">{sidebar}</aside>
 
       {/* Mobile drawer */}
       {drawer ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="animate-fade absolute inset-0 bg-black/50" onClick={closeDrawer} aria-hidden />
-          <aside className="animate-sheet absolute inset-y-0 start-0 w-[84%] max-w-80 bg-p-side shadow-2xl">
-            <IconButton label={t(lang, "close")} className="absolute end-2 top-3 text-p-side-muted" onClick={closeDrawer}>
+          <aside className="animate-sheet absolute inset-y-0 start-0 w-[84%] max-w-80 bg-p-side pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-2xl">
+            <IconButton label={t(lang, "close")} className="absolute end-2 top-[calc(env(safe-area-inset-top)+0.75rem)] text-p-side-muted" onClick={closeDrawer}>
               <X className="size-5" />
             </IconButton>
             {sidebar}
@@ -265,8 +277,9 @@ function Shell({
       ) : null}
 
       <div className={cn("flex flex-col lg:ps-64 print:ps-0", isMap ? "h-dvh" : "min-h-dvh")}>
-        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 backdrop-blur-md print:hidden">
-          <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
+        <header className="sticky top-0 z-20 border-b border-p-line bg-p-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur-md print:hidden">
+          {/* Phones: slightly smaller icon buttons leave room for the exhibition name. */}
+          <div className="flex h-14 items-center gap-1 px-2 max-sm:[&_.size-10]:size-9 sm:gap-2 sm:px-5">
             <IconButton label={t(lang, "menu")} className="lg:hidden" onClick={() => setDrawer(true)}>
               <Menu className="size-5" />
             </IconButton>
@@ -294,17 +307,14 @@ function Shell({
             <div className="hidden sm:block">
               <HelpMenu variant="icon" />
             </div>
+            <ThemeToggle theme={theme} onToggle={() => setThemePref(theme === "dark" ? "light" : "dark")} />
             <Inbox />
-            <UserMenu
-              themePref={themePref}
-              setThemePref={setThemePref}
-              otherLangPath={otherLangPath}
-            />
+            <UserMenu otherLangPath={otherLangPath} />
           </div>
           {mode === "demo" ? <DemoBanner /> : null}
         </header>
 
-        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-16 lg:pb-0" : "pb-24 lg:pb-10 print:pb-0")}>{children}</main>
+        <main className={cn("flex-1", isMap ? "flex min-h-0 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" : "pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10 print:pb-0")}>{children}</main>
 
         {/* Mobile tab bar */}
         <nav
@@ -340,7 +350,7 @@ function Shell({
 
       <SearchPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 print:hidden">
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[60] flex flex-col items-center gap-2 px-4 lg:bottom-6 print:hidden">
         {toasts.map((toast) => (
           <button
             key={toast.id}
@@ -444,15 +454,20 @@ function Inbox() {
   );
 }
 
-function UserMenu({
-  themePref,
-  setThemePref,
-  otherLangPath,
-}: {
-  themePref: "system" | "light" | "dark";
-  setThemePref: (v: "system" | "light" | "dark") => void;
-  otherLangPath: string;
-}) {
+/** One button: in light mode it switches to dark, in dark mode back to light. */
+function ThemeToggle({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) {
+  const { lang } = usePortal();
+  const fa = lang === "fa";
+  const dark = theme === "dark";
+  const label = dark ? (fa ? "حالت روشن" : "Light mode") : fa ? "حالت تیره" : "Dark mode";
+  return (
+    <IconButton label={label} onClick={onToggle}>
+      {dark ? <Sun className="size-5" /> : <Moon className="size-5" />}
+    </IconButton>
+  );
+}
+
+function UserMenu({ otherLangPath }: { otherLangPath: string }) {
   const { lang, mode, user, store } = usePortal();
   const x = useExhibition();
   const me = x.staffById.get(user.id) ?? null;
@@ -494,30 +509,6 @@ function UserMenu({
             {lang === "fa" ? "تصویر شما" : "Your picture"}
           </MenuItem>
         ) : null}
-        <div className="my-1 h-px bg-p-line" />
-        <p className="px-2.5 pb-1 pt-1.5 text-xs font-medium text-p-ink-3">{t(lang, "theme")}</p>
-        <div className="grid grid-cols-3 gap-1 px-1.5 pb-1.5">
-          {(
-            [
-              ["system", <Monitor key="s" className="size-4" />, lang === "fa" ? "خودکار" : "Auto"],
-              ["light", <Sun key="l" className="size-4" />, lang === "fa" ? "روشن" : "Light"],
-              ["dark", <Moon key="d" className="size-4" />, lang === "fa" ? "تیره" : "Dark"],
-            ] as const
-          ).map(([value, icon, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setThemePref(value)}
-              className={cn(
-                "flex flex-col items-center gap-1 rounded-xl py-2 text-xs",
-                themePref === value ? "bg-p-brand-soft text-p-brand" : "text-p-ink-2 hover:bg-p-sunken",
-              )}
-            >
-              {icon}
-              {label}
-            </button>
-          ))}
-        </div>
         <div className="my-1 h-px bg-p-line" />
         <Link href={otherLangPath} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm hover:bg-p-sunken">
           <span className="grid size-5 place-items-center text-xs font-bold">{lang === "fa" ? "En" : "فا"}</span>

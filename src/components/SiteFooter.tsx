@@ -152,6 +152,9 @@ export function SiteFooter({ content }: { content: SiteContent }) {
             © {copy.year} · {content.footer.copyright}
           </p>
           <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
+            <Link href={`/${lang}/app`} className="inline-flex min-h-10 items-center hover:text-white">
+              {isFa ? "اپلیکیشن کارکنان" : "Staff app"}
+            </Link>
             <span className="font-latin">{content.footer.credit}</span>
             <a
               href="#main-content"
