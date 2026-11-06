@@ -1,6 +1,6 @@
 "use client";
 
-import { cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder } from "./rules.ts";
+import { carryFurniture, cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder, deriveProblem } from "./rules.ts";
 import { DEMO_STAFF_ID } from "./demo-seed.ts";
 import { PortalStore, newId, type AnyRow, type Collection } from "./store.ts";
 import type { Insert, MutationResult, Patch, PortalTable, Row } from "./types";
@@ -25,6 +25,7 @@ const TABLES: PortalTable[] = [
   "inventory_items",
   "equipment_orders",
   "tasks",
+  "problems",
   "staff_members",
   "notifications",
 ];
@@ -40,13 +41,13 @@ function defaults(table: PortalTable, now: string): Record<string, unknown> {
     case "hall_features":
       return { ...stamps, exhibition_id: "", label_fa: null, label_en: null, rotation: 0, polygon: null, style: {}, import_key: null };
     case "booths":
-      return { ...stamps, exhibition_id: "", rotation: 0, polygon: null, area_m2: 0, area_is_manual: false, open_sides: 1, zone: null, status: "available", price_override: null, notes: null, import_key: null, deal_id: null, manager_ids: [] };
+      return { ...stamps, exhibition_id: "", rotation: 0, polygon: null, area_m2: 0, area_is_manual: false, open_sides: 1, zone: null, status: "available", price_override: null, notes: null, import_key: null, deal_id: null, manager_ids: [], steps: {} };
     case "companies":
       return { ...stamps, kind: "exhibitor", name_en: null, legal_name: null, national_id: null, economic_code: null, sector: null, city: null, address: null, website: null, phone: null, email: null, owner_id: null, priority: "normal", tags: [], notes: null, import_key: null, archived_at: null };
     case "contacts":
       return { ...stamps, job_title: null, phone: null, phone_alt: null, email: null, is_primary: false, notes: null, import_key: null };
     case "deals":
-      return { ...stamps, contact_id: null, owner_id: null, stage: "lead", source: null, expected_area_m2: null, probability: null, estimated_value: null, next_follow_up_at: null, last_contact_at: null, lost_reason: null, sponsorship_tier: null, notes: null, stage_changed_at: now, won_at: null, import_key: null };
+      return { ...stamps, contact_id: null, owner_id: null, stage: "lead", source: null, expected_area_m2: null, probability: null, estimated_value: null, next_follow_up_at: null, last_contact_at: null, lost_reason: null, sponsorship_tier: null, furniture_notes: null, furniture_confirmed_at: null, furniture_confirmed_by: null, notes: null, stage_changed_at: now, won_at: null, import_key: null };
     case "activities":
       return { created_at: now, deal_id: null, contact_id: null, body: null, outcome: null, occurred_at: now, next_follow_up_at: null, author_id: null, import_key: null };
     case "invoices":
@@ -61,6 +62,8 @@ function defaults(table: PortalTable, now: string): Record<string, unknown> {
       return { ...stamps, booth_id: null, deal_id: null, quantity: 1, unit_price: null, stage: "requested", delivered_qty: 0, collected_qty: 0, damaged_qty: 0, delivery_due_at: null, pickup_due_at: null, delivered_at: null, collected_at: null, handled_by: null, delivered_by: [], collected_by: [], notes: null, import_key: null };
     case "tasks":
       return { ...stamps, exhibition_id: null, description: null, status: "todo", priority: "normal", assignee_id: null, created_by: null, due_at: null, started_at: null, completed_at: null, booth_id: null, deal_id: null, company_id: null, checklist: [], sort_order: 0 };
+    case "problems":
+      return { ...stamps, booth_id: null, deal_id: null, order_id: null, step: "other", note: null, raised_by: DEMO_STAFF_ID, raised_at: now, assignee_id: null, resolved_at: null, resolved_by: null, resolution: null };
     case "staff_members":
       return { ...stamps, user_id: null, display_name: null, job_title: null, role: "member", departments: [], status: "invited", phone: null, avatar_url: null, locale: "fa", invited_by: null, last_seen_at: null };
     case "notifications":
@@ -175,6 +178,13 @@ export class DemoStore extends PortalStore {
       next = deriveOrder(next as unknown as Row<"equipment_orders">, booth, now) as unknown as AnyRow;
       next = deriveHandoverPeople(next as unknown as Row<"equipment_orders">, before as unknown as Row<"equipment_orders"> | undefined, DEMO_STAFF_ID, this.isStaff) as unknown as AnyRow;
     }
+    if (table === "problems") {
+      next = deriveProblem(next as unknown as Row<"problems">, before as unknown as Row<"problems"> | undefined, {
+        order: (id) => this.tables.equipment_orders.get(id) as unknown as Row<"equipment_orders"> | undefined,
+        booth: (id) => this.tables.booths.get(id) as unknown as Row<"booths"> | undefined,
+        deal: (id) => this.tables.deals.get(id) as unknown as Row<"deals"> | undefined,
+      }, DEMO_STAFF_ID) as unknown as AnyRow;
+    }
     if (table === "payments" && next.invoice_id) {
       const invoice = this.tables.invoices.get(String(next.invoice_id));
       if (invoice) next = { ...next, company_id: invoice.company_id, deal_id: next.deal_id ?? invoice.deal_id, currency: invoice.currency };
@@ -233,6 +243,17 @@ export class DemoStore extends PortalStore {
     }
   }
 
+  // booth_carry_furniture: a company's waiting furniture follows it onto its booth.
+  private carry(booth: AnyRow, before: AnyRow) {
+    const oldDeal = (before.deal_id as string | null) ?? null;
+    if (oldDeal === booth.deal_id) return;
+    const lines = [...this.tables.equipment_orders.values()] as unknown as Row<"equipment_orders">[];
+    const changed = carryFurniture(booth as unknown as Row<"booths">, oldDeal, lines);
+    if (!changed.length) return;
+    for (const o of changed) this.tables.equipment_orders.set(o.id, o as unknown as AnyRow);
+    this.touched("equipment_orders");
+  }
+
   async insert<T extends PortalTable>(table: T, row: Insert<T> & { id: string }): Promise<MutationResult<Row<T>>> {
     const now = new Date().toISOString();
     const full = this.derive(table, { ...defaults(table, now), ...(row as object), id: row.id } as AnyRow, undefined);
@@ -249,6 +270,7 @@ export class DemoStore extends PortalStore {
     this.tables[table].set(id, next);
     this.touched(table);
     if (table === "tasks") this.notifyTask(next, before);
+    if (table === "booths") this.carry(next, before);
     return { ok: true, row: next as unknown as Row<T> };
   }
 
@@ -260,6 +282,8 @@ export class DemoStore extends PortalStore {
     if (table === "booths") {
       for (const o of this.tables.equipment_orders.values()) if (o.booth_id === id) this.tables.equipment_orders.set(o.id, { ...o, booth_id: null });
       this.touched("equipment_orders");
+      for (const p of [...this.tables.problems.values()]) if (p.booth_id === id) this.tables.problems.delete(p.id);
+      this.touched("problems");
     }
     if (table === "halls") {
       for (const t of ["booths", "hall_features"] as const) {
@@ -270,6 +294,8 @@ export class DemoStore extends PortalStore {
     if (table === "deals") {
       for (const b of this.tables.booths.values()) if (b.deal_id === id) this.tables.booths.set(b.id, this.derive("booths", { ...b, deal_id: null }, b));
       this.touched("booths");
+      for (const p of [...this.tables.problems.values()]) if (p.deal_id === id) this.tables.problems.delete(p.id);
+      this.touched("problems");
     }
     this.touched(table);
     return { ok: true, row: before as unknown as Row<T> };

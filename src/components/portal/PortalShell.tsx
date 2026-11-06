@@ -23,6 +23,7 @@ import {
   RefreshCw,
   Search,
   SquareKanban,
+  TriangleAlert,
   Sun,
   Users,
   X,
@@ -87,7 +88,8 @@ function Shell({
 }) {
   const { lang, mode, user, can, toasts, dismissToast } = usePortal();
   const today = useToday();
-  const { status, staffById } = useExhibition();
+  const { status, staffById, openProblems: openProblemRows } = useExhibition();
+  const openProblems = openProblemRows.length;
   const me = staffById.get(user.id);
   const pathname = usePathname() ?? "";
   const [drawer, setDrawer] = useState(false);
@@ -105,6 +107,14 @@ function Shell({
           { href: base, label: t(lang, "overview"), icon: <LayoutDashboard className={icon} />, match: (p) => p === base },
           { href: `${base}/map`, label: t(lang, "map"), icon: <MapIcon className={icon} />, match: (p) => p.startsWith(`${base}/map`) },
           { href: `${base}/handover`, label: t(lang, "handover"), icon: <PackageCheck className={icon} />, match: (p) => p.startsWith(`${base}/handover`) },
+          {
+            href: `${base}/problems`,
+            label: fa ? "مشکلات" : "Problems",
+            icon: <TriangleAlert className={icon} />,
+            match: (p) => p.startsWith(`${base}/problems`),
+            badge: openProblems,
+            tone: "danger",
+          },
         ],
       },
       {
@@ -142,7 +152,7 @@ function Shell({
     if (mode === "live") team.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className={icon} />, match: (p) => p.startsWith(`${base}/team`) });
     out.push({ label: fa ? "تیم" : "Team", items: team });
     return out;
-  }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue]);
+  }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue, openProblems]);
   const nav = groups.flatMap((g) => g.items);
   const tabs: NavItem[] = [nav[0], nav[1], nav.find((n) => n.href === `${base}/crm/pipeline`)!, nav.find((n) => n.href === `${base}/tasks`)!];
 

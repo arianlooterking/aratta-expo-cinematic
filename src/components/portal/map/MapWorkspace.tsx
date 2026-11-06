@@ -34,6 +34,7 @@ import { area, compact, num, percent, pick, sep } from "@/lib/portal/format";
 import { nextCode, overlapping, type Rect } from "@/lib/portal/geometry";
 import { boothStatusLabel, featureLabel } from "@/lib/portal/i18n";
 import { type EquipmentState } from "@/lib/portal/metrics";
+import { boothWorkflow, nextStep, PROGRESS_TONES, problemStepLabel, progressTone, progressToneLabel, workflowShare, type ProgressTone } from "@/lib/portal/workflow";
 import { paidShare } from "@/lib/portal/money";
 import { newId, type AnyRow } from "@/lib/portal/store";
 import type { Booth, BoothStatus, FeatureKind, Hall, HallFeature, Patch } from "@/lib/portal/types";
@@ -48,11 +49,11 @@ import { HallCanvas, type CanvasBooth, type CanvasFeature, type CanvasTool } fro
 import { HallSetupSheet } from "./HallSetupSheet";
 import { usePageTour } from "../Tour";
 
-type Layer = "sales" | "equipment";
+type Layer = "sales" | "equipment" | "work";
 type Op = { table: "booths" | "hall_features"; id: string; before: AnyRow | null; after: AnyRow | null };
 
-const SALES_TONES: BoothStatus[] = ["available", "held", "reserved", "contracted", "paid", "blocked"];
-const EQUIPMENT_TONES: EquipmentState[] = ["none", "waiting", "partial", "delivered", "collecting", "collected", "issue"];
+const SALES_TONES: Array<BoothStatus | "problem"> = ["available", "held", "reserved", "contracted", "paid", "blocked", "problem"];
+const EQUIPMENT_TONES: Array<EquipmentState | "problem"> = ["none", "waiting", "partial", "delivered", "collecting", "collected", "issue", "problem"];
 
 const equipmentToneLabel: Record<EquipmentState, { fa: string; en: string }> = {
   none: { fa: "بدون تجهیزات", en: "No equipment" },
@@ -158,7 +159,7 @@ export function MapWorkspace() {
         else if (to && !from) await store.insert(op.table, to as never);
         else if (to) {
           const patch: Record<string, unknown> = {};
-          for (const key of ["x", "y", "width", "depth", "code", "status", "deal_id", "notes", "open_sides", "area_m2", "area_is_manual", "price_override", "kind", "label_fa", "label_en", "rotation", "zone", "style"]) {
+          for (const key of ["x", "y", "width", "depth", "code", "status", "deal_id", "notes", "open_sides", "area_m2", "area_is_manual", "price_override", "kind", "label_fa", "label_en", "rotation", "zone", "style", "manager_ids", "steps"]) {
             if (key in to && to[key] !== from?.[key]) patch[key] = to[key];
           }
           if (Object.keys(patch).length) await store.update(op.table, op.id, patch as never);
@@ -421,13 +422,22 @@ export function MapWorkspace() {
       const eq = x.equipmentByBooth.get(b.id);
       const balance = deal ? x.balanceByDeal.get(deal.id) : undefined;
       const share = paidShare(balance);
-      const tone = layer === "sales" ? b.status : (eq?.state ?? "none");
+      const problems = x.openProblemsByBooth.get(b.id) ?? [];
+      const flow = boothWorkflow({ steps: b.steps, deal, equipment: eq, problems });
+      const work = workflowShare(flow);
+      const baseTone = layer === "sales" ? b.status : layer === "equipment" ? (eq?.state ?? "none") : progressTone(flow, Boolean(deal), x.phase, 0);
+      // An open problem turns the booth red whatever layer is showing.
+      const tone = problems.length ? "problem" : baseTone;
       const matchesQuery = !q || normalizeSearch(`${b.code} ${company?.name_fa ?? ""} ${company?.name_en ?? ""}`).includes(q);
       const visible = !hidden.has(tone) && matchesQuery && (!mine || b.manager_ids.includes(user.id));
       let subtitle: string;
       let progress: number | null = null;
       let badge: string | null = null;
-      if (layer === "sales") {
+      if (layer === "work") {
+        const next = nextStep(flow);
+        subtitle = !deal ? (fa ? "بدون مشارکت کننده" : "No exhibitor") : next ? problemStepLabel[next][lang] : fa ? "همه مراحل انجام شد" : "All steps done";
+        progress = deal ? work.share : null;
+      } else if (layer === "sales") {
         subtitle = share != null ? `${area(lang, b.area_m2)}${sep(lang)}${percent(lang, share)}` : area(lang, b.area_m2);
         progress = share;
       } else {
@@ -447,6 +457,9 @@ export function MapWorkspace() {
               .join(sep(lang))
           : subtitle,
       ];
+      if (layer === "work" && deal) hoverLines.push(fa ? `${num(lang, work.done)} از ${num(lang, work.total)} مرحله` : `${work.done} of ${work.total} steps`);
+      for (const p of problems.slice(0, 3)) hoverLines.push(`⚠ ${problemStepLabel[p.step][lang]}${p.note ? `: ${p.note}` : ""}`);
+      if (problems.length) badge = "!";
       if (layer === "equipment" && eq?.issues) hoverLines.push(fa ? `${num(lang, eq.issues)} مشکل باز` : `${eq.issues} open issues`);
       return {
         booth: b,
@@ -472,7 +485,7 @@ export function MapWorkspace() {
         } satisfies CanvasBooth,
       };
     });
-  }, [hallBooths, x.dealById, x.companyById, x.equipmentByBooth, x.balanceByDeal, x.phase, layer, lang, fa, q, hidden, flagged, mine, user.id]);
+  }, [hallBooths, x.dealById, x.companyById, x.equipmentByBooth, x.balanceByDeal, x.openProblemsByBooth, x.phase, layer, lang, fa, q, hidden, flagged, mine, user.id]);
   const myBooths = useMemo(() => hallBooths.filter((b) => b.manager_ids.includes(user.id)).length, [hallBooths, user.id]);
 
   const canvasFeatures = useMemo<CanvasFeature[]>(
@@ -496,8 +509,15 @@ export function MapWorkspace() {
     return counts;
   }, [decorated]);
 
-  const tones = layer === "sales" ? SALES_TONES : EQUIPMENT_TONES;
-  const toneLabel = (tone: string) => (layer === "sales" ? boothStatusLabel[tone as BoothStatus][lang] : equipmentToneLabel[tone as EquipmentState][lang]);
+  const tones: string[] = layer === "sales" ? SALES_TONES : layer === "equipment" ? EQUIPMENT_TONES : PROGRESS_TONES;
+  const toneLabel = (tone: string) =>
+    tone === "problem"
+      ? progressToneLabel.problem[lang]
+      : layer === "sales"
+        ? boothStatusLabel[tone as BoothStatus][lang]
+        : layer === "equipment"
+          ? equipmentToneLabel[tone as EquipmentState][lang]
+          : progressToneLabel[tone as ProgressTone][lang];
 
   const selectedBooth = selected.size === 1 ? (hallBooths.find((b) => selected.has(b.id)) ?? null) : null;
   const selectedFeature = selected.size === 1 && editing ? (hallFeatures.find((f) => selected.has(f.id)) ?? null) : null;
@@ -604,11 +624,12 @@ export function MapWorkspace() {
               onChange={(l) => {
                 setLayer(l);
                 setHidden(new Set());
-                setTab(l === "equipment" ? "equipment" : "sales");
+                setTab(l === "equipment" ? "equipment" : l === "work" ? "work" : "sales");
               }}
               options={[
                 { value: "sales", label: fa ? "فروش" : "Sales" },
                 { value: "equipment", label: fa ? "تجهیزات" : "Equipment" },
+                { value: "work", label: fa ? "روند کار" : "Work" },
               ]}
             />
             </div>
@@ -642,7 +663,7 @@ export function MapWorkspace() {
             <div className="thin-scroll scroll-fade flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" data-tour="map-legend">
               {tones.map((tone) => {
                 const count = toneCounts.get(tone) ?? 0;
-                if (!count && layer === "equipment") return null;
+                if (!count && (layer !== "sales" || tone === "problem")) return null;
                 const off = hidden.has(tone);
                 return (
                   <button
@@ -972,6 +993,12 @@ function BoothList({
   const x = useExhibition();
   const fa = lang === "fa";
   const sorted = [...rows].sort((a, b) => a.booth.code.localeCompare(b.booth.code, undefined, { numeric: true }));
+  const workCell = (booth: Booth) => {
+    const deal = booth.deal_id ? x.dealById.get(booth.deal_id) : null;
+    if (!deal) return "—";
+    const w = workflowShare(boothWorkflow({ steps: booth.steps, deal, equipment: x.equipmentByBooth.get(booth.id), problems: x.openProblemsByBooth.get(booth.id) ?? [] }));
+    return `${num(lang, w.done)}/${num(lang, w.total)}`;
+  };
   return (
     <div className="thin-scroll min-w-0 flex-1 overflow-y-auto">
       <table className="w-full text-sm">
@@ -982,7 +1009,7 @@ function BoothList({
             <th className="hidden px-2 py-2.5 text-start font-medium sm:table-cell">{fa ? "متراژ" : "Area"}</th>
             <th className="px-2 py-2.5 text-start font-medium">{fa ? "وضعیت" : "Status"}</th>
             <th className="hidden px-2 py-2.5 text-start font-medium sm:table-cell">{fa ? "مسئول" : "Managed by"}</th>
-            <th className="hidden px-4 py-2.5 text-end font-medium md:table-cell">{layer === "sales" ? (fa ? "مانده" : "Balance") : fa ? "اقلام" : "Pieces"}</th>
+            <th className="hidden px-4 py-2.5 text-end font-medium md:table-cell">{layer === "sales" ? (fa ? "مانده" : "Balance") : layer === "work" ? (fa ? "مراحل" : "Steps") : fa ? "اقلام" : "Pieces"}</th>
           </tr>
         </thead>
         <tbody>
@@ -1005,7 +1032,7 @@ function BoothList({
                 </td>
                 <td className="hidden px-2 py-2.5 sm:table-cell">{booth.manager_ids.length ? <AvatarStack ids={booth.manager_ids} size={24} /> : <span className="text-p-ink-3">—</span>}</td>
                 <td className="tabular hidden px-4 py-2.5 text-end md:table-cell">
-                  {layer === "sales" ? (balance ? compact(lang, Math.max(0, balance.balance)) : "—") : eq ? num(lang, eq.pieces) : "—"}
+                  {layer === "sales" ? (balance ? compact(lang, Math.max(0, balance.balance)) : "—") : layer === "work" ? workCell(booth) : eq ? num(lang, eq.pieces) : "—"}
                 </td>
               </tr>
             );

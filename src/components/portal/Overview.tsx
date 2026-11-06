@@ -14,6 +14,7 @@ import {
   Phone,
   Plus,
   Square,
+  TriangleAlert,
 } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/cn";
@@ -24,6 +25,7 @@ import { dueFollowUps, summariseMoney, summariseSpace, type Phase } from "@/lib/
 import type { BoothStatus, DealStage } from "@/lib/portal/types";
 import { useExhibition } from "./ExhibitionProvider";
 import { StaffAvatar } from "./people";
+import { ProblemCard } from "./ProblemFlag";
 import { useNow, usePortal } from "./PortalProvider";
 import { Button, Card, Empty, Pill, Progress, SectionTitle, Skeleton } from "./ui";
 
@@ -99,6 +101,7 @@ export function Overview() {
 
   const currency = exhibition.currency;
   const equipmentMode = phase === "strike" || phase === "after" ? "collect" : "deliver";
+  const furnitureProblems = data.issues + x.openProblems.filter((p) => p.step === "delivery" || p.step === "collection").length;
   const equipmentDone = equipmentMode === "deliver" ? data.pieces - data.toDeliver : data.delivered - data.toCollect;
   const equipmentTotal = equipmentMode === "deliver" ? data.pieces : data.delivered;
   const phaseIndex = Math.max(0, phases.findIndex((p) => p.key === phase));
@@ -185,9 +188,33 @@ export function Overview() {
           }
           progress={equipmentTotal ? equipmentDone / equipmentTotal : 0}
           tone="info"
-          alert={data.issues ? (fa ? `${num(lang, data.issues)} مشکل` : `${data.issues} issues`) : undefined}
+          alert={furnitureProblems ? (fa ? `${num(lang, furnitureProblems)} مشکل` : `${furnitureProblems} problems`) : undefined}
         />
       </div>
+
+      {x.openProblems.length ? (
+        <Card className="grid gap-3 border-p-danger/40 p-4 sm:p-5">
+          <SectionTitle
+            title={
+              <span className="flex items-center gap-2 text-p-danger">
+                <TriangleAlert className="size-4" />
+                {fa ? `${num(lang, x.openProblems.length)} مشکل باز` : `${x.openProblems.length} open problems`}
+              </span>
+            }
+            hint={fa ? "این غرفه ها روی نقشه قرمزند تا کسی رسیدگی کند" : "These booths are red on the plan until someone sorts them out"}
+            action={
+              <Link href={`${base}/problems`} className="shrink-0 text-[13px] font-medium text-p-brand hover:underline">
+                {fa ? "همه مشکلات" : "All problems"}
+              </Link>
+            }
+          />
+          <ul className="grid gap-2 lg:grid-cols-3">
+            {x.openProblems.slice(0, 3).map((p) => (
+              <ProblemCard key={p.id} problem={p} />
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {/* Today */}

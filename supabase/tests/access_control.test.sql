@@ -274,6 +274,69 @@ select test_helpers.expect(
 select test_helpers.as_user('10000000-0000-0000-0000-0000000000a5');
 select test_helpers.expect((select count(*) from public.audit_log) = 0, 'members cannot read audit history');
 
+-- Furniture agreed with a company before it has a booth ------------------
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a4');
+insert into public.companies (id, name_fa) values ('80000000-0000-0000-0000-000000000001', 'فولاد نمونه');
+insert into public.deals (id, exhibition_id, company_id, owner_id)
+values ('80000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001',
+        '80000000-0000-0000-0000-000000000001', public.current_staff_id());
+update public.deals set furniture_notes = 'Two high chairs', furniture_confirmed_at = now(),
+  furniture_confirmed_by = public.current_staff_id()
+where id = '80000000-0000-0000-0000-000000000002';
+insert into public.equipment_orders (id, exhibition_id, deal_id, item_id, quantity)
+values ('80000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000001',
+        '80000000-0000-0000-0000-000000000002', '60000000-0000-0000-0000-000000000001', 1);
+insert into public.booths (id, hall_id, code, x, y, width, depth)
+values ('80000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000002', 'B2', 10, 0, 3, 3);
+update public.booths set deal_id = '80000000-0000-0000-0000-000000000002'
+where id = '80000000-0000-0000-0000-000000000004';
+select test_helpers.expect(
+  (select booth_id from public.equipment_orders where id = '80000000-0000-0000-0000-000000000003')
+    = '80000000-0000-0000-0000-000000000004',
+  'furniture agreed on the company record moves onto its new booth');
+update public.booths set deal_id = null where id = '80000000-0000-0000-0000-000000000004';
+select test_helpers.expect(
+  (select booth_id is null from public.equipment_orders where id = '80000000-0000-0000-0000-000000000003'),
+  'furniture that never went out goes back to the company when the booth is given up');
+update public.booths set steps = '{"build": {"at": "2026-11-06T08:00:00Z"}}' where id = '80000000-0000-0000-0000-000000000004';
+select test_helpers.expect_error(
+  $$update public.booths set steps = '[]' where id = '80000000-0000-0000-0000-000000000004'$$,
+  'booth steps must be an object');
+
+-- Problems: one tap turns a booth red, someone else sorts it out ----------
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a6');
+select test_helpers.expect_error(
+  $$insert into public.problems (exhibition_id, booth_id) values ('20000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001')$$,
+  'viewers cannot raise problems');
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a5');
+insert into public.problems (id, exhibition_id, booth_id, step, note)
+values ('80000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000002',
+        '30000000-0000-0000-0000-000000000001', 'delivery', '   ');
+select test_helpers.expect(
+  (select exhibition_id = '20000000-0000-0000-0000-000000000001'
+      and deal_id = '40000000-0000-0000-0000-000000000002'
+      and raised_by = '00000000-0000-0000-0000-0000000000a5'
+      and note is null
+   from public.problems where id = '80000000-0000-0000-0000-000000000005'),
+  'a problem takes its exhibition and deal from the booth, and a blank note is no note');
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a4');
+select test_helpers.expect(
+  (select count(*) from public.notifications where kind = 'problem.raised') = 1,
+  'the booth managers and the salesperson hear about it');
+update public.problems set resolved_at = now(), resolution = 'Sent two more chairs'
+where id = '80000000-0000-0000-0000-000000000005';
+select test_helpers.expect(
+  (select resolved_by = '00000000-0000-0000-0000-0000000000a4' from public.problems where id = '80000000-0000-0000-0000-000000000005'),
+  'resolving stamps who did it');
+select test_helpers.as_user('10000000-0000-0000-0000-0000000000a5');
+select test_helpers.expect(
+  (select count(*) from public.notifications where kind = 'problem.resolved') = 1,
+  'whoever raised it hears it was sorted');
+update public.problems set resolved_at = null where id = '80000000-0000-0000-0000-000000000005';
+select test_helpers.expect(
+  (select resolved_by is null and resolution is null from public.problems where id = '80000000-0000-0000-0000-000000000005'),
+  'reopening clears the resolution');
+
 -- Staff administration guards ----------------------------------------------
 select test_helpers.as_user('10000000-0000-0000-0000-0000000000a2');
 insert into public.staff_members (email, role) values ('new.hire@example.test', 'member');

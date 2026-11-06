@@ -270,6 +270,7 @@ export function demoSeed(): DemoSnapshot {
     inventory_items: [],
     equipment_orders: [],
     tasks: [],
+    problems: [],
     staff_members: [],
     notifications: [],
   };
@@ -642,9 +643,31 @@ export function demoSeed(): DemoSnapshot {
               damaged = 1;
               collected = qty - 1;
             }
+            // A line with trouble is a problem on the booth; the line itself keeps its real stage.
+            const trouble = stage === "issue";
+            if (trouble) stage = spec.phase === "strike" ? "delivered" : "reserved";
+            const lineId = id();
+            if (trouble) {
+              push("problems", {
+                ...stamps,
+                id: id(),
+                exhibition_id: exhibition.id,
+                booth_id: booth.id,
+                deal_id: deal.id,
+                order_id: lineId,
+                step: spec.phase === "strike" ? "collection" : "delivery",
+                note: spec.phase === "strike" ? `یک ${it.name_fa} آسیب دیده` : `${it.name_fa} در انبار کم است`,
+                raised_by: pickOne([staff[4].id, staff[6].id]),
+                raised_at: at(-1, 11, Math.floor(random() * 50)),
+                assignee_id: null,
+                resolved_at: null,
+                resolved_by: null,
+                resolution: null,
+              });
+            }
             push("equipment_orders", {
               ...stamps,
-              id: id(),
+              id: lineId,
               exhibition_id: exhibition.id,
               booth_id: booth.id,
               deal_id: deal.id,
@@ -662,11 +685,28 @@ export function demoSeed(): DemoSnapshot {
               handled_by: staff[4].id,
               delivered_by: delivered ? deliveryCrew : [],
               collected_by: collected ? collectCrew : [],
-              notes: stage === "issue" ? (spec.phase === "strike" ? "یک عدد آسیب دیده" : "موجودی انبار کافی نیست") : null,
+              notes: null,
               import_key: null,
             });
           }
+          // Sales agreed the list with the company a while ago.
+          deal.furniture_confirmed_at = at(-12 - Math.floor(random() * 10), 11);
+          deal.furniture_confirmed_by = deal.owner_id;
         }
+
+        // Steps ticked on the floor so far.
+        const steps: Record<string, { at: string; by: string }> = {};
+        const tick = (key: string, day: number, who: string) => (steps[key] = { at: at(day, 9 + Math.floor(random() * 8), Math.floor(random() * 50)), by: who });
+        if (spec.phase === "build") {
+          if (random() < 0.7) tick("build", -1, staff[5].id);
+          if (steps.build && random() < 0.6) tick("power", -1, staff[4].id);
+        } else if (spec.phase === "strike") {
+          tick("build", spec.start - 2, staff[5].id);
+          tick("power", spec.start - 2, staff[4].id);
+          tick("handover", spec.start - 1, staff[5].id);
+          if (random() < 0.4) tick("clearance", -1, staff[6].id);
+        }
+        booth.steps = steps;
       }
     });
 

@@ -13,6 +13,7 @@ import { equipmentPatch, nextEquipmentStep } from "@/lib/portal/furniture";
 import { CrewBar, useCrew } from "./crew";
 import { usePageTour } from "./Tour";
 import { EquipmentLine } from "./map/BoothPanel";
+import { ProblemCard } from "./ProblemFlag";
 import { Button, Card, Empty, Progress, Segmented, Skeleton } from "./ui";
 
 type Mode = "deliver" | "collect" | "issues";
@@ -77,6 +78,12 @@ export function Handover() {
   }, [groups, mode, x.itemById]);
 
   const visible = showDone || mode === "issues" ? groups : groups.filter((g) => g.open.length > 0);
+  // Problems raised on deliveries and collections, in the halls being looked at.
+  const floorProblems = x.openProblems.filter((p) => {
+    if (p.step !== "delivery" && p.step !== "collection") return false;
+    const booth = p.booth_id ? x.booths.find((b) => b.id === p.booth_id) : undefined;
+    return hallId === "all" || booth?.hall_id === hallId;
+  });
   const finished = groups.length - groups.filter((g) => g.open.length > 0).length;
 
   async function finishBooth(orders: EquipmentOrder[]) {
@@ -121,7 +128,16 @@ export function Handover() {
             options={[
               { value: "deliver", label: fa ? "تحویل به غرفه" : "Deliver", icon: <PackageCheck className="size-4" /> },
               { value: "collect", label: fa ? "جمع آوری" : "Collect", icon: <PackageOpen className="size-4" /> },
-              { value: "issues", label: fa ? "مشکلات" : "Issues", icon: <TriangleAlert className="size-4" /> },
+              {
+                value: "issues",
+                label: (
+                  <>
+                    {fa ? "مشکلات" : "Problems"}
+                    {floorProblems.length ? <span className="tabular rounded-full bg-p-danger px-1.5 text-[11px] text-white">{num(lang, floorProblems.length)}</span> : null}
+                  </>
+                ),
+                icon: <TriangleAlert className="size-4" />,
+              },
             ]}
           />
         </div>
@@ -170,7 +186,15 @@ export function Handover() {
         ) : null}
       </Card>
 
-      {visible.length === 0 ? (
+      {mode === "issues" && floorProblems.length ? (
+        <ul className="grid gap-2">
+          {floorProblems.map((p) => (
+            <ProblemCard key={p.id} problem={p} />
+          ))}
+        </ul>
+      ) : null}
+
+      {visible.length === 0 && !(mode === "issues" && floorProblems.length) ? (
         <Card>
           <Empty
             icon={<PackageCheck className="size-6" />}

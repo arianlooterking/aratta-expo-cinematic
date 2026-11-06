@@ -99,3 +99,77 @@ export function deriveHandoverPeople<O extends HandoverLike>(
   if (me && !next.handled_by && (next.stage === "delivered" || next.stage === "collected")) next.handled_by = me;
   return next;
 }
+
+type ProblemLike = {
+  exhibition_id: string;
+  booth_id: string | null;
+  deal_id: string | null;
+  order_id: string | null;
+  note: string | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  resolution: string | null;
+};
+
+/** problem_before_write: fill in where the problem is from, tidy the text, stamp who resolved it. */
+export function deriveProblem<P extends ProblemLike>(
+  problem: P,
+  before: Pick<ProblemLike, "resolved_at"> | undefined,
+  lookup: {
+    order: (id: string) => { booth_id: string | null; deal_id: string | null; exhibition_id: string } | undefined;
+    booth: (id: string) => { exhibition_id: string; deal_id: string | null } | undefined;
+    deal: (id: string) => { exhibition_id: string } | undefined;
+  },
+  me: string | null,
+): P {
+  const next = { ...problem };
+  if (next.order_id && !next.booth_id) {
+    const o = lookup.order(next.order_id);
+    if (o) {
+      next.booth_id = o.booth_id;
+      next.deal_id = next.deal_id ?? o.deal_id;
+      next.exhibition_id = o.exhibition_id;
+    }
+  }
+  if (next.booth_id) {
+    const b = lookup.booth(next.booth_id);
+    if (b) {
+      next.exhibition_id = b.exhibition_id;
+      next.deal_id = next.deal_id ?? b.deal_id;
+    }
+  } else if (next.deal_id) {
+    const d = lookup.deal(next.deal_id);
+    if (d) next.exhibition_id = d.exhibition_id;
+  }
+  next.note = next.note?.trim() || null;
+  next.resolution = next.resolution?.trim() || null;
+  if (next.resolved_at && !before?.resolved_at) next.resolved_by = next.resolved_by ?? me;
+  else if (!next.resolved_at) {
+    next.resolved_by = null;
+    next.resolution = null;
+  }
+  return next;
+}
+
+type CarryOrder = { id: string; booth_id: string | null; deal_id: string | null; exhibition_id: string; delivered_qty: number; stage: OrderLike["stage"] };
+
+/**
+ * booth_carry_furniture: when a booth changes hands, lines that never went out go back to the old
+ * company, and the new company's waiting lines move onto the booth. Returns the changed lines.
+ */
+export function carryFurniture<O extends CarryOrder>(
+  booth: { id: string; exhibition_id: string; deal_id: string | null },
+  oldDealId: string | null,
+  orders: readonly O[],
+): O[] {
+  const changed: O[] = [];
+  if (oldDealId === booth.deal_id) return changed;
+  for (const o of orders) {
+    if (oldDealId && o.booth_id === booth.id && o.deal_id === oldDealId && o.delivered_qty === 0 && o.stage !== "collected" && o.stage !== "cancelled") {
+      changed.push({ ...o, booth_id: null });
+    } else if (booth.deal_id && o.deal_id === booth.deal_id && !o.booth_id && o.exhibition_id === booth.exhibition_id) {
+      changed.push({ ...o, booth_id: booth.id });
+    }
+  }
+  return changed;
+}

@@ -77,6 +77,9 @@
   --tone-issue-fill: #fbdcd8;
   --tone-issue-stroke: #d2493d;
   --tone-issue-text: #8f2018;
+  --tone-problem-fill: #d63b2f;
+  --tone-problem-stroke: #9c1c13;
+  --tone-problem-text: #ffffff;
   --map-bg: #fbfbf9;
   --map-grid: rgba(19, 32, 27, 0.06);
   --map-grid-major: rgba(19, 32, 27, 0.12);
@@ -169,6 +172,9 @@
   --tone-issue-fill: #431c19;
   --tone-issue-stroke: #e5645a;
   --tone-issue-text: #f8bcb6;
+  --tone-problem-fill: #c8392e;
+  --tone-problem-stroke: #ff8a80;
+  --tone-problem-text: #ffffff;
   --map-bg: #0e1614;
   --map-grid: rgba(230, 238, 234, 0.05);
   --map-grid-major: rgba(230, 238, 234, 0.1);
@@ -266,6 +272,23 @@
 .hall-map [data-tone="collecting"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
 .hall-map [data-tone="collected"] { --tone-fill: var(--tone-collected-fill); --tone-stroke: var(--tone-collected-stroke); --tone-text: var(--tone-collected-text); }
 .hall-map [data-tone="issue"] { --tone-fill: var(--tone-issue-fill); --tone-stroke: var(--tone-issue-stroke); --tone-text: var(--tone-issue-text); }
+.hall-map [data-tone="problem"] { --tone-fill: var(--tone-problem-fill); --tone-stroke: var(--tone-problem-stroke); --tone-text: var(--tone-problem-text); }
+.hall-map [data-tone="prep"] { --tone-fill: var(--tone-waiting-fill); --tone-stroke: var(--tone-waiting-stroke); --tone-text: var(--tone-waiting-text); }
+.hall-map [data-tone="handover"] { --tone-fill: var(--tone-reserved-fill); --tone-stroke: var(--tone-reserved-stroke); --tone-text: var(--tone-reserved-text); }
+.hall-map [data-tone="open"] { --tone-fill: var(--tone-contracted-fill); --tone-stroke: var(--tone-contracted-stroke); --tone-text: var(--tone-contracted-text); }
+.hall-map [data-tone="strike"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
+.hall-map [data-tone="done"] { --tone-fill: var(--tone-paid-fill); --tone-stroke: var(--tone-paid-stroke); --tone-text: var(--tone-paid-text); }
+.hall-map [data-tone="delivery"] { --tone-fill: var(--tone-partial-fill); --tone-stroke: var(--tone-partial-stroke); --tone-text: var(--tone-partial-text); }
+
+/* A booth with an open problem is red on every layer and breathes so it is seen from afar. */
+.hall-map [data-tone="problem"] .booth-shape {
+  stroke-width: 0.2;
+  animation: booth-problem 1.6s ease-in-out infinite;
+}
+
+@keyframes booth-problem {
+  50% { stroke-opacity: 0.35; }
+}
 
 /* Legend swatches use the same tones outside the SVG. */
 .portal .swatch {
@@ -291,6 +314,13 @@
 .portal [data-tone="collecting"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
 .portal [data-tone="collected"] { --tone-fill: var(--tone-collected-fill); --tone-stroke: var(--tone-collected-stroke); --tone-text: var(--tone-collected-text); }
 .portal [data-tone="issue"] { --tone-fill: var(--tone-issue-fill); --tone-stroke: var(--tone-issue-stroke); --tone-text: var(--tone-issue-text); }
+.portal [data-tone="problem"] { --tone-fill: var(--tone-problem-fill); --tone-stroke: var(--tone-problem-stroke); --tone-text: var(--tone-problem-text); }
+.portal [data-tone="prep"] { --tone-fill: var(--tone-waiting-fill); --tone-stroke: var(--tone-waiting-stroke); --tone-text: var(--tone-waiting-text); }
+.portal [data-tone="handover"] { --tone-fill: var(--tone-reserved-fill); --tone-stroke: var(--tone-reserved-stroke); --tone-text: var(--tone-reserved-text); }
+.portal [data-tone="open"] { --tone-fill: var(--tone-contracted-fill); --tone-stroke: var(--tone-contracted-stroke); --tone-text: var(--tone-contracted-text); }
+.portal [data-tone="strike"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
+.portal [data-tone="done"] { --tone-fill: var(--tone-paid-fill); --tone-stroke: var(--tone-paid-stroke); --tone-text: var(--tone-paid-text); }
+.portal [data-tone="delivery"] { --tone-fill: var(--tone-partial-fill); --tone-stroke: var(--tone-partial-stroke); --tone-text: var(--tone-partial-text); }
 
 .portal .tone-pill {
   background: var(--tone-fill);
