@@ -9,7 +9,8 @@ equipment hand-over, contractor permits, guest travel and team tasks.
 | Database schema, permissions, live updates, storage | `supabase/migrations/*.sql` |
 | Permission and workflow tests (plain Postgres) | `supabase/tests/`, `npm run test:db` |
 | Sign-in (Google, Apple) | `/[lang]/staff/sign-in`, `/auth/callback`, `src/proxy.ts` |
-| Team and access management | `/[lang]/staff/team` |
+| Team and staff: people, profiles, teams, roles, history | `/[lang]/staff/team`, `/[lang]/staff/team/[id]` |
+| Exhibition settings (dates, venue, rates, VAT, status) | `/[lang]/staff/settings` |
 | Typed client, session, live hooks | `src/lib/supabase/*`, `src/lib/platform/*` |
 | Workbook importer | `scripts/workbook/`, `npm run import:workbook` |
 
@@ -51,7 +52,16 @@ requires an invited, active account.
   insurance and documents. **Guest travel** covers flights and hotels.
 - **Tasks with comments.** Assigning a task, changing its status or commenting
   notifies the right colleague (`notifications`, live in the app).
+- **Teams.** Named groups of staff (sales, finance, a hall's handover crew),
+  permanent or for one exhibition, with a lead who is always listed first.
+  Managers create and edit any team; a member who leads a team can change who
+  is on it but not hand it over. Removing someone takes them off every team.
+- **Staff profiles** carry job title, phone, departments, start date, an
+  "about" note and skills. Anyone edits their own details through
+  `update_my_profile`; admins edit everyone else's. A colleague's sign-in email
+  is locked once they have signed in.
 - **Audit log.** Every insert, update and delete records who changed what.
+  Managers read it on the Team → History tab, on each profile and in settings.
 
 ## Roles
 
@@ -73,7 +83,9 @@ the last active owner can't be removed.
    each file into the SQL editor.
 2. **Add the first owner.** In the SQL editor:
    `insert into public.staff_members (email, role, departments) values ('you@example.com', 'owner', '{executive}');`
-   After that, owners and admins invite everyone else from **Team and access**.
+   After that, owners and admins invite everyone else from **Team and staff**.
+   The portal does not send email: after saving an invite it offers a ready
+   email draft and the sign-in link to send yourself.
 3. **Turn on Google sign-in.** In Google Cloud, create an OAuth client of type
    "Web application", add `https://<project>.supabase.co/auth/v1/callback` as an
    authorised redirect URI, then paste the client ID and secret into Supabase

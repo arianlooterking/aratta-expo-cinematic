@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Settings2,
   Bell,
   Building2,
   Check,
@@ -149,10 +150,11 @@ function Shell({
     const team: NavItem[] = [
       { href: `${base}/tasks`, label: t(lang, "tasks"), icon: <ListTodo className={icon} />, match: (p) => p.startsWith(`${base}/tasks`), badge: today.myTasksDue, tone: "danger" },
     ];
-    if (mode === "live") team.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className={icon} />, match: (p) => p.startsWith(`${base}/team`) });
-    out.push({ label: fa ? "تیم" : "Team", items: team });
+    team.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className={icon} />, match: (p) => p.startsWith(`${base}/team`) });
+    if (can.manage) team.push({ href: `${base}/settings`, label: t(lang, "settings"), icon: <Settings2 className={icon} />, match: (p) => p.startsWith(`${base}/settings`) });
+    out.push({ label: fa ? "تیم و سازمان" : "Team and setup", items: team });
     return out;
-  }, [base, lang, fa, mode, can.finance, today.followUps, today.overdueInvoices, today.myTasksDue, openProblems]);
+  }, [base, lang, fa, can.finance, can.manage, today.followUps, today.overdueInvoices, today.myTasksDue, openProblems]);
   const nav = groups.flatMap((g) => g.items);
   const tabs: NavItem[] = [nav[0], nav[1], nav.find((n) => n.href === `${base}/crm/pipeline`)!, nav.find((n) => n.href === `${base}/tasks`)!];
 

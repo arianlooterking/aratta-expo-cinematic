@@ -2,13 +2,19 @@
 
 import type { RealtimePostgresChangesPayload, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/platform/database.types";
-import { PortalStore, type AnyRow, type Collection } from "./store.ts";
-import type { Insert, MutationResult, Patch, PortalTable, Row } from "./types";
+import { PortalStore, type AnyRow, type Collection, type HistoryQuery, type MyProfilePatch } from "./store.ts";
+import type { AuditEntry, Insert, MutationResult, Patch, PortalTable, Row } from "./types";
 
 const PAGE = 1000;
 
 function friendly(message: string | undefined) {
   if (!message) return "not-permitted";
+  // The staff guards in the database, as short codes the screens translate.
+  if (/your own role or status/i.test(message)) return "self-role";
+  if (/remove your own staff access/i.test(message)) return "self-remove";
+  if (/Only an owner/i.test(message)) return "owner-only";
+  if (/At least one active owner/i.test(message)) return "last-owner";
+  if (/email of a signed-in colleague/i.test(message)) return "email-locked";
   if (/row-level security|permission denied|violates row/i.test(message)) return "not-permitted";
   if (/duplicate key|unique/i.test(message)) return "duplicate";
   if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "offline";
@@ -157,6 +163,42 @@ export class LiveStore extends PortalStore {
     const row = data as unknown as Row<"staff_members">;
     this.applyLocal("staff_members", { type: "upsert", row: row as unknown as AnyRow, full: true });
     return { ok: true, row };
+  }
+
+  async updateMyProfile(staffId: string, patch: MyProfilePatch): Promise<MutationResult<Row<"staff_members">>> {
+    const before = this.findRow("staff_members", staffId);
+    this.applyLocal("staff_members", { type: "upsert", row: { ...(patch as object), id: staffId } as AnyRow, full: false });
+    const { data, error } = await this.sb.rpc("update_my_profile", {
+      p_display_name: patch.display_name ?? undefined,
+      p_job_title: patch.job_title === undefined ? undefined : (patch.job_title ?? ""),
+      p_phone: patch.phone === undefined ? undefined : (patch.phone ?? ""),
+      p_locale: patch.locale ?? undefined,
+      p_bio: patch.bio === undefined ? undefined : (patch.bio ?? ""),
+      p_skills: patch.skills ?? undefined,
+    });
+    if (error || !data) {
+      if (before) this.applyLocal("staff_members", { type: "upsert", row: before, full: true });
+      const message = friendly(error?.message);
+      this.notify({ kind: "error", message });
+      return { ok: false, error: message };
+    }
+    const row = data as unknown as Row<"staff_members">;
+    this.applyLocal("staff_members", { type: "upsert", row: row as unknown as AnyRow, full: true });
+    return { ok: true, row };
+  }
+
+  async history(query: HistoryQuery) {
+    let q = this.sb
+      .from("audit_log")
+      .select("id, occurred_at, table_name, row_id, action, actor_id, changes")
+      .in("table_name", query.tables)
+      .order("occurred_at", { ascending: false })
+      .limit(query.limit ?? 100);
+    if (query.rowId) q = q.eq("row_id", query.rowId);
+    const { data, error } = await q;
+    if (error) return { ok: false as const, error: friendly(error.message) };
+    const entries = (data ?? []).map((e) => ({ ...e, id: String(e.id), changes: (e.changes ?? {}) as Record<string, unknown> })) as AuditEntry[];
+    return { ok: true as const, entries };
   }
 
   async uploadFile(bucket: "hall-plans" | "documents", path: string, file: File) {

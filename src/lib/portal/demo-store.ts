@@ -1,11 +1,15 @@
 "use client";
 
-import { carryFurniture, cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder, deriveProblem } from "./rules.ts";
+import { carryFurniture, cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder, deriveProblem, deriveTeam, staffChangeError } from "./rules.ts";
 import { DEMO_STAFF_ID } from "./demo-seed.ts";
-import { PortalStore, newId, type AnyRow, type Collection } from "./store.ts";
-import type { Insert, MutationResult, Patch, PortalTable, Row } from "./types";
+import { PortalStore, newId, type AnyRow, type Collection, type HistoryQuery, type MyProfilePatch } from "./store.ts";
+import type { AuditEntry, Insert, MutationResult, Patch, PortalTable, Row } from "./types";
 
 const STORAGE_KEY = "aratta.portal.demo.v1";
+const HISTORY_KEY = "aratta.portal.demo.history.v1";
+/** Tables whose changes are kept in the history, as the audit triggers do. */
+const AUDITED = new Set<PortalTable>(["staff_members", "teams", "exhibitions", "halls", "booths", "deals", "invoices", "payments", "tasks", "equipment_orders"]);
+const HISTORY_MAX = 400;
 
 type Tables = Record<PortalTable, Map<string, AnyRow>>;
 export type DemoSnapshot = Partial<Record<PortalTable, AnyRow[]>>;
@@ -27,6 +31,7 @@ const TABLES: PortalTable[] = [
   "tasks",
   "problems",
   "staff_members",
+  "teams",
   "notifications",
 ];
 
@@ -65,7 +70,9 @@ function defaults(table: PortalTable, now: string): Record<string, unknown> {
     case "problems":
       return { ...stamps, booth_id: null, deal_id: null, order_id: null, step: "other", note: null, raised_by: DEMO_STAFF_ID, raised_at: now, assignee_id: null, resolved_at: null, resolved_by: null, resolution: null };
     case "staff_members":
-      return { ...stamps, user_id: null, display_name: null, job_title: null, role: "member", departments: [], status: "invited", phone: null, avatar_url: null, locale: "fa", invited_by: null, last_seen_at: null };
+      return { ...stamps, user_id: null, display_name: null, job_title: null, role: "member", departments: [], status: "invited", phone: null, avatar_url: null, locale: "fa", invited_by: null, last_seen_at: null, bio: null, start_date: null, skills: [] };
+    case "teams":
+      return { ...stamps, name_en: null, description: null, color: "#0e5d4c", lead_id: null, member_ids: [], exhibition_id: null, sort_order: 0, archived_at: null, created_by: null };
     case "notifications":
       return { created_at: now, actor_id: null, body: null, link: null, entity_type: null, entity_id: null, read_at: null };
   }
@@ -85,6 +92,7 @@ export class DemoStore extends PortalStore {
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private blobs = new Map<string, string>();
   private readonly seed: () => DemoSnapshot;
+  private log: AuditEntry[] | null = null;
 
   constructor(seed: () => DemoSnapshot) {
     super();
@@ -127,10 +135,55 @@ export class DemoStore extends PortalStore {
     }, 250);
   }
 
+  private get audit(): AuditEntry[] {
+    if (!this.log) {
+      try {
+        const raw = typeof window === "undefined" ? null : window.localStorage.getItem(HISTORY_KEY);
+        this.log = raw ? (JSON.parse(raw) as AuditEntry[]) : [];
+      } catch {
+        this.log = [];
+      }
+    }
+    return this.log;
+  }
+
+  // audit_row: what changed, by whom. The demo user is always the actor.
+  private record(table: PortalTable, action: AuditEntry["action"], before: AnyRow | undefined, after: AnyRow | undefined) {
+    if (!AUDITED.has(table)) return;
+    let changes: Record<string, unknown> = {};
+    if (action === "update" && before && after) {
+      for (const [key, value] of Object.entries(after)) {
+        if (key === "updated_at") continue;
+        if (JSON.stringify(before[key] ?? null) !== JSON.stringify(value ?? null)) changes[key] = { from: before[key] ?? null, to: value ?? null };
+      }
+      if (!Object.keys(changes).length) return;
+    } else {
+      changes = { ...(after ?? before ?? {}) };
+    }
+    const row = after ?? before;
+    this.audit.unshift({
+      id: newId(),
+      occurred_at: new Date().toISOString(),
+      table_name: table,
+      row_id: row ? String(row.id) : null,
+      action,
+      actor_id: DEMO_STAFF_ID,
+      changes,
+    });
+    this.audit.length = Math.min(this.audit.length, HISTORY_MAX);
+    try {
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(this.audit));
+    } catch {
+      // ignore: storage blocked
+    }
+  }
+
   /** Start over with fresh sample data. */
   reset() {
     this.loaded = this.fromSnapshot(this.seed());
+    this.log = [];
     try {
+      window.localStorage.removeItem(HISTORY_KEY);
       window.localStorage.removeItem(STORAGE_KEY);
     } catch {
       // ignore
@@ -184,6 +237,13 @@ export class DemoStore extends PortalStore {
         booth: (id) => this.tables.booths.get(id) as unknown as Row<"booths"> | undefined,
         deal: (id) => this.tables.deals.get(id) as unknown as Row<"deals"> | undefined,
       }, DEMO_STAFF_ID) as unknown as AnyRow;
+    }
+    if (table === "teams") {
+      next = deriveTeam(next as unknown as Row<"teams">, this.isStaff) as unknown as AnyRow;
+      if (!before && !next.created_by) next = { ...next, created_by: DEMO_STAFF_ID };
+    }
+    if (table === "staff_members") {
+      next = { ...next, email: String(next.email ?? "").trim().toLowerCase(), skills: [...new Set(((next.skills as string[]) ?? []).map((x) => x.trim()).filter(Boolean))] };
     }
     if (table === "payments" && next.invoice_id) {
       const invoice = this.tables.invoices.get(String(next.invoice_id));
@@ -257,7 +317,10 @@ export class DemoStore extends PortalStore {
   async insert<T extends PortalTable>(table: T, row: Insert<T> & { id: string }): Promise<MutationResult<Row<T>>> {
     const now = new Date().toISOString();
     const full = this.derive(table, { ...defaults(table, now), ...(row as object), id: row.id } as AnyRow, undefined);
+    const refused = this.refuse(table, undefined, full);
+    if (refused) return refused;
     this.tables[table].set(full.id, full);
+    this.record(table, "insert", undefined, full);
     this.touched(table);
     this.afterWrite(table, full);
     return { ok: true, row: full as unknown as Row<T> };
@@ -267,7 +330,10 @@ export class DemoStore extends PortalStore {
     const before = this.tables[table].get(id);
     if (!before) return { ok: false, error: "missing" };
     const next = this.derive(table, { ...before, ...(patch as object), id }, before);
+    const refused = this.refuse(table, before, next);
+    if (refused) return refused;
     this.tables[table].set(id, next);
+    this.record(table, "update", before, next);
     this.touched(table);
     if (table === "tasks") this.notifyTask(next, before);
     if (table === "booths") this.carry(next, before);
@@ -277,7 +343,16 @@ export class DemoStore extends PortalStore {
   async remove<T extends PortalTable>(table: T, id: string): Promise<MutationResult<Row<T>>> {
     const before = this.tables[table].get(id);
     if (!before) return { ok: false, error: "missing" };
+    const refused = this.refuse(table, before, undefined);
+    if (refused) return refused;
     this.tables[table].delete(id);
+    this.record(table, "delete", before, undefined);
+    if (table === "staff_members") {
+      for (const t of this.tables.teams.values()) {
+        if ((t.member_ids as string[]).includes(id)) this.tables.teams.set(t.id, { ...t, member_ids: (t.member_ids as string[]).filter((m) => m !== id), lead_id: t.lead_id === id ? null : t.lead_id });
+      }
+      this.touched("teams");
+    }
     // The same cascades the foreign keys do.
     if (table === "booths") {
       for (const o of this.tables.equipment_orders.values()) if (o.booth_id === id) this.tables.equipment_orders.set(o.id, { ...o, booth_id: null });
@@ -299,6 +374,43 @@ export class DemoStore extends PortalStore {
     }
     this.touched(table);
     return { ok: true, row: before as unknown as Row<T> };
+  }
+
+  // The staff guards the database applies, so the demo refuses the same changes.
+  private refuse(table: PortalTable, before: AnyRow | undefined, after: AnyRow | undefined): { ok: false; error: string } | null {
+    if (table !== "staff_members") return null;
+    type S = Row<"staff_members">;
+    const all = [...this.tables.staff_members.values()] as unknown as S[];
+    const actor = this.tables.staff_members.get(DEMO_STAFF_ID) as unknown as S | undefined;
+    const error = staffChangeError(actor, (before as unknown as S) ?? null, (after as unknown as S) ?? null, all);
+    if (!error) {
+      if (!before && after && all.some((s) => s.email.toLowerCase() === String(after.email).toLowerCase())) return this.fail("duplicate");
+      return null;
+    }
+    return this.fail(error);
+  }
+
+  private fail(error: string) {
+    this.notify({ kind: "error", message: error });
+    return { ok: false as const, error };
+  }
+
+  async updateMyProfile(staffId: string, patch: MyProfilePatch): Promise<MutationResult<Row<"staff_members">>> {
+    const clean: MyProfilePatch = {};
+    for (const [key, value] of Object.entries(patch) as Array<[keyof MyProfilePatch, unknown]>) {
+      if (value === undefined) continue;
+      if (key === "display_name") {
+        const name = String(value ?? "").trim();
+        if (name) clean.display_name = name;
+      } else if (key === "skills") clean.skills = value as string[];
+      else (clean as Record<string, unknown>)[key] = typeof value === "string" ? value.trim() || null : value;
+    }
+    return this.update("staff_members", staffId, clean);
+  }
+
+  async history(query: HistoryQuery) {
+    const entries = this.audit.filter((e) => query.tables.includes(e.table_name) && (!query.rowId || e.row_id === query.rowId)).slice(0, query.limit ?? 100);
+    return { ok: true as const, entries };
   }
 
   async markNotificationsRead(ids?: string[]) {

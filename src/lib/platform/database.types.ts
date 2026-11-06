@@ -1177,6 +1177,9 @@ export type Database = {
           locale: string;
           invited_by: string | null;
           last_seen_at: string | null;
+          bio: string | null;
+          start_date: string | null;
+          skills: string[];
           created_at: string;
           updated_at: string;
         };
@@ -1194,6 +1197,9 @@ export type Database = {
           locale?: string;
           invited_by?: string | null;
           last_seen_at?: string | null;
+          bio?: string | null;
+          start_date?: string | null;
+          skills?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -1211,11 +1217,65 @@ export type Database = {
           locale?: string;
           invited_by?: string | null;
           last_seen_at?: string | null;
+          bio?: string | null;
+          start_date?: string | null;
+          skills?: string[];
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [
           { foreignKeyName: "staff_members_invited_by_fkey"; columns: ["invited_by"]; isOneToOne: false; referencedRelation: "staff_members"; referencedColumns: ["id"] },
+        ];
+      };
+      teams: {
+        Row: {
+          id: string;
+          name_fa: string;
+          name_en: string | null;
+          description: string | null;
+          color: string;
+          lead_id: string | null;
+          member_ids: string[];
+          exhibition_id: string | null;
+          sort_order: number;
+          archived_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name_fa: string;
+          name_en?: string | null;
+          description?: string | null;
+          color?: string;
+          lead_id?: string | null;
+          member_ids?: string[];
+          exhibition_id?: string | null;
+          sort_order?: number;
+          archived_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name_fa?: string;
+          name_en?: string | null;
+          description?: string | null;
+          color?: string;
+          lead_id?: string | null;
+          member_ids?: string[];
+          exhibition_id?: string | null;
+          sort_order?: number;
+          archived_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "teams_lead_id_fkey"; columns: ["lead_id"]; isOneToOne: false; referencedRelation: "staff_members"; referencedColumns: ["id"] },
+          { foreignKeyName: "teams_exhibition_id_fkey"; columns: ["exhibition_id"]; isOneToOne: false; referencedRelation: "exhibitions"; referencedColumns: ["id"] },
         ];
       };
       task_comments: {
@@ -1366,7 +1426,7 @@ export type Database = {
       can_manage_finance: { Args: Record<PropertyKey, never>; Returns: boolean };
       mark_notifications_read: { Args: { p_ids?: string[] }; Returns: number };
       set_my_avatar: { Args: { p_avatar: string | null }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
-      update_my_profile: { Args: { p_display_name?: string; p_job_title?: string; p_phone?: string; p_locale?: string }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
+      update_my_profile: { Args: { p_display_name?: string; p_job_title?: string; p_phone?: string; p_locale?: string; p_bio?: string; p_skills?: string[] }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
     };
     Enums: {
       activity_kind: "call" | "sms" | "email" | "meeting" | "message" | "visit" | "note" | "system";

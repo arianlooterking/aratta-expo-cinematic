@@ -272,6 +272,7 @@ export function demoSeed(): DemoSnapshot {
     tasks: [],
     problems: [],
     staff_members: [],
+    teams: [],
     notifications: [],
   };
   const push = (table: keyof DemoSnapshot, r: Record<string, unknown>) => {
@@ -279,12 +280,22 @@ export function demoSeed(): DemoSnapshot {
     return r as AnyRow;
   };
 
+  const staffSkills: string[][] = [
+    ["مذاکره", "انگلیسی"],
+    ["فروش فضا", "انگلیسی"],
+    ["فروش فضا", "معدن و صنایع"],
+    ["حسابداری", "مالیات"],
+    ["رانندگی", "لجستیک"],
+    ["برنامه ریزی"],
+    ["انبارداری"],
+    ["حسابداری"],
+  ];
   // [name, role, departments, job title, picture]
   const staffNames: Array<[string, string, string[], string, number]> = [
     ["شما (مدیر نمونه)", "owner", ["executive"], "مدیرعامل", 2],
     ["سارا کریمی", "member", ["sales"], "کارشناس فروش", 1],
     ["رضا نجفی", "member", ["sales"], "کارشناس فروش", 9],
-    ["مریم صادقی", "member", ["finance"], "مدیر مالی", 6],
+    ["مریم صادقی", "manager", ["finance"], "مدیر مالی", 6],
     ["کاوه رستمی", "member", ["logistics", "operations"], "مسئول تدارکات", 8],
     ["نگار احمدی", "member", ["operations"], "دستیار مدیرعامل", 3],
     ["امید باقری", "member", ["logistics"], "انباردار", 11],
@@ -306,6 +317,51 @@ export function demoSeed(): DemoSnapshot {
       locale: "fa",
       invited_by: null,
       last_seen_at: null,
+      bio: null,
+      start_date: `${2019 + (i % 6)}-0${1 + (i % 9)}-15`,
+      skills: staffSkills[i] ?? [],
+    }),
+  );
+  // Someone invited who has not signed in yet.
+  push("staff_members", {
+    ...stamps,
+    id: id(),
+    user_id: null,
+    email: "new.colleague@example.com",
+    display_name: null,
+    job_title: "کارشناس فروش",
+    role: "member",
+    departments: ["sales"],
+    status: "invited",
+    phone: null,
+    avatar_url: "preset:13",
+    locale: "fa",
+    invited_by: DEMO_STAFF_ID,
+    last_seen_at: null,
+    bio: null,
+    start_date: null,
+    skills: [],
+  });
+  const teamRows: Array<[string, string, string, number, number[], string]> = [
+    ["مدیریت", "Management", "#2f3e46", 0, [0, 5], "تصمیم های اصلی، قراردادها و هماهنگی کل نمایشگاه"],
+    ["فروش", "Sales", "#0e5d4c", 1, [1, 2], "فروش فضا، پیگیری مشتریان و پیش فاکتورها"],
+    ["مالی", "Finance", "#b07a1e", 3, [3, 7], "فاکتورها، دریافت ها و مانده حساب ها"],
+    ["تحویل و تجهیزات", "Handover crew", "#2364a8", 4, [4, 6, 5], "تحویل مبلمان و تجهیزات به غرفه ها و جمع آوری پس از نمایشگاه"],
+  ];
+  teamRows.forEach(([fa, en, color, lead, members, description], i) =>
+    push("teams", {
+      ...stamps,
+      id: id(),
+      name_fa: fa,
+      name_en: en,
+      description,
+      color,
+      lead_id: staff[lead].id,
+      member_ids: [staff[lead].id, ...members.filter((m) => m !== lead).map((m) => staff[m].id)],
+      exhibition_id: null,
+      sort_order: i,
+      archived_at: null,
+      created_by: DEMO_STAFF_ID,
     }),
   );
   const sellers = [staff[1], staff[2]];
