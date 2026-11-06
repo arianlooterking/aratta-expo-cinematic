@@ -155,6 +155,9 @@ export function SiteFooter({ content }: { content: SiteContent }) {
             <Link href={`/${lang}/app`} className="inline-flex min-h-10 items-center hover:text-white">
               {isFa ? "اپلیکیشن کارکنان" : "Staff app"}
             </Link>
+            <Link href={`/${lang}/privacy`} className="inline-flex min-h-10 items-center hover:text-white">
+              {isFa ? "حریم خصوصی" : "Privacy"}
+            </Link>
             <span className="font-latin">{content.footer.credit}</span>
             <a
               href="#main-content"
