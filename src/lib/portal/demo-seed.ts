@@ -274,6 +274,9 @@ export function demoSeed(): DemoSnapshot {
     staff_members: [],
     teams: [],
     notifications: [],
+    chat_channels: [],
+    chat_members: [],
+    chat_messages: [],
   };
   const push = (table: keyof DemoSnapshot, r: Record<string, unknown>) => {
     out[table].push(r as AnyRow);
@@ -871,6 +874,111 @@ export function demoSeed(): DemoSnapshot {
       read_at: null,
       created_at: new Date(Date.now() + offset * 86_400_000).toISOString(),
     });
+  }
+
+  // Team chat: the four starting channels, a direct conversation and a few
+  // messages, some still unread, so the badges have something to show.
+  const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString();
+  const channelRows = [
+    ["general", "گفتگوی عمومی", "همه همکاران اینجا هستند. خبرها و هماهنگی روزانه."],
+    ["sales", "فروش", "مشتری ها، پیگیری ها و قراردادها"],
+    ["operations", "اجرا و سالن", "ساخت غرفه، برق، مبلمان، تحویل و تخلیه"],
+    ["alerts", "هشدارها", "پیام های خودکار سامانه و دستیارها"],
+  ].map(([slug, name, topic]) =>
+    push("chat_channels", {
+      ...stamps,
+      id: id(),
+      kind: "channel",
+      slug,
+      name,
+      topic,
+      is_private: false,
+      is_default: true,
+      exhibition_id: null,
+      dm_key: null,
+      created_by: null,
+      last_message_at: null,
+      last_message_preview: null,
+      archived_at: null,
+    }),
+  );
+  const [general, salesRoom, opsRoom, alertsRoom] = channelRows;
+  const dmWith = staff[1];
+  const dm = push("chat_channels", {
+    ...stamps,
+    id: id(),
+    kind: "direct",
+    slug: null,
+    name: null,
+    topic: null,
+    is_private: false,
+    is_default: false,
+    exhibition_id: null,
+    dm_key: DEMO_STAFF_ID < String(dmWith.id) ? `${DEMO_STAFF_ID}:${dmWith.id}` : `${dmWith.id}:${DEMO_STAFF_ID}`,
+    created_by: dmWith.id,
+    last_message_at: null,
+    last_message_preview: null,
+    archived_at: null,
+  });
+  const memberRow = (channel: AnyRow, person: AnyRow) =>
+    push("chat_members", {
+      id: id(),
+      channel_id: channel.id,
+      staff_id: person.id,
+      last_read_at: minutesAgo(600),
+      unread_count: 0,
+      mention_count: 0,
+      muted: false,
+      joined_at: minutesAgo(60 * 24 * 30),
+    });
+  const members = new Map<string, AnyRow>();
+  for (const channel of channelRows) for (const person of staff) members.set(`${channel.id}:${person.id}`, memberRow(channel, person));
+  for (const person of [staff[0], dmWith]) members.set(`${dm.id}:${person.id}`, memberRow(dm, person));
+
+  // [channel, author (index or bot name), minutes ago, text, mentions the demo owner]
+  const lines: Array<[AnyRow, number | string, number, string, boolean?]> = [
+    [general, 5, 60 * 26, "صبح بخیر همه. جلسه هماهنگی نمایشگاه معدن فردا ساعت ۹ در دفتر است."],
+    [general, 1, 60 * 25.5, "من هستم. فهرست غرفه های فروخته شده را هم می آورم."],
+    [general, 0, 60 * 25, "عالی. لطفا هر کس کار عقب افتاده دارد قبل از جلسه در بخش کارها ثبت کند."],
+    [salesRoom, 2, 60 * 5, "شرکت فولاد زرند برای غرفه ۴۸ متری پیش فاکتور خواست. فرستادم."],
+    [salesRoom, 1, 60 * 4.8, "دمت گرم. من هم با معدن گل گهر تماس گرفتم، هفته بعد جواب می دهند."],
+    [opsRoom, 4, 140, "برق سالن کویر از ساعت ۸ وصل است. تیم ساخت می تواند شروع کند."],
+    [opsRoom, 6, 95, "۱۲۰ صندلی و ۴۰ میز از انبار بار زده شد."],
+    [opsRoom, 4, 40, "@شما (مدیر نمونه) برای غرفه B12 دو پریز اضافه لازم است، تایید می کنید؟", true],
+    [alertsRoom, "دستیار اَرَتَ", 30, "🔴 مشکل در غرفه B12 (برق): پریز کافی نیست"],
+    [general, 3, 22, "فاکتورهای این هفته صادر شد. لطفا پیگیری پرداخت ها را فراموش نکنید."],
+    [general, 5, 12, "یادآوری: کارت ورود همکاران از فردا در دفتر آماده است."],
+    [dm, 1, 8, "سلام، قرارداد فولاد زرند را امضا کردند. فاکتور نهایی را صادر کنم؟"],
+  ];
+  for (const [channel, who, ago, body, mentionsMe] of lines) {
+    const author = typeof who === "number" ? staff[who] : null;
+    const created_at = minutesAgo(ago);
+    push("chat_messages", {
+      id: id(),
+      channel_id: channel.id,
+      author_id: author?.id ?? null,
+      bot_name: typeof who === "string" ? who : null,
+      kind: typeof who === "string" ? "alert" : "text",
+      body,
+      mentions: mentionsMe ? [DEMO_STAFF_ID] : [],
+      attachments: [],
+      reply_to: null,
+      link: typeof who === "string" ? "/staff/map" : null,
+      entity_type: null,
+      entity_id: null,
+      edited_at: null,
+      deleted_at: null,
+      created_at,
+    });
+    channel.last_message_at = created_at;
+    channel.last_message_preview = body.slice(0, 140);
+    // The demo owner has read everything older than an hour.
+    for (const [key, m] of members) {
+      if (!key.startsWith(`${channel.id}:`) || m.staff_id === author?.id) continue;
+      if (m.staff_id === DEMO_STAFF_ID && ago > 60) continue;
+      m.unread_count = Number(m.unread_count) + 1;
+      if (mentionsMe && m.staff_id === DEMO_STAFF_ID) m.mention_count = Number(m.mention_count) + 1;
+    }
   }
 
   return out;

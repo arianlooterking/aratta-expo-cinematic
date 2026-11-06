@@ -183,6 +183,47 @@ equipment deliveries and pickups (merged per exhibition and day) and unpaid
 invoices due (finance roles only). Overdue work is pinned on top, and the
 "Add to my calendar" button exports the visible agenda as an `.ics` file.
 
+## Team chat
+
+`/fa/staff/chat` is a Slack-style chat inside the portal and the phone apps (the
+apps load the same pages, so nothing extra is needed there).
+
+- Channels everyone can read (#گفتگوی عمومی, #فروش, #اجرا و سالن, #هشدارها are
+  made by the migration and every active colleague joins them), private channels
+  for the people added, and direct messages between two colleagues. Managers
+  cannot read other people's direct messages.
+- @mentions, photos and files (stored in the private `documents` bucket under
+  `chat/`), reply-to, edit and remove your own message (managers can remove any),
+  mute a conversation, unread and @ badges on the menu and tab bar.
+- Unread counts live on `chat_members`, so each device only listens to its own
+  rows. Direct messages and @mentions create a `notifications` row, which the push
+  function sends to phones.
+- Booth problems (the red flag) post into #هشدارها automatically when the
+  `problems` table exists.
+
+### AI agents in the chat
+
+Agents (Grok, ChatGPT, Claude…) can post into and read the open channels. They
+never see direct messages or private channels.
+
+1. Vercel env `SUPABASE_SERVICE_ROLE_KEY` (server only, never `NEXT_PUBLIC_`).
+2. Vercel env `CHAT_AGENT_TOKENS`, one `Name=token` per agent, comma separated,
+   each token at least 24 random characters, e.g.
+   `Grok=…,ChatGPT=…`. The name is what the team sees on the message.
+3. The agent calls:
+
+```bash
+# post (channel defaults to "alerts"; link must start with /staff/)
+curl -X POST https://<site>/api/chat/agent \
+  -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+  -d '{"channel":"operations","text":"سه غرفه هنوز برق ندارند","link":"/staff/map"}'
+# read the last 30 messages of a channel
+curl "https://<site>/api/chat/agent?channel=general&limit=30" -H "Authorization: Bearer <token>"
+```
+
+Database-side, `chat_post_as_bot(channel, bot, text, …)` does the same and is only
+callable by the service role and by triggers.
+
 ## Tests
 
 ```bash

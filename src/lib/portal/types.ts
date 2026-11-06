@@ -19,7 +19,10 @@ export type PortalTable =
   | "problems"
   | "staff_members"
   | "teams"
-  | "notifications";
+  | "notifications"
+  | "chat_channels"
+  | "chat_members"
+  | "chat_messages";
 
 export type Row<T extends PortalTable> = Tables<T>;
 export type Insert<T extends PortalTable> = TablesInsert<T>;
@@ -54,6 +57,9 @@ export type AuditEntry = {
   actor_id: string | null;
   changes: Record<string, unknown>;
 };
+export type ChatChannel = Row<"chat_channels">;
+export type ChatMember = Row<"chat_members">;
+export type ChatMessage = Row<"chat_messages">;
 
 export type BoothStatus = Enums<"booth_status">;
 export type DealStage = Enums<"deal_stage">;

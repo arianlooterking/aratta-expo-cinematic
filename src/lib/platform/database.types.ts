@@ -284,6 +284,155 @@ export type Database = {
           { foreignKeyName: "build_permits_exhibition_id_fkey"; columns: ["exhibition_id"]; isOneToOne: false; referencedRelation: "exhibitions"; referencedColumns: ["id"] },
         ];
       };
+      chat_channels: {
+        Row: {
+          id: string;
+          kind: Database["public"]["Enums"]["chat_kind"];
+          slug: string | null;
+          name: string | null;
+          topic: string | null;
+          is_private: boolean;
+          is_default: boolean;
+          exhibition_id: string | null;
+          dm_key: string | null;
+          created_by: string | null;
+          last_message_at: string | null;
+          last_message_preview: string | null;
+          archived_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          kind?: Database["public"]["Enums"]["chat_kind"];
+          slug?: string | null;
+          name?: string | null;
+          topic?: string | null;
+          is_private?: boolean;
+          is_default?: boolean;
+          exhibition_id?: string | null;
+          dm_key?: string | null;
+          created_by?: string | null;
+          last_message_at?: string | null;
+          last_message_preview?: string | null;
+          archived_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          kind?: Database["public"]["Enums"]["chat_kind"];
+          slug?: string | null;
+          name?: string | null;
+          topic?: string | null;
+          is_private?: boolean;
+          is_default?: boolean;
+          exhibition_id?: string | null;
+          dm_key?: string | null;
+          created_by?: string | null;
+          last_message_at?: string | null;
+          last_message_preview?: string | null;
+          archived_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "chat_channels_created_by_fkey"; columns: ["created_by"]; isOneToOne: false; referencedRelation: "staff_members"; referencedColumns: ["id"] },
+        ];
+      };
+      chat_members: {
+        Row: {
+          id: string;
+          channel_id: string;
+          staff_id: string;
+          last_read_at: string;
+          unread_count: number;
+          mention_count: number;
+          muted: boolean;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          channel_id: string;
+          staff_id: string;
+          last_read_at?: string;
+          unread_count?: number;
+          mention_count?: number;
+          muted?: boolean;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          channel_id?: string;
+          staff_id?: string;
+          last_read_at?: string;
+          unread_count?: number;
+          mention_count?: number;
+          muted?: boolean;
+          joined_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "chat_members_channel_id_fkey"; columns: ["channel_id"]; isOneToOne: false; referencedRelation: "chat_channels"; referencedColumns: ["id"] },
+          { foreignKeyName: "chat_members_staff_id_fkey"; columns: ["staff_id"]; isOneToOne: false; referencedRelation: "staff_members"; referencedColumns: ["id"] },
+        ];
+      };
+      chat_messages: {
+        Row: {
+          id: string;
+          channel_id: string;
+          author_id: string | null;
+          bot_name: string | null;
+          kind: "text" | "alert" | "system";
+          body: string;
+          mentions: string[];
+          attachments: Json;
+          reply_to: string | null;
+          link: string | null;
+          entity_type: string | null;
+          entity_id: string | null;
+          edited_at: string | null;
+          deleted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          channel_id: string;
+          author_id?: string | null;
+          bot_name?: string | null;
+          kind?: "text" | "alert" | "system";
+          body?: string;
+          mentions?: string[];
+          attachments?: Json;
+          reply_to?: string | null;
+          link?: string | null;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          edited_at?: string | null;
+          deleted_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          channel_id?: string;
+          author_id?: string | null;
+          bot_name?: string | null;
+          kind?: "text" | "alert" | "system";
+          body?: string;
+          mentions?: string[];
+          attachments?: Json;
+          reply_to?: string | null;
+          link?: string | null;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          edited_at?: string | null;
+          deleted_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          { foreignKeyName: "chat_messages_channel_id_fkey"; columns: ["channel_id"]; isOneToOne: false; referencedRelation: "chat_channels"; referencedColumns: ["id"] },
+          { foreignKeyName: "chat_messages_author_id_fkey"; columns: ["author_id"]; isOneToOne: false; referencedRelation: "staff_members"; referencedColumns: ["id"] },
+        ];
+      };
       companies: {
         Row: {
           id: string;
@@ -1492,6 +1641,12 @@ export type Database = {
       is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       in_department: { Args: { dept: Database["public"]["Enums"]["department"] }; Returns: boolean };
       can_manage_finance: { Args: Record<PropertyKey, never>; Returns: boolean };
+      chat_open_direct: { Args: { p_staff: string }; Returns: string };
+      chat_can_read: { Args: { p_channel: string }; Returns: boolean };
+      chat_post_as_bot: {
+        Args: { p_channel: string; p_bot: string; p_body: string; p_kind?: string; p_link?: string | null; p_entity_type?: string | null; p_entity_id?: string | null };
+        Returns: string;
+      };
       mark_notifications_read: { Args: { p_ids?: string[] }; Returns: number };
       register_push_device: { Args: { p_token: string; p_platform: string; p_app_version?: string }; Returns: undefined };
       unregister_push_device: { Args: { p_token: string }; Returns: undefined };
@@ -1501,6 +1656,7 @@ export type Database = {
     Enums: {
       activity_kind: "call" | "sms" | "email" | "meeting" | "message" | "visit" | "note" | "system";
       booth_status: "available" | "held" | "reserved" | "contracted" | "paid" | "blocked";
+      chat_kind: "channel" | "direct";
       company_kind: "exhibitor" | "contractor" | "supplier" | "sponsor" | "partner";
       currency_code: "IRR" | "IRT" | "USD" | "EUR" | "AED";
       deal_stage: "lead" | "contacted" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
@@ -1536,6 +1692,7 @@ export const Constants = {
     Enums: {
       activity_kind: ["call", "sms", "email", "meeting", "message", "visit", "note", "system"],
       booth_status: ["available", "held", "reserved", "contracted", "paid", "blocked"],
+      chat_kind: ["channel", "direct"],
       company_kind: ["exhibitor", "contractor", "supplier", "sponsor", "partner"],
       currency_code: ["IRR", "IRT", "USD", "EUR", "AED"],
       deal_stage: ["lead", "contacted", "qualified", "proposal", "negotiation", "won", "lost"],

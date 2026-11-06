@@ -150,6 +150,24 @@ export class LiveStore extends PortalStore {
     await this.sb.rpc("mark_notifications_read", ids ? { p_ids: ids } : {});
   }
 
+  async openDirect(staffId: string) {
+    const { data, error } = await this.sb.rpc("chat_open_direct", { p_staff: staffId });
+    if (error || !data) {
+      const message = friendly(error?.message);
+      this.notify({ kind: "error", message });
+      return { ok: false as const, error: message };
+    }
+    const id = data as string;
+    // Show the conversation at once instead of waiting for the live update.
+    const [channel, members] = await Promise.all([
+      this.from("chat_channels").select("*").eq("id", id).maybeSingle(),
+      this.from("chat_members").select("*").eq("channel_id" as "id", id),
+    ]);
+    if (channel.data) this.applyLocal("chat_channels", { type: "upsert", row: channel.data as unknown as AnyRow, full: true });
+    for (const row of (members.data ?? []) as unknown as AnyRow[]) this.applyLocal("chat_members", { type: "upsert", row, full: true });
+    return { ok: true as const, id };
+  }
+
   async setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>> {
     const before = this.findRow("staff_members", staffId);
     this.applyLocal("staff_members", { type: "upsert", row: { id: staffId, avatar_url: avatar } as AnyRow, full: false });
