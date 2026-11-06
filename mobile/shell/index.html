@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Aratta Staff</title>
+  <style>html,body{margin:0;height:100%;background:#071713}</style>
+</head>
+<body>
+  <script src="config.js"></script>
+  <script>
+    // Normally unused: the app opens the live portal directly (server.url).
+    var c = window.ARATTA_APP || {};
+    location.replace((c.url || "") + (c.startPath || "/fa/staff"));
+  </script>
+</body>
+</html>

@@ -50,3 +50,19 @@ qa/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# workbook imports hold private contact data; never commit them
+/imports/
+*.xlsx
+!public/**/*.xlsx
+
+# native apps: signing keys and generated shell files
+*.jks
+*.keystore
+*.p8
+*.mobileprovision
+android/keystore.properties
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
+/mobile/shell/config.js
+/mobile/shell/icon.png

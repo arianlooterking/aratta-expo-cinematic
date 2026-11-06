@@ -19,6 +19,7 @@ const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", 
 const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
 const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
 const homeSections = await readFile(new URL("../src/components/HomeSections.tsx", import.meta.url), "utf8");
+const upcomingExhibitions = await readFile(new URL("../src/components/UpcomingExhibitions.tsx", import.meta.url), "utf8");
 const blogCards = await readFile(new URL("../src/components/BlogCards.tsx", import.meta.url), "utf8");
 const blogPage = await readFile(new URL("../src/app/[lang]/blog/page.tsx", import.meta.url), "utf8");
 const blogArticlePage = await readFile(new URL("../src/app/[lang]/blog/[slug]/page.tsx", import.meta.url), "utf8");
@@ -103,7 +104,7 @@ test("link previews use localized professional metadata and booth image", () => 
   assert.match(seo, /aratta-expo-booth-preview-v2\.png/);
   assert.match(seo, /width: 1672/);
   assert.match(seo, /height: 941/);
-  assert.match(seo, /شرکت توسعه تجارت اَرَت \| سامانه نمایشگاه های صنعتی/);
+  assert.match(seo, /شرکت توسعه تجارت اَرَتَ \| سامانه نمایشگاه های صنعتی/);
   assert.match(seo, /Aratta Expo \| Industrial & Mining Exhibition Systems/);
   assert.match(rootLayout, /metadataBase: new URL\(siteUrl\)/);
   assert.match(langPage, /twitter:\s*\{/);
@@ -170,8 +171,9 @@ test("landing hero uses a pinned HQ stage scroll sequence", () => {
   ]) {
     assert.match(boothScenes, new RegExp(file));
   }
-  assert.match(boothHero, /h-\[720svh\]/);
-  assert.match(boothHero, /md:h-\[620svh\]/);
+  // About one screen of scroll per stage: six stages on phones, a little less on desktop.
+  assert.match(boothHero, /h-\[600svh\]/);
+  assert.match(boothHero, /md:h-\[540svh\]/);
   assert.match(boothHero, /md:hidden/);
   assert.match(boothHero, /mobileBoothStageFrames/);
   assert.match(boothHero, /mobileCtas/);
@@ -258,7 +260,7 @@ test("hero sequence ships responsive 4K assets and keeps generated masters outsi
   assert.match(animatedTabs, /unoptimized/);
   assert.match(aboutExperience, /unoptimized/);
   assert.match(routedPage, /unoptimized/);
-  assert.match(homeSections, /src=\{event\.image\}[\s\S]*?unoptimized/);
+  assert.match(upcomingExhibitions, /src=\{item\.image\}[\s\S]*?unoptimized/);
   assert.match(galleryLightbox, /unoptimized/);
   assert.match(mapPanel, /unoptimized/);
   assert.match(siteChrome, /unoptimized/);

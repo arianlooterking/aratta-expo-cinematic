@@ -15,6 +15,7 @@ import {
   archiveLabels,
   publicArchive,
   type ArchiveEntry,
+  archiveExcerpt,
 } from "@/lib/legacy-archive";
 
 export function ExhibitionNotice({ lang }: { lang: Lang }) {
@@ -109,8 +110,8 @@ export function ArchiveCards({
               dir="rtl"
               lang="fa"
             >
-              {entry.paragraphs.find((p) => p.length > 60) ||
-                entry.paragraphs[0]}
+              {archiveExcerpt(entry) ||
+                "برای مطالعه کامل خبر و مشاهده تصاویر، مطلب را باز کنید."}
             </p>
             <span className="mt-auto flex items-center justify-between gap-3 pt-6 text-sm font-bold text-[var(--gold)]">
               <span>{fa ? "مشاهده مطلب" : "Read original article"}</span>
@@ -132,7 +133,7 @@ export function ArchiveOverview({ lang, kind }: { lang: Lang; kind?: string }) {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="section-kicker">
-            {lang === "fa" ? "بایگانی اَرَت" : "Aratta archive"}
+            {lang === "fa" ? "بایگانی اَرَتَ" : "Aratta archive"}
           </p>
           <h2 className="mt-3 text-2xl font-bold">
             {lang === "fa"
@@ -145,7 +146,7 @@ export function ArchiveOverview({ lang, kind }: { lang: Lang; kind?: string }) {
           href={`/${lang}/archive${kind ? "?type=" + kind : ""}`}
         >
           {lang === "fa"
-            ? `مشاهده همه ${publicArchive.filter((e) => !kind || e.kind === kind).length} مطلب`
+            ? `مشاهده همه ${publicArchive.filter((e) => !kind || e.kind === kind).length.toLocaleString("fa-IR")} مطلب`
             : "Browse the complete archive"}
           <ArrowUpRight size={17} />
         </Link>
@@ -155,61 +156,72 @@ export function ArchiveOverview({ lang, kind }: { lang: Lang; kind?: string }) {
   );
 }
 
+// The current KIMEX form and participant list are already the main download
+// cards on the forms and participants pages; the library lists the rest.
+const PRIMARY_DOCUMENTS = ["kimex-2025-v7.pdf", "kimex2025-V7.pdf"];
+const libraryDocuments = archiveDocuments.filter(
+  (asset) => !PRIMARY_DOCUMENTS.some((name) => decodeURIComponent(asset.sourceUrl).endsWith(name)),
+);
+
+function documentKind(fileName: string) {
+  if (/لیست|list/i.test(fileName)) return { fa: "فهرست مشارکت‌کنندگان", en: "Participant list" };
+  if (/kimex|simex|form|فرم/i.test(fileName)) return { fa: "فرم و مدارک نمایشگاه", en: "Exhibition form and documents" };
+  return { fa: "فایل رسمی نمایشگاه", en: "Exhibition document" };
+}
+
 export function ArchiveDownloads({ lang }: { lang: Lang }) {
   const fa = lang === "fa";
   return (
-    <section className="mt-10 rounded-3xl border border-white/15 p-5 sm:p-7">
-      <h2 className="text-2xl font-bold">
+    <section className="industrial-card mt-10 rounded-[2rem] p-5 sm:p-7">
+      <h2 className="text-2xl font-black text-white">
         {fa
-          ? "کتابخانه اسناد و کاتالوگ‌های نمایشگاهی"
-          : "Exhibition documents and catalogues"}
+          ? "فایل‌های دوره‌های گذشته"
+          : "Files from past editions"}
       </h2>
       <p className="mt-3 text-white/65">
         {fa
-          ? "فایل‌های دوره‌های گذشته برای مراجعه و بایگانی نگهداری می‌شوند؛ پیش از استفاده از فرم یا تعرفه، اعتبار آن را با دفتر اَرَت بررسی کنید."
+          ? "فایل‌های دوره‌های گذشته برای مراجعه و بایگانی نگهداری می‌شوند؛ پیش از استفاده از فرم یا تعرفه، اعتبار آن را با دفتر اَرَتَ بررسی کنید."
           : "Past-edition documents are retained for reference. Confirm the validity of any form or tariff with the Aratta office before using it."}
       </p>
       <div className="mt-6 grid gap-3 md:grid-cols-2">
-        {archiveDocuments.map((asset) => {
+        {libraryDocuments.map((asset) => {
           const owner = archiveEntries.find((e) =>
             e.links.some((l) => l.href === asset.src),
           );
+          const fileName = decodeURIComponent(
+            new URL(asset.sourceUrl).pathname.split("/").pop() || "document",
+          );
+          const kind = documentKind(fileName);
           return (
             <a
               key={asset.src}
               href={asset.src}
               download
-              className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4 hover:border-amber-200/40"
+              className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4 transition hover:border-amber-200/40 hover:bg-white/[0.045]"
             >
               <FileDown
                 size={23}
                 className="mt-1 shrink-0 text-[var(--gold)]"
               />
               <span className="min-w-0">
-                <strong
-                  className="block break-words text-sm leading-7"
-                  dir="auto"
-                >
-                  {asset.label ||
-                    decodeURIComponent(
-                      new URL(asset.sourceUrl).pathname.split("/").pop() ||
-                        "Document",
-                    )}
+                <strong className="block text-sm font-black leading-7 text-white">
+                  {kind[lang]}
                 </strong>
                 {owner && (
                   <span
-                    className="mt-1 block text-xs leading-6 text-white/55"
+                    className="mt-0.5 block text-xs leading-6 text-white/60"
                     dir="rtl"
+                    lang="fa"
                   >
                     {owner.title}
                   </span>
                 )}
-                <span
-                  className="mt-2 block text-xs text-[var(--gold)]"
-                  dir="ltr"
-                >
-                  {asset.src.split(".").pop()?.toUpperCase()} ·{" "}
-                  {(asset.bytes / 1024 / 1024).toFixed(1)} MB
+                <span className="mt-2 flex min-w-0 gap-1.5 text-xs text-white/40">
+                  <bdi className="truncate">{fileName}</bdi>
+                  <span aria-hidden="true">·</span>
+                  <span className="font-latin shrink-0" dir="ltr">
+                    {(asset.bytes / 1024 / 1024).toFixed(1)} MB
+                  </span>
                 </span>
               </span>
             </a>

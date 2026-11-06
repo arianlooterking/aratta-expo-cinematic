@@ -7,7 +7,9 @@ import { SiteChrome } from "@/components/SiteChrome";
 import { getContent } from "@/data/aratta-content";
 import { getBrandAssets } from "@/lib/brand-assets";
 import { isLang, languages, type Lang } from "@/lib/lang";
-import { getLanguageSeo, siteName, socialPreviewImage } from "@/lib/seo";
+import { getLanguageSeo, siteName, siteUrl, socialPreviewImage } from "@/lib/seo";
+import { toCards } from "@/lib/public-calendar";
+import { getUpcomingExhibitions } from "@/lib/public-calendar-source";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -71,10 +73,12 @@ export default async function LangPage({ params }: PageProps) {
 
   const lang = rawLang as Lang;
   const content = getContent(lang);
+  const calendar = await getUpcomingExhibitions(lang);
+  const upcoming = { items: toCards(calendar.items, lang, `${siteUrl}/${lang}/exhibitions`), live: calendar.live };
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: lang === "fa" ? "شرکت توسعه تجارت اَرَت" : "Aratta Trade Development Company",
+    name: lang === "fa" ? "شرکت توسعه تجارت اَرَتَ" : "Aratta Trade Development Company",
     alternateName: "Aratta Expo",
     url: "https://arattaexpo.ir",
     email: "info@arattaexpo.ir",
@@ -97,7 +101,7 @@ export default async function LangPage({ params }: PageProps) {
       <SiteChrome content={content} />
       <main id="main-content" dir={content.dir} lang={content.lang}>
         <BoothBuildHero content={content} />
-        <HomeSections content={content} />
+        <HomeSections content={content} upcoming={upcoming} />
       </main>
     </>
   );

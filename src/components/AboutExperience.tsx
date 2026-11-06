@@ -2,62 +2,43 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  Cog,
-  Factory,
-  Layers3,
-  Mountain,
-  RadioTower,
-} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowUpRight, Cog, Factory, Mountain, Users } from "lucide-react";
 import { useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
 import { boothStageFrames, mobileBoothStageFrames } from "@/lib/booth-scenes";
 import { cn } from "@/lib/cn";
 
-const capabilityIcons = [Mountain, Factory, Cog, RadioTower];
-const capabilityRoutes = ["exhibitions", "exhibitions", "equipment", "participants"] as const;
+const sectorIcons = [Mountain, Factory, Cog, Users];
+const sectorRoutes = ["exhibitions", "exhibitions", "equipment", "participants"] as const;
+const sectorFrames = [2, 3, 4, 5] as const;
 
 const aboutDetails = {
   fa: {
-    systemLabel: "Capability System",
-    panelTitle: "از اعتبار صنعتی تا تجربه اجرایی",
-    panelBody:
-      "این بخش فقط معرفی نیست؛ مسیرهای اصلی فعالیت اَرَت را مثل یک نقشه عملیاتی نشان می دهد تا مخاطب سریع بفهمد کجا باید ادامه بدهد.",
-    open: "ورود به مسیر",
-    signal: "لایه فعال",
-    metrics: [
-      { label: "حوزه تخصصی", value: "صنعتی" },
-      { label: "مسیرهای سایت", value: "۱۰+" },
-      { label: "فایل رسمی", value: "۳" },
-    ],
+    factsTitle: "اَرَتَ در عدد",
+    factsNote: "ارقام از گزارش‌های رسمی دوره‌های برگزارشده",
+    archive: "آرشیو گزارش‌ها",
+    sectorsLabel: "حوزه‌های تخصصی",
     cards: [
-      "نمایشگاه های معدن، صنایع معدنی و زنجیره تامین با روایت اجرایی روشن.",
-      "فولاد، مس و فلزات با ساختار محتوایی مناسب مشارکت کنندگان و بازدیدکنندگان.",
-      "ماشین آلات، تجهیزات و نیازهای غرفه با مسیر مستقیم به فایل ها و پیگیری.",
-      "رسانه، مشارکت کنندگان، خبر و گالری برای ادامه ارتباط بعد از نمایشگاه.",
+      "نمایشگاه بین‌المللی معدن کرمان (KIMEX) تا امروز ۹ دوره برگزار شده و معدن، صنایع معدنی، ماشین‌آلات و خدمات وابسته را گرد هم می‌آورد.",
+      "نمایشگاه زنجیره تأمین فولاد، مس و انرژی در کرمان و نمایشگاه نهضت تولید در سیرجان، تأمین‌کنندگان را به صنایع بزرگ منطقه وصل می‌کنند.",
+      "ماشین‌آلات راه‌سازی و معدنی، تجهیزات و خدمات فنی؛ و برای غرفه‌داران، اجاره مبلمان، نمایشگر و برق غرفه.",
+      "شرکت‌هایی مانند گل‌گهر، صنایع مس ایران و گهر زمین در دوره‌های گذشته حضور داشته‌اند. فهرست رسمی مشارکت‌کنندگان را ببینید.",
     ],
+    ctas: ["نمایشگاه معدن کرمان", "نمایشگاه زنجیره فولاد و مس", "اجاره تجهیزات غرفه", "مشارکت‌کنندگان و حامیان"],
   },
   en: {
-    systemLabel: "Capability System",
-    panelTitle: "From industrial credibility to execution",
-    panelBody:
-      "This is more than an introduction. It maps Aratta's operating lanes so visitors know exactly where to continue.",
-    open: "Open lane",
-    signal: "Active layer",
-    metrics: [
-      { label: "Focus", value: "Industrial" },
-      { label: "Site lanes", value: "10+" },
-      { label: "Official files", value: "3" },
-    ],
+    factsTitle: "Aratta in numbers",
+    factsNote: "Figures from the official reports of past editions",
+    archive: "Report archive",
+    sectorsLabel: "Specialist sectors",
     cards: [
-      "Mining and mineral supply-chain exhibitions with a clear execution narrative.",
-      "Steel, copper, and metals content structured for participants and visitors.",
-      "Machinery, equipment, and booth needs connected to files and follow-up paths.",
-      "Media, participants, news, and gallery content for post-event continuity.",
+      "Kerman's international mining exhibition (KIMEX) has run nine editions, bringing together mining, mineral industries, machinery and related services.",
+      "The steel, copper and energy supply-chain exhibition in Kerman and the production exhibition in Sirjan connect suppliers with the region's major industries.",
+      "Road and mining machinery, equipment and technical services, plus furniture, screens and power rental for exhibitors.",
+      "Companies such as Gol-E-Gohar, National Iranian Copper Industries and Gohar Zamin have taken part in past editions. See the official participant lists.",
     ],
+    ctas: ["Kerman mining exhibition", "Steel and copper exhibition", "Booth equipment rental", "Participants and supporters"],
   },
 } as const;
 
@@ -67,240 +48,158 @@ type AboutExperienceProps = {
 
 export function AboutExperience({ content }: AboutExperienceProps) {
   const [active, setActive] = useState(0);
-  const copy = aboutDetails[content.lang];
-  const activeProof = content.about.proof[active] ?? content.about.proof[0];
-  const activeBody = copy.cards[active] ?? copy.cards[0];
-  const ActiveIcon = capabilityIcons[active] ?? Mountain;
-  const activeMobileFrame = mobileBoothStageFrames[active] ?? mobileBoothStageFrames[5];
+  const lang = content.lang;
+  const copy = aboutDetails[lang];
+  const sectors = content.about.proof;
+  const ActiveIcon = sectorIcons[active] ?? Mountain;
+  const frame = sectorFrames[active] ?? 5;
 
   return (
     <section id="about" className="relative overflow-hidden py-20 sm:py-24">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
-      <div className="section-shell">
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-120px" }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-            className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[linear-gradient(145deg,rgba(255,255,255,0.07),rgba(255,255,255,0.018))] p-6 shadow-2xl shadow-black/25 sm:p-8"
-          >
-            <div className="pointer-events-none absolute -end-20 top-8 h-56 w-56 rounded-full border border-cyan-200/10 bg-cyan-200/6 blur-2xl" />
-            <div className="relative">
-              <div className="section-kicker">{content.about.kicker}</div>
-              <h2 className="section-display-title mt-4 text-balance font-black text-white">
-                {content.about.title}
-              </h2>
-              <p className="site-copy mt-5 text-base font-semibold text-white/68 sm:text-lg">
-                {content.about.body}
-              </p>
+      <div className="section-shell grid gap-6 lg:grid-cols-[1fr_1.05fr] lg:items-stretch">
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="flex flex-col justify-between gap-8 py-2"
+        >
+          <div>
+            <div className="section-kicker">{content.about.kicker}</div>
+            <h2 className="section-display-title mt-4 text-balance font-black text-white">
+              {content.about.title}
+            </h2>
+            <p className="site-copy mt-5 text-base text-white/68 sm:text-lg">
+              {content.about.body}
+            </p>
+          </div>
 
-              <motion.div
-                key={activeMobileFrame.key}
-                initial={{ opacity: 0.72, scale: 1.025 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className="relative mt-6 h-40 overflow-hidden rounded-[1.35rem] border border-white/12 bg-black/30 shadow-2xl shadow-black/30 lg:hidden"
+          <div>
+            <div className="mb-3 flex items-baseline justify-between gap-3">
+              <h3 className="text-sm font-black text-white">{copy.factsTitle}</h3>
+              <Link
+                href={`/${lang}/archive`}
+                className="text-xs font-bold text-[var(--cyan)] hover:underline"
               >
-                <Image
-                  src={activeMobileFrame.src}
-                  alt=""
-                  fill
-                  unoptimized
-                  sizes="100vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.78))]" />
-                <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/22 bg-black/44 px-3 py-2 text-[0.68rem] font-black text-[var(--cyan)] backdrop-blur-xl">
-                    <ActiveIcon size={15} />
-                    {activeProof}
-                  </span>
-                  <span className="font-latin rounded-full border border-amber-200/22 bg-amber-200/12 px-3 py-2 text-[0.68rem] font-black text-[var(--gold)] backdrop-blur-xl">
-                    0{active + 1}
-                  </span>
-                </div>
-              </motion.div>
-
-              <div className="mt-7 grid grid-cols-3 gap-2 sm:gap-3">
-                {copy.metrics.map((metric) => (
-                  <div
-                    key={metric.label}
-                    className="rounded-[1.2rem] border border-white/10 bg-black/24 p-3 text-center"
-                  >
-                    <div className="font-latin text-lg font-black text-[var(--gold)]">
+                {copy.archive}
+              </Link>
+            </div>
+            <dl className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              {content.hero.metrics.map((metric) => (
+                <div
+                  key={metric.label}
+                  className="industrial-card rounded-[1.35rem] px-4 py-4 sm:px-5"
+                >
+                  <dt className="sr-only">{metric.label}</dt>
+                  <dd>
+                    <span className="block text-3xl font-black leading-none text-[var(--gold)] sm:text-4xl">
                       {metric.value}
-                    </div>
-                    <div className="mt-1 text-[0.68rem] font-bold leading-5 text-white/48">
+                    </span>
+                    <span className="mt-2 block text-xs font-semibold leading-5 text-white/56 sm:text-[0.8rem]">
                       {metric.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-7 overflow-hidden rounded-[1.4rem] border border-cyan-200/16 bg-cyan-200/[0.045] p-4">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="font-latin text-[0.68rem] font-black uppercase tracking-[0.22em] text-[var(--cyan)]">
-                    {copy.systemLabel}
-                  </span>
-                  <Layers3 size={18} className="text-[var(--gold)]" />
+                    </span>
+                  </dd>
                 </div>
-                <div className="grid gap-2">
-                  {content.about.proof.map((item, index) => {
-                    const RowIcon = capabilityIcons[index] ?? Mountain;
-                    return (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => setActive(index)}
-                        className={cn(
-                          "group flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-start transition",
-                          active === index
-                            ? "border-cyan-200/38 bg-cyan-200/10 text-white"
-                            : "border-white/8 bg-black/18 text-white/66 hover:border-white/18 hover:bg-white/[0.045]",
-                        )}
-                      >
-                        <span className="flex min-w-0 items-center gap-3">
-                          <span className="font-latin text-xs font-black text-[var(--cyan)]">
-                            0{index + 1}
-                          </span>
-                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-white/10 bg-black/22 text-[var(--gold)]">
-                            <RowIcon size={16} />
-                          </span>
-                          <span className="truncate text-sm font-black sm:text-base">{item}</span>
-                        </span>
-                        <CheckCircle2
-                          size={18}
-                          className={active === index ? "text-[var(--gold)]" : "text-white/32"}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              ))}
+            </dl>
+            <p className="mt-3 text-[0.72rem] text-white/38">{copy.factsNote}</p>
+          </div>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-120px" }}
-            transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
-            className="industrial-card relative min-h-[520px] overflow-hidden rounded-[2rem]"
-          >
-            <Image
-              src={boothStageFrames[5].src}
-              alt=""
-              fill
-              unoptimized
-              sizes="(min-width: 1024px) 58vw, 100vw"
-              className="hidden object-cover md:block"
-            />
-            <Image
-              src={mobileBoothStageFrames[5].src}
-              alt=""
-              fill
-              unoptimized
-              sizes="100vw"
-              className="object-cover md:hidden"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.76))]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_20%,rgba(125,220,232,0.2),transparent_16rem),radial-gradient(circle_at_82%_76%,rgba(214,174,101,0.22),transparent_18rem)]" />
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-120px" }}
+          transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
+          className="industrial-card relative isolate min-h-[560px] overflow-hidden rounded-[2rem] sm:min-h-[600px]"
+        >
+          <AnimatePresence initial={false}>
             <motion.div
-              aria-hidden="true"
-              className="absolute inset-y-0 w-px bg-gradient-to-b from-transparent via-cyan-200/58 to-transparent"
-              animate={{
-                insetInlineStart:
-                  content.dir === "rtl" ? ["88%", "12%", "88%"] : ["12%", "88%", "12%"],
-              }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-            />
+              key={frame}
+              initial={{ opacity: 0, scale: 1.03 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="absolute inset-0 -z-10"
+            >
+              <Image
+                src={boothStageFrames[frame].src}
+                alt=""
+                fill
+                unoptimized
+                sizes="(min-width: 1024px) 52vw, 100vw"
+                className="hidden object-cover md:block"
+              />
+              <Image
+                src={mobileBoothStageFrames[frame].src}
+                alt=""
+                fill
+                unoptimized
+                sizes="100vw"
+                className="object-cover md:hidden"
+              />
+            </motion.div>
+          </AnimatePresence>
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.35)_45%,rgba(0,0,0,0.86)_100%)]" />
 
-            <div className="relative z-10 flex min-h-[520px] flex-col justify-between p-6 sm:p-8">
-              <div className="ms-auto inline-flex items-center gap-2 rounded-full border border-amber-200/24 bg-black/36 px-4 py-2 text-xs font-black text-[var(--gold)] backdrop-blur-xl">
-                <span className="h-2 w-2 rounded-full bg-[var(--gold)] shadow-[0_0_18px_rgba(214,174,101,0.8)]" />
-                {copy.signal} 0{active + 1}
+          <div className="flex min-h-[560px] flex-col justify-end gap-4 p-4 sm:min-h-[600px] sm:p-6">
+            <div className="glass rounded-[1.6rem] p-5 sm:p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/14 bg-white/8 text-[var(--gold)]">
+                  <ActiveIcon size={21} strokeWidth={1.8} />
+                </span>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.h3
+                    key={active}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-xl font-black text-white sm:text-2xl"
+                  >
+                    {sectors[active]}
+                  </motion.h3>
+                </AnimatePresence>
               </div>
-
-              <motion.div
-                key={activeProof}
-                initial={{ opacity: 0, y: 16, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className="max-w-xl rounded-[1.7rem] border border-white/14 bg-black/48 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl"
+              <p className="min-h-[5.25rem] text-sm leading-7 text-white/72 sm:text-[0.95rem]">
+                {copy.cards[active]}
+              </p>
+              <Link
+                href={`/${lang}/${sectorRoutes[active] ?? "exhibitions"}`}
+                className="liquid-button mt-4 inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-black text-white"
               >
-                <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl border border-cyan-200/24 bg-cyan-200/10 text-[var(--cyan)]">
-                  <ActiveIcon size={25} strokeWidth={1.8} />
-                </div>
-                <h3 className="card-display-title font-black text-white">
-                  {activeProof}
-                </h3>
-                <p className="site-copy mt-3 text-sm font-semibold text-white/68 sm:text-base">
-                  {activeBody}
-                </p>
-                <Link
-                  href={`/${content.lang}/${capabilityRoutes[active] ?? "exhibitions"}`}
-                  className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 py-2 text-sm font-black text-white transition hover:border-cyan-200/36 hover:bg-cyan-200/10"
-                >
-                  {copy.open}
-                  <ArrowUpRight size={17} />
-                </Link>
-              </motion.div>
+                {copy.ctas[active]}
+                <ArrowUpRight size={16} />
+              </Link>
             </div>
-          </motion.div>
-        </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {content.about.proof.map((item, index) => {
-            const Icon = capabilityIcons[index] ?? Mountain;
-            const isActive = active === index;
-            return (
-              <motion.div
-                key={item}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                onViewportEnter={() => setActive(index)}
-              >
-                <Link
-                  href={`/${content.lang}/${capabilityRoutes[index] ?? "exhibitions"}`}
-                  onMouseEnter={() => setActive(index)}
-                  onFocus={() => setActive(index)}
-                  className={cn(
-                    "group relative block overflow-hidden rounded-[1.55rem] border p-5 transition duration-300",
-                    isActive
-                      ? "border-cyan-200/44 bg-cyan-200/[0.09] shadow-[0_18px_70px_rgba(125,220,232,0.12)]"
-                      : "border-white/10 bg-white/[0.035] hover:border-white/22 hover:bg-white/[0.065]",
-                  )}
-                >
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/18 to-transparent" />
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="grid h-12 w-12 place-items-center rounded-2xl border border-white/12 bg-black/28 text-[var(--gold)] transition group-hover:text-[var(--cyan)]">
-                      <Icon size={22} strokeWidth={1.8} />
-                    </span>
-                    <span className="font-latin text-sm font-black text-[var(--cyan)]">
-                      0{index + 1}
-                    </span>
-                  </div>
-                  <h3 className="mt-6 min-h-14 text-xl font-black leading-7 text-white">
-                    {item}
-                  </h3>
-                  <p className="mt-3 line-clamp-3 text-sm leading-7 text-white/56">
-                    {copy.cards[index]}
-                  </p>
-                  <div className="mt-5 h-1 overflow-hidden rounded-full bg-white/10">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-[var(--cyan)] to-[var(--gold)]"
-                      animate={{ width: isActive ? "100%" : "34%" }}
-                      transition={{ duration: 0.45, ease: "easeOut" }}
-                    />
-                  </div>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
+            <div aria-label={copy.sectorsLabel} role="group" className="grid grid-cols-2 gap-2">
+              {sectors.map((item, index) => {
+                const Icon = sectorIcons[index] ?? Mountain;
+                const isActive = active === index;
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    aria-pressed={isActive}
+                    onClick={() => setActive(index)}
+                    onMouseEnter={() => setActive(index)}
+                    className={cn(
+                      "flex min-h-12 items-center gap-2 rounded-2xl border px-3 py-2.5 text-start text-xs font-bold backdrop-blur-xl transition sm:text-[0.8rem]",
+                      isActive
+                        ? "border-[var(--gold)]/50 bg-black/55 text-white shadow-[0_0_24px_-8px_rgba(214,174,101,0.6)]"
+                        : "border-white/10 bg-black/40 text-white/70 hover:border-white/25 hover:text-white",
+                    )}
+                  >
+                    <Icon size={15} className={isActive ? "shrink-0 text-[var(--gold)]" : "shrink-0 text-white/45"} />
+                    <span className="leading-5">{item}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -32,9 +32,11 @@ npm run build
 
 The Exhibition Hall Operations Command Center is available at **/fa/staff** and **/en/staff**. It includes an interactive hall canvas, metric rulers, adjustable grid snapping, a complete plan-element library, collapsible navigation, a narrow-first booth inspector, booth-level equipment requirements, delivery/pickup scheduling, issue handling, run-of-show tasks, capped activity history, validated JSON/CSV import, reference-image tracing, and a strict occupancy-only public hall export.
 
-The current staff portal is a functional local-first operations slice. Its sample records contain no private contacts, and edits are saved only in the current browser. Multi-user sync, real staff authentication, role enforcement, database persistence, signed file storage, and transactional audit logs are intentionally **not** claimed or simulated.
+### Platform foundation (Supabase)
 
-Before using private exhibition data, add and review the approved auth/database foundation described in **docs/aratta-staff-portal-blueprint.md**. The staff routes are marked noindex and excluded through robots.txt, but that is not access control.
+The shared backend lives in `supabase/migrations`: exhibitions, halls, booths, companies, deals, invoices and payments, equipment orders, build permits, guest travel, tasks, notifications and an audit log, all protected by row level security with owner/admin/manager/member/viewer roles. Staff sign in with Google or Apple at `/fa/staff/sign-in`; only invited emails get in, and admins manage access at `/fa/staff/team`. Setup, roles and the Excel workbook importer are documented in **docs/staff-platform.md**.
+
+Without `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, the portal still runs as the local, browser-only demo. The hall canvas and workspaces still save to the browser until they are moved onto the shared database in the next steps.
 
 ## Admin Publish Backend
 

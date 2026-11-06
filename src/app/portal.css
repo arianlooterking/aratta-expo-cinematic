@@ -1,0 +1,403 @@
+/* Staff portal design tokens. Light by default, dark on request or by system. */
+.portal {
+  --p-bg: #f3f4f1;
+  --p-surface: #ffffff;
+  --p-surface-2: #f8f9f6;
+  --p-sunken: #ebede8;
+  --p-line: #e1e4de;
+  --p-line-strong: #cbd1c8;
+  --p-ink: #13201b;
+  --p-ink-2: #46544e;
+  --p-ink-3: #78857f;
+  --p-brand: #0e5d4c;
+  --p-brand-ink: #ffffff;
+  --p-brand-soft: #e2f0eb;
+  --p-gold: #a9822f;
+  --p-gold-soft: #f6eedb;
+  --p-ok: #23794f;
+  --p-ok-soft: #e3f3ea;
+  --p-warn: #a8670d;
+  --p-warn-soft: #fcf1da;
+  --p-danger: #c0362c;
+  --p-danger-soft: #fce9e7;
+  --p-info: #2364a8;
+  --p-info-soft: #e5eefa;
+  --p-violet: #6a43b8;
+  --p-violet-soft: #efe9fa;
+  /* Receivables by age: one hue, light (not yet due) to dark (90+ days). Validated ordinal ramp. */
+  --age-0: #eba66d;
+  --age-1: #df7f44;
+  --age-2: #cc5824;
+  --age-3: #b23213;
+  --age-4: #8d1b17;
+  --p-side: #0b1d18;
+  --p-side-ink: #e3ece8;
+  --p-side-muted: #8ea59b;
+  --p-side-hover: rgba(255, 255, 255, 0.07);
+  --p-shadow: 0 1px 2px rgba(16, 32, 27, 0.06), 0 1px 1px rgba(16, 32, 27, 0.04);
+  --p-shadow-lg: 0 12px 32px -8px rgba(16, 32, 27, 0.22), 0 2px 6px rgba(16, 32, 27, 0.08);
+
+  /* Map tones: fill, stroke, text. */
+  --tone-available-fill: #ffffff;
+  --tone-available-stroke: #b9c1b7;
+  --tone-available-text: #46544e;
+  --tone-held-fill: #fbefd2;
+  --tone-held-stroke: #d4a03a;
+  --tone-held-text: #7a520c;
+  --tone-reserved-fill: #dce9fb;
+  --tone-reserved-stroke: #4f86c9;
+  --tone-reserved-text: #1d4f8a;
+  --tone-contracted-fill: #d3eee0;
+  --tone-contracted-stroke: #3a9468;
+  --tone-contracted-text: #19603d;
+  --tone-paid-fill: #23794f;
+  --tone-paid-stroke: #165c3a;
+  --tone-paid-text: #ffffff;
+  --tone-blocked-fill: #e4e6e1;
+  --tone-blocked-stroke: #a3aba1;
+  --tone-blocked-text: #6c7770;
+  --tone-none-fill: #f6f7f4;
+  --tone-none-stroke: #cdd3ca;
+  --tone-none-text: #8a958f;
+  --tone-waiting-fill: #fbefd2;
+  --tone-waiting-stroke: #d4a03a;
+  --tone-waiting-text: #7a520c;
+  --tone-partial-fill: #fde3c4;
+  --tone-partial-stroke: #d9822b;
+  --tone-partial-text: #7c430b;
+  --tone-delivered-fill: #dce9fb;
+  --tone-delivered-stroke: #4f86c9;
+  --tone-delivered-text: #1d4f8a;
+  --tone-collecting-fill: #ebe3fb;
+  --tone-collecting-stroke: #8462cf;
+  --tone-collecting-text: #4b2c94;
+  --tone-collected-fill: #d3eee0;
+  --tone-collected-stroke: #3a9468;
+  --tone-collected-text: #19603d;
+  --tone-issue-fill: #fbdcd8;
+  --tone-issue-stroke: #d2493d;
+  --tone-issue-text: #8f2018;
+  --tone-problem-fill: #d63b2f;
+  --tone-problem-stroke: #9c1c13;
+  --tone-problem-text: #ffffff;
+  --map-bg: #fbfbf9;
+  --map-grid: rgba(19, 32, 27, 0.06);
+  --map-grid-major: rgba(19, 32, 27, 0.12);
+  --map-hall: #ffffff;
+  --map-hall-stroke: #3c4a44;
+  --map-aisle: rgba(14, 93, 76, 0.045);
+  --map-aisle-stroke: rgba(14, 93, 76, 0.28);
+  --map-feature: #dfe3dc;
+  --map-column: #33413b;
+  --map-select: #c58a1a;
+
+  color-scheme: light;
+  background: var(--p-bg);
+  color: var(--p-ink);
+}
+
+.portal[data-theme="dark"] {
+  --p-bg: #0b1210;
+  --p-surface: #121b18;
+  --p-surface-2: #16211d;
+  --p-sunken: #0d1513;
+  --p-line: #213029;
+  --p-line-strong: #2f4139;
+  --p-ink: #e6eeea;
+  --p-ink-2: #a8b8b0;
+  --p-ink-3: #74867d;
+  --p-brand: #3dbb96;
+  --p-brand-ink: #04130e;
+  --p-brand-soft: rgba(61, 187, 150, 0.14);
+  --p-gold: #d9b26a;
+  --p-gold-soft: rgba(217, 178, 106, 0.14);
+  --p-ok: #4fc58a;
+  --p-ok-soft: rgba(79, 197, 138, 0.14);
+  --p-warn: #e6a94a;
+  --p-warn-soft: rgba(230, 169, 74, 0.15);
+  --p-danger: #f0776c;
+  --p-danger-soft: rgba(240, 119, 108, 0.15);
+  --p-info: #7cb1ef;
+  --p-info-soft: rgba(124, 177, 239, 0.14);
+  --p-violet: #ad93ee;
+  --p-violet-soft: rgba(173, 147, 238, 0.15);
+  --age-0: #7c4523;
+  --age-1: #b15829;
+  --age-2: #db7039;
+  --age-3: #f69557;
+  --age-4: #ffc28c;
+  --p-side: #070e0c;
+  --p-side-ink: #dbe6e1;
+  --p-side-muted: #7b9187;
+  --p-side-hover: rgba(255, 255, 255, 0.06);
+  --p-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --p-shadow-lg: 0 16px 40px -8px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  --tone-available-fill: #1a2521;
+  --tone-available-stroke: #3d4f47;
+  --tone-available-text: #b5c4bd;
+  --tone-held-fill: #3a2f17;
+  --tone-held-stroke: #c4962f;
+  --tone-held-text: #f1d391;
+  --tone-reserved-fill: #182b42;
+  --tone-reserved-stroke: #5a93d6;
+  --tone-reserved-text: #b9d4f6;
+  --tone-contracted-fill: #143326;
+  --tone-contracted-stroke: #43a574;
+  --tone-contracted-text: #a9e3c5;
+  --tone-paid-fill: #2f9a64;
+  --tone-paid-stroke: #57c48c;
+  --tone-paid-text: #04130e;
+  --tone-blocked-fill: #202825;
+  --tone-blocked-stroke: #4b5852;
+  --tone-blocked-text: #7d8c85;
+  --tone-none-fill: #17201d;
+  --tone-none-stroke: #34443d;
+  --tone-none-text: #74867d;
+  --tone-waiting-fill: #3a2f17;
+  --tone-waiting-stroke: #c4962f;
+  --tone-waiting-text: #f1d391;
+  --tone-partial-fill: #3d2814;
+  --tone-partial-stroke: #db8a3a;
+  --tone-partial-text: #f6c592;
+  --tone-delivered-fill: #182b42;
+  --tone-delivered-stroke: #5a93d6;
+  --tone-delivered-text: #b9d4f6;
+  --tone-collecting-fill: #2a1f45;
+  --tone-collecting-stroke: #9a7be0;
+  --tone-collecting-text: #d6c8f7;
+  --tone-collected-fill: #143326;
+  --tone-collected-stroke: #43a574;
+  --tone-collected-text: #a9e3c5;
+  --tone-issue-fill: #431c19;
+  --tone-issue-stroke: #e5645a;
+  --tone-issue-text: #f8bcb6;
+  --tone-problem-fill: #c8392e;
+  --tone-problem-stroke: #ff8a80;
+  --tone-problem-text: #ffffff;
+  --map-bg: #0e1614;
+  --map-grid: rgba(230, 238, 234, 0.05);
+  --map-grid-major: rgba(230, 238, 234, 0.1);
+  --map-hall: #111a17;
+  --map-hall-stroke: #8fa39a;
+  --map-aisle: rgba(61, 187, 150, 0.05);
+  --map-aisle-stroke: rgba(61, 187, 150, 0.3);
+  --map-feature: #24302c;
+  --map-column: #a8b8b0;
+  --map-select: #e8b04a;
+
+  color-scheme: dark;
+}
+
+/* Layered so Tailwind utilities can colour links inside the portal. */
+@layer base {
+  .portal a {
+    color: inherit;
+  }
+}
+
+.portal,
+.portal * {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.portal :focus-visible {
+  outline: 2px solid var(--p-brand);
+  outline-offset: 2px;
+}
+
+.portal ::selection {
+  background: var(--p-brand-soft);
+}
+
+.portal .thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--p-line-strong) transparent;
+}
+
+.portal .tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hall map */
+.hall-map {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: var(--map-bg);
+}
+
+.hall-map .booth-shape {
+  stroke-width: 0.08;
+  transition: fill 160ms ease, stroke 160ms ease, opacity 160ms ease;
+}
+
+.hall-map .booth-text {
+  pointer-events: none;
+  font-family: var(--font-persian), var(--font-geist-sans), Tahoma, sans-serif;
+}
+
+.hall-map [data-tone] .booth-shape {
+  fill: var(--tone-fill);
+  stroke: var(--tone-stroke);
+}
+
+.hall-map [data-tone] .booth-text {
+  fill: var(--tone-text);
+}
+
+.hall-map [data-dim="true"] {
+  opacity: 0.22;
+}
+
+.hall-map [data-selected="true"] .booth-shape {
+  stroke: var(--map-select);
+  stroke-width: 0.22;
+}
+
+.hall-map .booth:hover .booth-shape {
+  stroke-width: 0.16;
+}
+
+.hall-map [data-tone="available"] { --tone-fill: var(--tone-available-fill); --tone-stroke: var(--tone-available-stroke); --tone-text: var(--tone-available-text); }
+.hall-map [data-tone="held"] { --tone-fill: var(--tone-held-fill); --tone-stroke: var(--tone-held-stroke); --tone-text: var(--tone-held-text); }
+.hall-map [data-tone="reserved"] { --tone-fill: var(--tone-reserved-fill); --tone-stroke: var(--tone-reserved-stroke); --tone-text: var(--tone-reserved-text); }
+.hall-map [data-tone="contracted"] { --tone-fill: var(--tone-contracted-fill); --tone-stroke: var(--tone-contracted-stroke); --tone-text: var(--tone-contracted-text); }
+.hall-map [data-tone="paid"] { --tone-fill: var(--tone-paid-fill); --tone-stroke: var(--tone-paid-stroke); --tone-text: var(--tone-paid-text); }
+.hall-map [data-tone="blocked"] { --tone-fill: var(--tone-blocked-fill); --tone-stroke: var(--tone-blocked-stroke); --tone-text: var(--tone-blocked-text); }
+.hall-map [data-tone="none"] { --tone-fill: var(--tone-none-fill); --tone-stroke: var(--tone-none-stroke); --tone-text: var(--tone-none-text); }
+.hall-map [data-tone="waiting"] { --tone-fill: var(--tone-waiting-fill); --tone-stroke: var(--tone-waiting-stroke); --tone-text: var(--tone-waiting-text); }
+.hall-map [data-tone="partial"] { --tone-fill: var(--tone-partial-fill); --tone-stroke: var(--tone-partial-stroke); --tone-text: var(--tone-partial-text); }
+.hall-map [data-tone="delivered"] { --tone-fill: var(--tone-delivered-fill); --tone-stroke: var(--tone-delivered-stroke); --tone-text: var(--tone-delivered-text); }
+.hall-map [data-tone="collecting"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
+.hall-map [data-tone="collected"] { --tone-fill: var(--tone-collected-fill); --tone-stroke: var(--tone-collected-stroke); --tone-text: var(--tone-collected-text); }
+.hall-map [data-tone="issue"] { --tone-fill: var(--tone-issue-fill); --tone-stroke: var(--tone-issue-stroke); --tone-text: var(--tone-issue-text); }
+.hall-map [data-tone="problem"] { --tone-fill: var(--tone-problem-fill); --tone-stroke: var(--tone-problem-stroke); --tone-text: var(--tone-problem-text); }
+.hall-map [data-tone="prep"] { --tone-fill: var(--tone-waiting-fill); --tone-stroke: var(--tone-waiting-stroke); --tone-text: var(--tone-waiting-text); }
+.hall-map [data-tone="handover"] { --tone-fill: var(--tone-reserved-fill); --tone-stroke: var(--tone-reserved-stroke); --tone-text: var(--tone-reserved-text); }
+.hall-map [data-tone="open"] { --tone-fill: var(--tone-contracted-fill); --tone-stroke: var(--tone-contracted-stroke); --tone-text: var(--tone-contracted-text); }
+.hall-map [data-tone="strike"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
+.hall-map [data-tone="done"] { --tone-fill: var(--tone-paid-fill); --tone-stroke: var(--tone-paid-stroke); --tone-text: var(--tone-paid-text); }
+.hall-map [data-tone="delivery"] { --tone-fill: var(--tone-partial-fill); --tone-stroke: var(--tone-partial-stroke); --tone-text: var(--tone-partial-text); }
+
+/* A booth with an open problem is red on every layer and breathes so it is seen from afar. */
+.hall-map [data-tone="problem"] .booth-shape {
+  stroke-width: 0.2;
+  animation: booth-problem 1.6s ease-in-out infinite;
+}
+
+@keyframes booth-problem {
+  50% { stroke-opacity: 0.35; }
+}
+
+/* Legend swatches use the same tones outside the SVG. */
+.portal .swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.2rem;
+  background: var(--tone-fill);
+  border: 1.5px solid var(--tone-stroke);
+  flex: none;
+}
+
+.portal [data-tone="available"] { --tone-fill: var(--tone-available-fill); --tone-stroke: var(--tone-available-stroke); --tone-text: var(--tone-available-text); }
+.portal [data-tone="held"] { --tone-fill: var(--tone-held-fill); --tone-stroke: var(--tone-held-stroke); --tone-text: var(--tone-held-text); }
+.portal [data-tone="reserved"] { --tone-fill: var(--tone-reserved-fill); --tone-stroke: var(--tone-reserved-stroke); --tone-text: var(--tone-reserved-text); }
+.portal [data-tone="contracted"] { --tone-fill: var(--tone-contracted-fill); --tone-stroke: var(--tone-contracted-stroke); --tone-text: var(--tone-contracted-text); }
+.portal [data-tone="paid"] { --tone-fill: var(--tone-paid-fill); --tone-stroke: var(--tone-paid-stroke); --tone-text: var(--tone-paid-text); }
+.portal [data-tone="blocked"] { --tone-fill: var(--tone-blocked-fill); --tone-stroke: var(--tone-blocked-stroke); --tone-text: var(--tone-blocked-text); }
+.portal [data-tone="none"] { --tone-fill: var(--tone-none-fill); --tone-stroke: var(--tone-none-stroke); --tone-text: var(--tone-none-text); }
+.portal [data-tone="waiting"] { --tone-fill: var(--tone-waiting-fill); --tone-stroke: var(--tone-waiting-stroke); --tone-text: var(--tone-waiting-text); }
+.portal [data-tone="partial"] { --tone-fill: var(--tone-partial-fill); --tone-stroke: var(--tone-partial-stroke); --tone-text: var(--tone-partial-text); }
+.portal [data-tone="delivered"] { --tone-fill: var(--tone-delivered-fill); --tone-stroke: var(--tone-delivered-stroke); --tone-text: var(--tone-delivered-text); }
+.portal [data-tone="collecting"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
+.portal [data-tone="collected"] { --tone-fill: var(--tone-collected-fill); --tone-stroke: var(--tone-collected-stroke); --tone-text: var(--tone-collected-text); }
+.portal [data-tone="issue"] { --tone-fill: var(--tone-issue-fill); --tone-stroke: var(--tone-issue-stroke); --tone-text: var(--tone-issue-text); }
+.portal [data-tone="problem"] { --tone-fill: var(--tone-problem-fill); --tone-stroke: var(--tone-problem-stroke); --tone-text: var(--tone-problem-text); }
+.portal [data-tone="prep"] { --tone-fill: var(--tone-waiting-fill); --tone-stroke: var(--tone-waiting-stroke); --tone-text: var(--tone-waiting-text); }
+.portal [data-tone="handover"] { --tone-fill: var(--tone-reserved-fill); --tone-stroke: var(--tone-reserved-stroke); --tone-text: var(--tone-reserved-text); }
+.portal [data-tone="open"] { --tone-fill: var(--tone-contracted-fill); --tone-stroke: var(--tone-contracted-stroke); --tone-text: var(--tone-contracted-text); }
+.portal [data-tone="strike"] { --tone-fill: var(--tone-collecting-fill); --tone-stroke: var(--tone-collecting-stroke); --tone-text: var(--tone-collecting-text); }
+.portal [data-tone="done"] { --tone-fill: var(--tone-paid-fill); --tone-stroke: var(--tone-paid-stroke); --tone-text: var(--tone-paid-text); }
+.portal [data-tone="delivery"] { --tone-fill: var(--tone-partial-fill); --tone-stroke: var(--tone-partial-stroke); --tone-text: var(--tone-partial-text); }
+
+.portal .tone-pill {
+  background: var(--tone-fill);
+  color: var(--tone-text);
+  box-shadow: inset 0 0 0 1px var(--tone-stroke);
+}
+
+.portal .tone-pill[data-tone="available"] {
+  color: var(--p-ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal *,
+  .portal *::before,
+  .portal *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+@keyframes portal-sheet-in {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes portal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.portal .animate-sheet {
+  animation: portal-sheet-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.portal .animate-fade {
+  animation: portal-fade-in 160ms ease-out;
+}
+
+/* A row that scrolls sideways on phones fades out at its far edge, so the
+   cut-off item reads as "more this way" rather than a clipped label. */
+@media (max-width: 639px) {
+  .portal .scroll-fade {
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  }
+  [dir="rtl"] .portal .scroll-fade {
+    mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent);
+  }
+}
+
+/* Printing an invoice: plain white paper, no app chrome, colours kept for the small accents. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  .portal {
+    background: #fff !important;
+    color: #000;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/* A quick tint when a tap adds or removes a piece. */
+@keyframes portal-flash {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.portal .animate-flash {
+  animation: portal-flash 0.7s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal .animate-flash {
+    animation-duration: 0.25s;
+  }
+}
