@@ -4,13 +4,17 @@ import { SiteChrome } from "@/components/SiteChrome";
 import { SiteFooter } from "@/components/SiteFooter";
 import { AppDownloads } from "@/components/native/AppDownloads";
 import { getContent } from "@/data/aratta-content";
-import { isLang } from "@/lib/lang";
+import { isLang, languages } from "@/lib/lang";
 import { fetchAppRelease } from "@/lib/native/releases";
 
 type Props = { params: Promise<{ lang: string }> };
 
 // Re-read the published app versions every ten minutes.
 export const revalidate = 600;
+
+export function generateStaticParams() {
+  return languages.map((lang) => ({ lang }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
