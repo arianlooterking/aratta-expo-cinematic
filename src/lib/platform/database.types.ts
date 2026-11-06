@@ -596,6 +596,7 @@ export type Database = {
           registration_open: boolean;
           website_summary_fa: string | null;
           website_summary_en: string | null;
+          venue_plan_path: string | null;
           import_key: string | null;
           created_by: string | null;
           created_at: string;
@@ -627,6 +628,7 @@ export type Database = {
           registration_open?: boolean;
           website_summary_fa?: string | null;
           website_summary_en?: string | null;
+          venue_plan_path?: string | null;
           import_key?: string | null;
           created_by?: string | null;
           created_at?: string;
@@ -658,6 +660,7 @@ export type Database = {
           registration_open?: boolean;
           website_summary_fa?: string | null;
           website_summary_en?: string | null;
+          venue_plan_path?: string | null;
           import_key?: string | null;
           created_by?: string | null;
           created_at?: string;

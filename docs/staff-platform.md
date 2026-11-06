@@ -102,6 +102,28 @@ the last active owner can't be removed.
    add `ir.arattaexpo.staff://auth/callback` (see `docs/mobile-apps.md`).
 6. **Environment variables.** Set `NEXT_PUBLIC_SUPABASE_URL` and
    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Vercel (see `.env.example`).
+   Add `ANTHROPIC_API_KEY` to let the new-exhibition form read halls out of an
+   uploaded venue map.
+
+## New exhibitions: Persian dates, venue map and halls
+
+Every date field in the portal uses the Persian (shamsi) calendar picker in
+`src/components/portal/DatePicker.tsx`; a toggle inside it switches to
+Gregorian. Values are still stored as Gregorian `yyyy-mm-dd`, so nothing in
+the database or reports changes. The conversion lives in `src/lib/jalali.ts`
+and is tested day by day against the platform's own Persian calendar.
+
+The new-exhibition form takes an optional venue map (photo, sketch, scan or
+PDF, up to 10 MB). It is saved to the private `hall-plans` bucket under
+`<exhibition id>/venue/` and linked in `exhibitions.venue_plan_path`. When
+`ANTHROPIC_API_KEY` is set, `/api/staff/venue-halls` sends the file to Claude
+and returns the halls it finds (names, sizes when the drawing gives them,
+where each hall sits on the page, a rough booth count). Nothing is saved until
+staff press Create: they can rename, resize, add or remove halls first. For
+image maps, each hall's part of the image is cut out and set as that hall's
+tracing background. Sizes the drawing doesn't give default to 60 × 36 m (or
+follow the outline's shape when one side is known) and can be changed later
+in hall settings.
 
 ## Importing the Excel workbook
 

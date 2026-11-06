@@ -7,11 +7,11 @@ import { countdownText } from "@/lib/portal/countdown";
 import { date, pick, sep } from "@/lib/portal/format";
 import { exhibitionStatusLabel } from "@/lib/portal/i18n";
 import { exhibitionPhase } from "@/lib/portal/metrics";
-import { newId } from "@/lib/portal/store";
 import type { Exhibition } from "@/lib/portal/types";
 import { useExhibition } from "./ExhibitionProvider";
+import { NewExhibitionSheet } from "./NewExhibitionSheet";
 import { usePortal } from "./PortalProvider";
-import { Button, Field, Input, Popover, Select, Sheet } from "./ui";
+import { Popover } from "./ui";
 
 const phaseTone: Record<string, string> = {
   planning: "bg-p-info",
@@ -115,100 +115,5 @@ function ExhibitionRow({ exhibition: e, active, onPick }: { exhibition: Exhibiti
       </span>
       {active ? <Check className="mt-1 size-4 text-p-brand" /> : null}
     </button>
-  );
-}
-
-function slugify(text: string) {
-  const base = text
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${base || "exhibition"}-${Math.random().toString(36).slice(2, 6)}`;
-}
-
-function NewExhibitionSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { lang, store, toast } = usePortal();
-  const { selectExhibition } = useExhibition();
-  const [busy, setBusy] = useState(false);
-  const fa = lang === "fa";
-  return (
-    <Sheet
-      open={open}
-      onClose={onClose}
-      title={fa ? "نمایشگاه جدید" : "New exhibition"}
-      closeLabel={fa ? "بستن" : "Close"}
-    >
-      <form
-        className="grid gap-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          const form = new FormData(event.currentTarget);
-          const nameFa = String(form.get("name_fa") ?? "").trim();
-          if (!nameFa) return;
-          setBusy(true);
-          const id = newId();
-          const nameEn = String(form.get("name_en") ?? "").trim() || null;
-          const rate = Number(String(form.get("space_rate") ?? "").replace(/[^\d]/g, "")) || null;
-          const result = await store.insert("exhibitions", {
-            id,
-            slug: slugify(nameEn ?? ""),
-            name_fa: nameFa,
-            name_en: nameEn,
-            starts_on: String(form.get("starts_on") || "") || null,
-            ends_on: String(form.get("ends_on") || "") || null,
-            build_starts_on: String(form.get("build_starts_on") || "") || null,
-            currency: String(form.get("currency") ?? "IRR") as "IRR",
-            space_rate: rate,
-            status: "selling",
-          });
-          setBusy(false);
-          if (result.ok) {
-            selectExhibition(id);
-            toast(fa ? "نمایشگاه ساخته شد. حالا سالن ها را روی نقشه بسازید." : "Exhibition created. Now add its halls on the map.");
-            onClose();
-          }
-        }}
-      >
-        <Field label={fa ? "نام فارسی" : "Name (Persian)"}>
-          <Input name="name_fa" required dir="rtl" />
-        </Field>
-        <Field label={fa ? "نام انگلیسی" : "Name (English)"}>
-          <Input name="name_en" dir="ltr" />
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Field label={fa ? "شروع غرفه سازی" : "Build-up starts"}>
-            <Input name="build_starts_on" type="date" />
-          </Field>
-          <Field label={fa ? "افتتاح" : "Opens"}>
-            <Input name="starts_on" type="date" />
-          </Field>
-          <Field label={fa ? "پایان" : "Closes"}>
-            <Input name="ends_on" type="date" />
-          </Field>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={fa ? "نرخ هر متر فضا" : "Rate per m²"}>
-            <Input name="space_rate" inputMode="numeric" dir="ltr" />
-          </Field>
-          <Field label={fa ? "واحد پول" : "Currency"}>
-            <Select name="currency" defaultValue="IRR">
-              <option value="IRR">{fa ? "ریال" : "Rial (IRR)"}</option>
-              <option value="IRT">{fa ? "تومان" : "Toman"}</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="AED">AED</option>
-            </Select>
-          </Field>
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button tone="ghost" onClick={onClose}>
-            {fa ? "انصراف" : "Cancel"}
-          </Button>
-          <Button tone="primary" type="submit" disabled={busy}>
-            {fa ? "ساخت نمایشگاه" : "Create exhibition"}
-          </Button>
-        </div>
-      </form>
-    </Sheet>
   );
 }

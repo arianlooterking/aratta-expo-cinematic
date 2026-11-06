@@ -456,6 +456,7 @@ export function demoSeed(): DemoSnapshot {
       registration_open: spec.status === "selling",
       website_summary_fa: null,
       website_summary_en: null,
+      venue_plan_path: null,
       import_key: null,
       created_by: DEMO_STAFF_ID,
     });
