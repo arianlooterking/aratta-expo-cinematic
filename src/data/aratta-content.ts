@@ -400,7 +400,7 @@ const fa: SiteContent = {
         sourceHref: officialLinks.equipment,
         type: "JPG",
         fileName: "aratta-expo-equipment-list.jpg",
-        size: "447 KB",
+        size: "407 KB",
         category: "equipment",
         description:
           "تصویر رسمی لیست تجهیزات برای بررسی نیازهای اجرایی غرفه و هماهنگی اجاره.",
@@ -762,7 +762,7 @@ const en: SiteContent = {
         sourceHref: officialLinks.equipment,
         type: "JPG",
         fileName: "aratta-expo-equipment-list.jpg",
-        size: "447 KB",
+        size: "407 KB",
         category: "equipment",
         description:
           "Official equipment list image for booth requirements and rental coordination.",
