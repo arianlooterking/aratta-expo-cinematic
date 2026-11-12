@@ -153,9 +153,9 @@ test("equipment rental route alias stays live", () => {
   assert.match(routedPage, /page === "equipment-rental" \? "equipment" : page/);
 });
 
-test("official language-specific brand assets are wired into chrome and map", () => {
-  assert.match(brandAssets, /brand-v2\/aratta-tab\.png/);
-  assert.match(brandAssets, /brand-v2\/aratta-logo-en-horizontal\.png/);
+test("official brand assets are wired into chrome and map", () => {
+  assert.match(brandAssets, /brand-v3\/aratta-logo-official-tight\.png/);
+  assert.match(brandAssets, /brand-v3\/aratta-icon-512\.png/);
   assert.match(siteChrome, /getBrandAssets\(content\.lang\)/);
   assert.match(mapPanel, /src=\{brand\.pin\}/);
 });
@@ -278,10 +278,12 @@ test("hero sequence ships responsive 4K assets and keeps generated masters outsi
 
 test("both languages use the supplied official Aratta logo system", async () => {
   const tab = await sharp(
-    fileURLToPath(new URL("../public/brand-v2/aratta-tab.png", import.meta.url)),
+    fileURLToPath(new URL("../public/brand-v3/aratta-icon-512.png", import.meta.url)),
   ).metadata();
   assert.deepEqual([tab.width, tab.height], [512, 512]);
-  assert.equal((brandAssets.match(/brand-v2\/aratta-tab\.png/g) ?? []).length, 12);
+  // One official artwork for both languages; the older v2 marks are no longer used for the site logo.
+  assert.doesNotMatch(brandAssets, /brand-v2\//);
+  assert.match(brandAssets, /fa: official,\s*en: official/);
   assert.match(siteChrome, />\s*Aratta Expo\s*</);
   assert.match(boothHero, /brand-v3\/aratta-logo-official-tight\.png/);
   assert.doesNotMatch(boothHero, /brand-v2\/aratta-logo-en-horizontal\.png/);

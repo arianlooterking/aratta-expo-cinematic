@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 import type { Lang } from "@/lib/lang";
-import { getBrandAssets } from "@/lib/brand-assets";
+import { brandLogoAlt, getBrandAssets } from "@/lib/brand-assets";
 
 const copy = {
   fa: {
@@ -27,8 +27,8 @@ export function AuthFrame({ lang, children }: { lang: Lang; children: React.Reac
       <div className="mx-auto grid min-h-dvh max-w-6xl content-center items-center gap-8 px-4 py-8 sm:gap-10 sm:px-8 sm:py-10 lg:grid-cols-[1.1fr_minmax(0,28rem)] lg:gap-16">
         <section className="space-y-6 sm:space-y-8">
           <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-              <Image src={brand.tab} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+            <span className="grid h-12 w-12 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black">
+              <Image src={brand.logo} alt={brandLogoAlt[lang]} width={36} height={34} unoptimized className="h-auto w-9 object-contain" />
             </span>
             <div className="leading-tight">
               <p className="text-sm font-semibold tracking-wide text-[#e3bd77]">ARATTA EXPO</p>

@@ -27,16 +27,16 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,7,0.02),transparent_28%,transparent_72%,rgba(3,5,7,0.24)_100%)]" />
 
         <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-[84%]">
-          <div className="relative grid h-14 w-14 place-items-center rounded-full border border-amber-200/60 bg-black/82 shadow-[0_18px_42px_rgba(0,0,0,0.45),0_0_34px_rgba(214,174,101,0.34)] backdrop-blur-md sm:h-[4.25rem] sm:w-[4.25rem]">
+          <div className="relative grid h-14 w-14 place-items-center rounded-full border border-amber-200/60 bg-black shadow-[0_18px_42px_rgba(0,0,0,0.45),0_0_34px_rgba(214,174,101,0.34)] backdrop-blur-md sm:h-[4.25rem] sm:w-[4.25rem]">
             <Image
               src={brand.pin}
               alt=""
               width={48}
-              height={48}
+              height={46}
               unoptimized
-              className="h-10 w-10 rounded-full object-cover sm:h-12 sm:w-12"
+              className="h-auto w-8 object-contain sm:w-10"
             />
-            <span className="absolute -bottom-2 h-4 w-4 rotate-45 border-b border-r border-amber-200/60 bg-black/82" />
+            <span className="absolute -bottom-2 -z-10 h-4 w-4 rotate-45 border-b border-r border-amber-200/60 bg-black" />
           </div>
         </div>
 
@@ -44,14 +44,14 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
           <div className="absolute inset-x-3 top-3 z-10 sm:inset-x-5 sm:top-5">
             <div className="max-w-[min(30rem,100%)] rounded-[1.2rem] border border-white/14 bg-black/46 p-3 shadow-2xl shadow-black/28 backdrop-blur-xl sm:p-4">
               <div className="flex items-start gap-3">
-                <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-amber-200/35 bg-black shadow-lg shadow-black/25 sm:h-12 sm:w-12 sm:rounded-2xl">
+                <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-white/10 bg-black shadow-lg shadow-black/25 sm:h-12 sm:w-12 sm:rounded-2xl">
                   <Image
                     src={brand.logo}
                     alt=""
                     fill
                     unoptimized
                     sizes="48px"
-                    className="object-contain p-1"
+                    className="object-contain p-1.5"
                   />
                 </span>
                 <div>
@@ -82,8 +82,8 @@ export function GoogleMapPanel({ content, compact = false }: GoogleMapPanelProps
       {!compact ? (
         <div className="mt-3 grid gap-3 rounded-[1.35rem] border border-white/14 bg-black/38 p-3 backdrop-blur-xl sm:grid-cols-[1fr_auto_auto] sm:items-center sm:p-4">
           <div className="flex min-w-0 items-start gap-3">
-            <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-amber-200/35 bg-black shadow-lg shadow-black/25">
-              <Image src={brand.logo} alt="" fill unoptimized sizes="48px" className="object-contain p-1" />
+            <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/10 bg-black shadow-lg shadow-black/25">
+              <Image src={brand.logo} alt="" fill unoptimized sizes="48px" className="object-contain p-1.5" />
             </span>
             <div className="min-w-0">
               <div className="section-kicker">{content.contact.mapLabel}</div>

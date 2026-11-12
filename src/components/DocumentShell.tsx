@@ -28,8 +28,12 @@ export function getRootMetadata(lang: Lang): Metadata {
     description: seo.description,
     applicationName: "Aratta Expo Cinematic",
     authors: [{ name: "Aratta Expo" }],
+    manifest: "/manifest.webmanifest",
     icons: {
-      icon: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
+      icon: [
+        { url: brand.icon192, sizes: "192x192", type: "image/png" },
+        { url: brand.tab, sizes: "512x512", type: "image/png" },
+      ],
       apple: [{ url: brand.tab, sizes: "512x512", type: "image/png" }],
     },
     openGraph: {

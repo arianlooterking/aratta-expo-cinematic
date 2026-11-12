@@ -1,0 +1,17 @@
+{
+  "name": "Aratta Expo",
+  "short_name": "Aratta Expo",
+  "description": "Aratta Trade Development Company: specialised mining, steel, copper and supply-chain exhibitions in Kerman and Sirjan.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/fa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#040608",
+  "icons": [
+    { "src": "/brand-v3/aratta-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand-v3/aratta-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand-v3/aratta-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
