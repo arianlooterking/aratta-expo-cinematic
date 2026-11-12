@@ -198,7 +198,31 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.match(boothHero, /hero-v6\/desktop\/stage-06\.webp/);
   assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
-  assert.match(boothHero, /h-\[840svh\]/);
+  assert.match(boothHero, /h-\[1000svh\]/);
+  // Slow-motion playback: the shown progress is speed limited and the copy follows it.
+  assert.match(sources["booth-scene"], /const SPEED = 0\.05;/);
+  assert.match(sources["booth-scene"], /const SPEED_FAR = 0\.2;/);
+  assert.match(boothHero, /onFrame: paint/);
+  // LED cabinets light with their slice of the picture as they lock in.
+  assert.match(timeline, /ledTiles: \[0\.664, 0\.716\]/);
+  assert.match(sources.identity, /float since = uP - vTile\.z;/);
+  // The LED wall plays a calm brand reel drawn once into textures, with text from the site content.
+  const reel = await readFile(new URL("reel.ts", dir), "utf8");
+  assert.match(reel, /export function buildReel/);
+  assert.match(reel, /export const REEL = \{ slides: 4, hold: 7, fade: 1\.8 \}/);
+  assert.match(sources.identity, /buildReel\(ctx/);
+  assert.match(boothHero, /import type \{ SiteContent \} from "@\/data\/aratta-content"/);
+  assert.match(boothHero, /events: contentRef\.current\.exhibitions\.items\.map\(\(item\) => item\.title\)/);
+  assert.match(boothHero, /title: contentRef\.current\.hero\.title/);
+  // No canvas is redrawn or uploaded in the frame loop: only uniforms change.
+  assert.doesNotMatch(reel, /needsUpdate\s*=\s*true/);
+  assert.doesNotMatch(sources.identity, /needsUpdate\s*=\s*true/);
+  assert.match(sources["booth-scene"], /reel\(t: number \| null\)/);
+  // One calm crane move: no idle sway, a measurable path.
+  assert.doesNotMatch(sources.camera, /Math\.sin\(time/);
+  assert.match(sources.camera, /export function pathStats/);
+  assert.match(sources["booth-scene"], /pathStats\(/);
+  assert.match(timeline, /CAMERA_KEYS: Array<\{ at: number; azimuth: number; distance: number; height: number; target: Vec3 \}>/);
   assert.match(boothHero, /grid-cols-8/);
   assert.match(boothHero, /data-mobile-hero-card/);
   assert.match(boothHero, /data-hero-loader/);

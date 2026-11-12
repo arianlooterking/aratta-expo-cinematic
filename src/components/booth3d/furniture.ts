@@ -325,7 +325,8 @@ export function buildFurniture(ctx: Ctx) {
     [-4.5, -3.75, 0],
     [-3.85, -3.75, 0],
   ].forEach(([x, z, ry], i) => place(meetingChair, x, FLOOR_TOP, z, ry, [lo1 - 0.004 + i * 0.002, lo1 + 0.006 + i * 0.002], { from: [0, 0, ry ? 0.5 : -0.5] }));
-  place([[ctx.rbox(1.4, 0.8, 0.04, 0.006), mats.black]], -4.5, FLOOR_TOP + 1.45, -4.39, 0, [lo1 - 0.01, lo1], { from: [0, 0, 0.4] });
+  const reelScreen = (ctx.hooks.reelScreen as ((offset: number) => THREE.Material) | undefined)?.(9);
+  place([[ctx.rbox(1.4, 0.8, 0.04, 0.006), mats.black], ...(reelScreen ? [[plane(1.34, 0.74, 0, 0, 0.021), reelScreen] as Piece] : [])], -4.5, FLOOR_TOP + 1.45, -4.39, 0, [lo1 - 0.01, lo1], { from: [0, 0, 0.4] });
 
   // ---- upstairs: a table for four for serious conversations, a sofa and side table.
   const upY = DECK.top;

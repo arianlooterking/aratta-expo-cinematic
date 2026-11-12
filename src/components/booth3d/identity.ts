@@ -1,12 +1,17 @@
-// Chapter 7: brand and media. LED cabinets (7 x 5 of 500 mm, dark with their
-// rear frames and handles showing) fly in and lock row by row, then boot
-// cleanly: one white flash, colour bars for a moment, then slow brand content.
+// Chapter 7: brand and media. LED cabinets (7 x 5 of 500 mm, rear frames and
+// handles showing) fly in and lock row by row from the bottom. Each one lights
+// the moment it locks: a very short white test flash, then its own slice of the
+// brand reel at about 85%, so the live picture assembles like a mosaic. After
+// the last cabinet the whole wall ramps to full brightness. The reel (reel.ts)
+// loops calmly with slow cross-fades and is drawn once into textures; the
+// meeting-room screen plays the same reel, offset in time.
 // A large backlit fabric lightbox hangs on the upper back wall, the 3D Aratta mark mounts on standoffs on the
 // tower with a halo, the wordmarks follow, and the hanging sign fabric wraps
 // its ring. The tower's backlit fabric face is installed with the cladding.
 
 import * as THREE from "three";
 import { canvasTexture, drawLogo, merge, type Ctx } from "./core";
+import { REEL_GLSL, buildReel, type ReelText } from "./reel";
 import { LOGO_BAND, LOGO_COLORS, LOGO_HEIGHT, LOGO_LETTERING, LOGO_RECTS } from "./brand-logo";
 import { FLOOR_TOP } from "./floor";
 import { SIGN } from "./rigging";
@@ -124,15 +129,22 @@ export function buildIdentity(ctx: Ctx) {
   ctx.bars(mats.led, root, { cast: false, receive: false }).add({ p: [ledX, FLOOR_TOP + 0.012, ledZ + 0.48], s: [ledW + 0.1, 0.008, 0.008] }, [lt0 - 0.004, lt0], {});
   decals.add("edge", ledX, FLOOR_TOP + 0.0036, ledZ + 0.6, ledW + 0.3, 0.3, (p) => window01(p, lt0 - 0.01, lt0) * 0.5);
 
-  const content = canvasTexture(rich ? 840 : 560, rich ? 600 : 400, () => undefined);
-  track(content.texture);
-  content.texture.anisotropy = 4;
+  const reel = buildReel(ctx, ctx.hooks.reel as ReelText | undefined);
+  // Reduced motion holds the first slide (the logo) still.
+  const still = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let reelOverride: number | null = null;
+  /** Debug: pin the reel to a time in seconds (null lets it run). */
+  ctx.hooks.setReel = (t: number | null) => {
+    reelOverride = t;
+  };
   const tileGeo = new THREE.BoxGeometry(tile - 0.002, tile - 0.002, 0.08);
   const tileAttr = new THREE.InstancedBufferAttribute(new Float32Array(cols * rows * 3), 3);
   tileGeo.setAttribute("aTile", tileAttr);
   const screenMat = track(
     new THREE.ShaderMaterial({
-      uniforms: { uMap: { value: content.texture }, uBoot: { value: 0 }, uGrid: { value: new THREE.Vector2(cols, rows) } },
+      uniforms: { ...reel.uniforms, uBoot: { value: 0 }, uP: { value: 0 }, uGrid: { value: new THREE.Vector2(cols, rows) } },
+      // The faint LED pixel grid is for the desktop build only.
+      defines: rich ? { PIXEL_GRID: 1 } : {},
       vertexShader: /* glsl */ `
         attribute vec3 aTile;
         varying vec2 vUv;
@@ -147,42 +159,39 @@ export function buildIdentity(ctx: Ctx) {
           gl_Position = projectionMatrix * modelViewMatrix * p;
         }`,
       fragmentShader: /* glsl */ `
-        uniform sampler2D uMap;
+        uniform float uTime;
         uniform float uBoot;
+        uniform float uP;
         uniform vec2 uGrid;
         varying vec2 vUv;
         varying vec3 vTile;
-        vec3 bars(float x) {
-          float i = floor(clamp(x, 0.0, 0.999) * 7.0);
-          vec3 c = vec3(0.75);
-          if (i == 1.0) c = vec3(0.75, 0.75, 0.0);
-          else if (i == 2.0) c = vec3(0.0, 0.75, 0.75);
-          else if (i == 3.0) c = vec3(0.0, 0.75, 0.0);
-          else if (i == 4.0) c = vec3(0.75, 0.0, 0.75);
-          else if (i == 5.0) c = vec3(0.75, 0.0, 0.0);
-          else if (i == 6.0) c = vec3(0.0, 0.0, 0.75);
-          return c;
-        }
+        ${REEL_GLSL}
         void main() {
           vec2 suv = (vTile.xy + vUv) / uGrid;
-          vec3 c = texture2D(uMap, suv).rgb;
-          // Pixel structure: 64 LEDs per cabinet, faded out where it would alias.
-          vec2 g = vUv * 64.0;
-          vec2 fw = fwidth(g);
-          vec2 f = abs(fract(g) - 0.5);
-          vec2 dots = smoothstep(vec2(0.5), vec2(0.5) - max(fw, vec2(0.12)), f);
-          float grid = dots.x * dots.y;
-          float detail = 1.0 - smoothstep(0.2, 0.5, max(fw.x, fw.y));
-          float pixel = mix(1.0, 0.55 + 0.45 * grid, detail);
+          vec3 c = reel(suv, uTime);
+          float pixel = 1.0;
+          #ifdef PIXEL_GRID
+            // Pixel structure: 64 LEDs per cabinet, faded out where it would alias.
+            vec2 g = vUv * 64.0;
+            vec2 fw = fwidth(g);
+            vec2 f = abs(fract(g) - 0.5);
+            vec2 dots = smoothstep(vec2(0.5), vec2(0.5) - max(fw, vec2(0.12)), f);
+            float grid = dots.x * dots.y;
+            float detail = 1.0 - smoothstep(0.2, 0.5, max(fw.x, fw.y));
+            pixel = mix(1.0, 0.55 + 0.45 * grid, detail);
+          #endif
           // Cabinet seams.
           vec2 e = min(vUv, 1.0 - vUv);
           float seam = smoothstep(0.0, 0.01 + fwidth(vUv.x) * 1.5, min(e.x, e.y));
-          // Boot: dark glass, one white flash, colour bars, then the content fades up.
+          // Each cabinet lights as it locks (vTile.z = its lock progress): a very short
+          // white test flash, then its slice of the picture at ~85%. After the last one
+          // the whole wall ramps to full brightness with a gentle swell.
+          float since = uP - vTile.z;
+          float flash = smoothstep(0.0, 0.0006, since) * (1.0 - smoothstep(0.0012, 0.003, since));
+          float slice = smoothstep(0.0012, 0.004, since);
           float b = uBoot;
-          float flash = smoothstep(0.0, 0.05, b) * (1.0 - smoothstep(0.08, 0.18, b));
-          float barsOn = smoothstep(0.14, 0.2, b) * (1.0 - smoothstep(0.4, 0.5, b));
-          float content = smoothstep(0.44, 0.8, b);
-          vec3 col = vec3(0.016, 0.017, 0.018) + vec3(1.5) * flash + bars(suv.x) * barsOn + c * 1.3 * content;
+          float level = slice * (0.85 + 0.15 * smoothstep(0.0, 1.0, b) + 0.12 * sin(3.14159 * b));
+          vec3 col = vec3(0.016, 0.017, 0.018) + vec3(1.4) * flash + c * 1.3 * level;
           col *= pixel * mix(0.6, 1.0, seam);
           gl_FragColor = vec4(col, 1.0);
           #include <colorspace_fragment>
@@ -205,65 +214,57 @@ export function buildIdentity(ctx: Ctx) {
     rear.push(new THREE.BoxGeometry(0.014, 0.014, 0.04).translate(x, 0.17, -0.08), new THREE.BoxGeometry(0.014, 0.014, 0.04).translate(x, 0.07, -0.08));
   }
   const rearPool = parts.pool(track(merge(rear)), mats.alu, root, { cast: false });
-  // Row by row from the bottom, left to right, as a rigger locks them.
+  // Row by row from the bottom, left to right, as a rigger locks them; the last one
+  // locks a moment before the window ends so its slice is up before the wall boots.
   order.sort((a, b) => a[1] * 10 + a[0] - (b[1] * 10 + b[0]));
+  const fly = 0.01;
+  const colStep = 0.0012;
+  const rowStep = (lt1 - lt0 - fly - 0.004 - (cols - 1) * colStep) / (rows - 1);
   order.forEach(([c, r]) => {
-    const s = lt0 + r * ((lt1 - lt0 - 0.01) / rows) + c * 0.0009;
+    const s = lt0 + r * rowStep + c * colStep;
     const x = LED.x0 + tile * (c + 0.5);
     const y = LED.bottom + tile * (r + 0.5);
     const motion = { from: [0.15, -0.25, 1.3] as [number, number, number], rot: [0.25, -0.5, 0] as [number, number, number] };
-    const index = tilePool.add({ p: [x, y, ledZ] }, [s, s + 0.007], { ...motion, glint: c === cols - 1 ? [x + tile / 2, y + tile / 2, ledZ + 0.04] : undefined });
-    rearPool.add({ p: [x, y, ledZ] }, [s, s + 0.007], motion);
-    tileAttr.setXYZ(index, c, r, 0);
+    const index = tilePool.add({ p: [x, y, ledZ] }, [s, s + fly], { ...motion, glint: c === cols - 1 ? [x + tile / 2, y + tile / 2, ledZ + 0.04] : undefined });
+    rearPool.add({ p: [x, y, ledZ] }, [s, s + fly], motion);
+    tileAttr.setXYZ(index, c, r, s + fly);
   });
 
   const copy = fa
     ? { brand: "اَرَتَ", line: "نمایشگاه‌های تخصصی صنعت و معدن", sub: "کرمان · ایران", tag: "مس · فولاد · سنگ آهن" }
     : { brand: "Aratta Expo", line: "Industry & mining exhibitions", sub: "Kerman · Iran", tag: "Copper · Steel · Iron ore" };
-  let lastDraw = -1;
-  const drawContent = (time: number) => {
-    const c = content.ctx;
-    const w = content.canvas.width;
-    const h = content.canvas.height;
-    const s = w / 840;
-    // Deep green field, fine gold survey contours drifting slowly, the mark and a headline.
-    const bg = c.createLinearGradient(0, 0, w, h);
-    bg.addColorStop(0, "#0b2a21");
-    bg.addColorStop(1, "#06150f");
-    c.fillStyle = bg;
-    c.fillRect(0, 0, w, h);
-    c.lineWidth = 1.6 * s;
-    for (let i = 0; i < 16; i += 1) {
-      c.strokeStyle = `rgba(224,183,90,${0.12 + (i % 4) * 0.05})`;
-      c.beginPath();
-      for (let x = 0; x <= w; x += 10 * s) {
-        const y = h * 0.52 + i * 13 * s + Math.sin(x / (130 * s) + time * 0.18 + i * 0.5) * 18 * s + Math.sin(x / (47 * s) + i) * 4 * s;
-        if (x === 0) c.moveTo(x, y);
-        else c.lineTo(x, y);
-      }
-      c.stroke();
-    }
-    const sweep = ((time * 0.06) % 1.6) - 0.3;
-    const sg = c.createLinearGradient(w * (sweep - 0.2), 0, w * (sweep + 0.2), 0);
-    sg.addColorStop(0, "rgba(255,200,120,0)");
-    sg.addColorStop(0.5, "rgba(255,210,140,0.12)");
-    sg.addColorStop(1, "rgba(255,200,120,0)");
-    c.fillStyle = sg;
-    c.fillRect(0, 0, w, h);
-    // The official logo carries the name, so the content shows it with one line under it.
-    drawLogo(c, w / 2 - 92 * s, 52 * s, 184 * s, { plate: true });
-    c.fillStyle = "#f5efe3";
-    c.direction = fa ? "rtl" : "ltr";
-    c.textAlign = "center";
-    c.textBaseline = "alphabetic";
-    c.font = font(700, 34 * s);
-    c.fillText(copy.line, w / 2, 300 * s);
-    c.font = font(700, 24 * s);
-    c.fillStyle = "#e0b75a";
-    c.fillText(`${copy.sub}   ·   ${copy.tag}`, w / 2, 344 * s);
-    content.texture.needsUpdate = true;
+  // The meeting-room screen (furniture.ts) plays the same reel from the same textures,
+  // offset in time, at normal screen brightness.
+  const screens: THREE.ShaderMaterial[] = [];
+  ctx.hooks.reelScreen = (offset: number) => {
+    const m = track(
+      new THREE.ShaderMaterial({
+        uniforms: { uReel: reel.uniforms.uReel, uPlan: reel.uniforms.uPlan, uTime: { value: 0 }, uOffset: { value: offset } },
+        vertexShader: /* glsl */ `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            vec4 p = vec4(position, 1.0);
+            #ifdef USE_INSTANCING
+              p = instanceMatrix * p;
+            #endif
+            gl_Position = projectionMatrix * modelViewMatrix * p;
+          }`,
+        fragmentShader: /* glsl */ `
+          uniform float uTime;
+          uniform float uOffset;
+          varying vec2 vUv;
+          ${REEL_GLSL}
+          void main() {
+            gl_FragColor = vec4(reel(vUv, uTime + uOffset) * 0.9, 1.0);
+            #include <colorspace_fragment>
+          }`,
+        toneMapped: false,
+      }),
+    );
+    screens.push(m);
+    return m;
   };
-  drawContent(0);
 
   // ---- hanging sign: fabric wraps the ring, printed outside, lit from inside.
   const signTex = canvasTexture(rich ? 4096 : 2048, rich ? 260 : 130, (c, w, h) => {
@@ -374,11 +375,12 @@ export function buildIdentity(ctx: Ctx) {
 
     const boot = window01(p, T.ledBoot[0], T.ledBoot[1]);
     screenMat.uniforms.uBoot.value = boot;
+    screenMat.uniforms.uP.value = p;
     bannerMat.emissiveIntensity = 0.12 + lb * 1.05;
-    if (boot > 0.4 && time - lastDraw > 1 / 15) {
-      lastDraw = time;
-      drawContent(time);
-    }
+    // Only uniforms change per frame: the reel's slides were drawn once at load.
+    const reelTime = reelOverride ?? (still ? 1.5 : time);
+    reel.uniforms.uTime.value = reelTime;
+    for (const m of screens) m.uniforms.uTime.value = reelTime;
 
     const wrap = easeInOutCubic(window01(p, T.sign[0], T.sign[1]));
     const count = Math.round(wrap * signSegs) * 6;
