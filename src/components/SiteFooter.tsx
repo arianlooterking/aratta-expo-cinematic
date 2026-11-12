@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowUp, ArrowUpLeft, ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
 import { navGroups, navHref, telHref } from "@/data/site-nav";
-import { getBrandAssets } from "@/lib/brand-assets";
+import { brandLogoAlt, getBrandAssets } from "@/lib/brand-assets";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 
 const footerCopy = {
   fa: {
@@ -45,7 +46,8 @@ export function SiteFooter({ content }: { content: SiteContent }) {
   const groups = navGroups.filter((group) => group.key !== "company");
 
   return (
-    <footer className="relative mt-10 border-t border-white/8 pb-8 pt-14 sm:pt-16">
+    <footer className="relative isolate mt-10 border-t border-white/8 pb-8 pt-14 sm:pt-16">
+      <BuildBackdrop motif="stand" lang={lang} tone="quiet" className="inset-x-0 bottom-[4.6rem] mx-auto w-[min(1040px,170vw)] max-sm:hidden" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/40 to-transparent" />
       <div className="section-shell">
         <div className="glass relative isolate overflow-hidden rounded-[2rem] p-6 sm:p-8 lg:p-10">
@@ -77,11 +79,11 @@ export function SiteFooter({ content }: { content: SiteContent }) {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.35fr_repeat(3,minmax(0,1fr))_1.15fr] lg:gap-8">
-          <div className="sm:col-span-2 lg:col-span-1">
+        <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-9 sm:gap-10 lg:grid-cols-[1.35fr_repeat(3,minmax(0,1fr))_1.15fr] lg:gap-8">
+          <div className="col-span-2 lg:col-span-1">
             <Link href={`/${lang}`} className="inline-flex items-center gap-3">
-              <span className="relative h-12 w-12 overflow-hidden rounded-[1rem] border border-amber-200/24 bg-black">
-                <Image src={brand.logo} alt="" fill unoptimized sizes="48px" className="object-contain p-1" />
+              <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[1.05rem] border border-white/10 bg-black">
+                <Image src={brand.logo} alt={brandLogoAlt[lang]} fill unoptimized sizes="56px" className="object-contain p-2" />
               </span>
               <span className="leading-tight">
                 <span className="font-latin block text-sm font-black text-white">Aratta Expo</span>
@@ -101,7 +103,7 @@ export function SiteFooter({ content }: { content: SiteContent }) {
                   <li key={link.id}>
                     <Link
                       href={navHref(lang, link.id)}
-                      className="inline-flex min-h-10 items-center text-sm text-white/58 transition hover:text-[var(--gold)]"
+                      className="inline-flex min-h-11 items-center text-sm text-white/58 transition hover:text-[var(--gold)]"
                     >
                       {link.label[lang]}
                     </Link>
@@ -111,7 +113,7 @@ export function SiteFooter({ content }: { content: SiteContent }) {
             </nav>
           ))}
 
-          <div>
+          <div className="col-span-2 sm:col-span-1">
             <h3 className="text-sm font-black text-white">{copy.contactTitle}</h3>
             <ul className="mt-3 grid gap-1 text-sm text-white/58">
               {content.contact.phones.map((phone) => (

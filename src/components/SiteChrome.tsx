@@ -16,7 +16,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
 import { isActiveNav, navGroups, navHref, primaryNav, telHref } from "@/data/site-nav";
-import { getBrandAssets } from "@/lib/brand-assets";
+import { brandLogoAlt, getBrandAssets } from "@/lib/brand-assets";
 import { cn } from "@/lib/cn";
 import {
   getAlternateLang,
@@ -134,14 +134,14 @@ export function SiteChrome({ content }: SiteChromeProps) {
             className="flex min-w-0 items-center gap-3"
             onClick={close}
           >
-            <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-[1rem] border border-amber-200/24 bg-black shadow-[inset_0_1px_0_rgba(255,255,255,0.13),0_14px_34px_rgba(0,0,0,0.35)] sm:h-14 sm:w-14 sm:rounded-[1.15rem]">
+            <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-[0.9rem] border border-white/10 bg-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_14px_34px_rgba(0,0,0,0.35)] sm:h-14 sm:w-14 sm:rounded-[1.05rem]">
               <Image
                 src={brand.logo}
-                alt={content.brand}
+                alt={brandLogoAlt[lang]}
                 fill
                 unoptimized
                 sizes="56px"
-                className="object-contain p-1"
+                className="object-contain p-[7px] sm:p-2"
                 loading="eager"
               />
             </span>
@@ -200,7 +200,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
               href={altHref}
               hrefLang={altLang}
               lang={altLang}
-              className="inline-flex min-h-10 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-semibold text-white/86 transition hover:bg-white/10 hover:text-white sm:px-3.5 sm:text-[0.82rem]"
+              className="inline-flex min-h-11 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-semibold text-white/86 transition hover:bg-white/10 hover:text-white sm:px-3.5 sm:text-[0.82rem]"
             >
               {getLanguageLabel(lang)}
             </Link>

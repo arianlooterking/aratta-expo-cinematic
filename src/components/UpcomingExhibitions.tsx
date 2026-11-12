@@ -100,7 +100,7 @@ function UpcomingCardView({ item, fa }: { item: UpcomingCard; fa: boolean }) {
         : `${item.daysToOpen} day${item.daysToOpen === 1 ? "" : "s"} to opening`
       : null;
   return (
-    <article className="group flex w-[84%] max-w-[24rem] shrink-0 snap-center flex-col overflow-hidden rounded-[1.8rem] border border-white/12 bg-black/24 sm:w-[46%] lg:w-auto lg:max-w-none">
+    <article className="group flex w-[84%] max-w-[24rem] shrink-0 snap-start flex-col overflow-hidden rounded-[1.8rem] border border-white/12 bg-black/24 sm:w-[46%] lg:w-auto lg:max-w-none">
       <div className="relative aspect-[16/10]">
         <Image src={item.image} alt="" fill unoptimized sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/20 to-transparent" />

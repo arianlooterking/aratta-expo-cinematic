@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, FileDown } from "lucide-react";
 import { partnerGroups, partnerSourceHref } from "@/data/partners";
 import type { Lang } from "@/lib/lang";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 
 const copy = {
   fa: {
@@ -45,8 +46,11 @@ export function PartnersSection({
     <section
       id={compact ? undefined : "partners"}
       aria-labelledby={compact ? undefined : "partners-title"}
-      className={compact ? "" : "relative py-20 sm:py-24"}
+      className={compact ? "" : "section-pad relative isolate"}
     >
+      {compact ? null : (
+        <BuildBackdrop motif="truss" lang={lang} className="end-[-30%] top-0 w-[170vw] lg:end-[calc(50%-min(590px,47%)-6rem)] lg:w-[min(900px,62vw)]" />
+      )}
       <div className={compact ? "" : "section-shell"}>
         {compact ? null : (
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">

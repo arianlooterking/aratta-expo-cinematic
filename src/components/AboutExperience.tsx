@@ -8,6 +8,7 @@ import { useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
 import { boothStageFrames, mobileBoothStageFrames } from "@/lib/booth-scenes";
 import { cn } from "@/lib/cn";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 
 const sectorIcons = [Mountain, Factory, Cog, Users];
 const sectorRoutes = ["exhibitions", "exhibitions", "equipment", "participants"] as const;
@@ -55,7 +56,8 @@ export function AboutExperience({ content }: AboutExperienceProps) {
   const frame = sectorFrames[active] ?? 5;
 
   return (
-    <section id="about" className="relative overflow-hidden py-20 sm:py-24">
+    <section id="about" className="relative isolate overflow-hidden section-pad">
+      <BuildBackdrop motif="logo" lang={lang} className="end-[-22%] top-[-1rem] w-[min(460px,88vw)] lg:max-[1599px]:hidden min-[1600px]:end-[calc(50%-590px-25.5rem)] min-[1600px]:top-auto min-[1600px]:bottom-8 min-[1600px]:w-[24rem]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
       <div className="section-shell grid gap-6 lg:grid-cols-[1fr_1.05fr] lg:items-stretch">
         <motion.div
@@ -80,7 +82,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
               <h3 className="text-sm font-black text-white">{copy.factsTitle}</h3>
               <Link
                 href={`/${lang}/archive`}
-                className="text-xs font-bold text-[var(--cyan)] hover:underline"
+                className="inline-flex min-h-11 items-center text-xs font-bold text-[var(--cyan)] hover:underline"
               >
                 {copy.archive}
               </Link>

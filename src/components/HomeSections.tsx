@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
 import { telHref } from "@/data/site-nav";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 import { AboutExperience } from "@/components/AboutExperience";
 import { AnimatedTabs } from "@/components/AnimatedTabs";
 import { BlogCards } from "@/components/BlogCards";
@@ -40,14 +41,15 @@ type HomeProps = HomeSectionsProps & {
 export function HomeSections({ content, upcoming }: HomeProps) {
   return (
     <>
-      <section className="section-shell relative z-10 -mt-px pt-10 sm:pt-14">
+      <section id="quick-actions" className="section-shell relative z-10 -mt-px pt-10 sm:pt-14">
         <QuickActions lang={content.lang} />
       </section>
       <UpcomingSection content={content} upcoming={upcoming} />
       <AboutExperience content={content} />
       <PartnersSection lang={content.lang} />
       <AnimatedTabs content={content} />
-      <section id="journey" className="py-20 sm:py-24">
+      <section id="journey" className="relative isolate section-pad">
+        <BuildBackdrop motif="plan" lang={content.lang} className="inset-x-0 top-6 mx-auto w-[min(1640px,230vw)]" />
         <div className="section-shell">
           <ExhibitorJourney lang={content.lang} />
         </div>
@@ -66,7 +68,7 @@ export function HomeSections({ content, upcoming }: HomeProps) {
 
 function UpcomingSection({ content, upcoming }: HomeProps) {
   return (
-    <section id="exhibitions" className="py-16 sm:py-20">
+    <section id="exhibitions" className="section-pad">
       <div className="section-shell">
         <UpcomingExhibitions lang={content.lang} items={upcoming.items} live={upcoming.live} />
       </div>
@@ -78,9 +80,10 @@ function RegistrationSection({ content }: HomeSectionsProps) {
   const fa = content.lang === "fa";
   const base = `/${content.lang}`;
   return (
-    <section id="registration" className="py-20 sm:py-24">
+    <section id="registration" className="relative isolate section-pad">
+      <BuildBackdrop motif="floor" lang={content.lang} className="end-[-18%] top-[-3rem] w-[min(640px,125vw)] lg:max-[1599px]:hidden min-[1600px]:end-[calc(50%-590px-30rem)] min-[1600px]:top-0 min-[1600px]:w-[34rem]" />
       <div className="section-shell grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="glass relative isolate min-w-0 overflow-hidden rounded-[2rem] p-6 sm:p-8">
+        <div className="glass relative isolate min-w-0 overflow-hidden rounded-[2rem] p-5 sm:p-8">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_8%,rgba(125,220,232,0.14),transparent_22rem),radial-gradient(circle_at_90%_90%,rgba(214,174,101,0.14),transparent_20rem)]" />
           <div className="section-kicker">{content.registration.kicker}</div>
           <h2 className="card-display-title mt-4 font-black text-white">{content.registration.title}</h2>
@@ -109,7 +112,7 @@ function RegistrationSection({ content }: HomeSectionsProps) {
           </p>
         </div>
 
-        <div className="industrial-card min-w-0 rounded-[2rem] p-6 sm:p-7">
+        <div className="industrial-card min-w-0 rounded-[2rem] p-5 sm:p-7">
           <h3 className="text-xl font-black text-white">{fa ? "فایل‌های رسمی" : "Official files"}</h3>
           <div className="mt-5 grid gap-3">
             {content.registration.downloads.map((download) => (
@@ -134,7 +137,7 @@ function RegistrationSection({ content }: HomeSectionsProps) {
               </a>
             ))}
           </div>
-          <Link href={`${base}/forms`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[var(--gold)] hover:text-white">
+          <Link href={`${base}/forms`} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--gold)] hover:text-white">
             <ArrowUpRight size={16} />
             {fa ? "همه فرم‌ها و کاتالوگ‌ها" : "All forms and catalogues"}
           </Link>
@@ -146,7 +149,7 @@ function RegistrationSection({ content }: HomeSectionsProps) {
 
 function NewsSection({ content }: HomeSectionsProps) {
   return (
-    <section id="news" className="py-20 sm:py-24">
+    <section id="news" className="section-pad">
       <div className="section-shell">
         {/* Six latest posts on wide screens, three on phones. */}
         <div className="max-md:[&_.grid>a:nth-child(n+4)]:hidden">
@@ -160,7 +163,8 @@ function NewsSection({ content }: HomeSectionsProps) {
 function FaqSection({ content }: HomeSectionsProps) {
   const fa = content.lang === "fa";
   return (
-    <section id="faq" className="py-20 sm:py-24">
+    <section id="faq" className="relative isolate section-pad">
+      <BuildBackdrop motif="walls" lang={content.lang} className="start-[-2%] bottom-[6%] w-[min(600px,125vw)] max-lg:bottom-auto max-lg:top-0" />
       <div className="section-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Frequent questions"}</div>
@@ -182,7 +186,7 @@ function FaqSection({ content }: HomeSectionsProps) {
 function RelatedNewsSection({ content }: HomeSectionsProps) {
   const featuredItems = content.news.relatedItems.slice(0, 3);
   return (
-    <section id="industry-news" className="py-16 sm:py-20">
+    <section id="industry-news" className="section-pad">
       <div className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div>
@@ -247,7 +251,7 @@ function BlogSection({ content }: HomeSectionsProps) {
   );
 
   return (
-    <section id="blog" className="py-16 sm:py-24">
+    <section id="blog" className="section-pad">
       <div className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -282,7 +286,7 @@ function BlogSection({ content }: HomeSectionsProps) {
 function GallerySection({ content }: HomeSectionsProps) {
   const fa = content.lang === "fa";
   return (
-    <section id="gallery" className="py-20 sm:py-24">
+    <section id="gallery" className="section-pad">
       <div className="section-shell">
         <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-3xl">
@@ -304,9 +308,9 @@ function GallerySection({ content }: HomeSectionsProps) {
 
 function ContactSection({ content }: HomeSectionsProps) {
   return (
-    <section id="contact" className="py-20 sm:py-24">
+    <section id="contact" className="section-pad">
       <div className="section-shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <div className="section-kicker">{content.contact.kicker}</div>
           <h2 className="card-display-title mt-4 font-black text-white">{content.contact.title}</h2>
           <div className="mt-8 grid gap-5">
@@ -314,17 +318,17 @@ function ContactSection({ content }: HomeSectionsProps) {
               {content.contact.address}
             </ContactRow>
             <ContactRow icon={<Mail size={21} />} label={content.contact.emailLabel}>
-              <a href="mailto:info@arattaexpo.ir">info@arattaexpo.ir</a>
+              <a href="mailto:info@arattaexpo.ir" className="font-latin inline-flex min-h-11 items-center">info@arattaexpo.ir</a>
             </ContactRow>
             <ContactRow icon={<Phone size={21} />} label={content.contact.phoneLabel}>
               {content.contact.phones.map((phone) => (
-                <a key={phone} href={telHref(phone)} className="font-latin me-4 inline-block">
+                <a key={phone} href={telHref(phone)} className="font-latin me-5 inline-flex min-h-11 items-center">
                   {phone}
                 </a>
               ))}
             </ContactRow>
           </div>
-          <div className="mt-8 grid grid-cols-3 gap-2">
+          <div className="mt-8 grid grid-cols-3 gap-2 [&>a]:px-2 sm:[&>a]:px-4">
             <a href={telHref(content.contact.phones[0])} className="liquid-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 font-black text-white">
               <Phone size={17} />
               {content.lang === "fa" ? "تماس" : "Call"}

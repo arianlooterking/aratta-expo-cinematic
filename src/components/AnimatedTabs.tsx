@@ -89,7 +89,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
     content.lang === "fa" ? faDigits(index + 1) : String(index + 1).padStart(2, "0");
 
   return (
-    <section id="forms" className="relative overflow-hidden py-24 sm:py-28">
+    <section id="forms" className="relative overflow-hidden section-pad">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/22 to-transparent" />
       <div className="section-shell">
         <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">

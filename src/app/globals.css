@@ -79,7 +79,7 @@ body {
 html[lang="fa"] body {
   font-family: var(--font-persian), Tahoma, Arial, sans-serif;
   font-kerning: normal;
-  line-height: 1.78;
+  line-height: 1.9;
 }
 
 html[lang="en"] body {
@@ -342,8 +342,10 @@ dt {
   }
 }
 
+/* One gutter for every section: 20px on phones, growing to 36px. */
 .section-shell {
-  width: min(1180px, calc(100vw - clamp(1.5rem, 5vw, 4.5rem)));
+  --gutter: clamp(1.25rem, 4vw, 2.25rem);
+  width: min(1180px, calc(100% - 2 * var(--gutter)));
   margin-inline: auto;
 }
 
@@ -762,24 +764,42 @@ html[lang="fa"] .booth3d__chapter-title {
   }
 }
 
+/* Section rhythm: one vertical padding for every landing section, 56px on
+   phones growing to 96px on desktops. */
+.section-pad {
+  padding-block: clamp(3.5rem, 2rem + 4.5vw, 6rem);
+}
+
+/* Display sizes scale smoothly from a 360px phone to a desktop. */
 .section-display-title {
-  font-size: clamp(2rem, 3.5vw, 3.25rem);
+  font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.25rem);
   line-height: 1.18;
 }
 
 .page-display-title {
-  font-size: clamp(2.2rem, 3.8vw, 3.5rem);
+  font-size: clamp(1.95rem, 1.2rem + 3vw, 3.5rem);
   line-height: 1.16;
 }
 
 .card-display-title {
-  font-size: clamp(1.55rem, 2.45vw, 2.65rem);
-  line-height: 1.16;
+  font-size: clamp(1.45rem, 1rem + 1.9vw, 2.65rem);
+  line-height: 1.18;
+}
+
+/* Persian letters need more room between lines than Latin ones. */
+html[lang="fa"] .section-display-title,
+html[lang="fa"] .page-display-title,
+html[lang="fa"] .card-display-title {
+  line-height: 1.4;
 }
 
 .site-copy {
   max-width: 68ch;
   line-height: 1.9;
+}
+
+html[lang="fa"] .site-copy {
+  line-height: 1.95;
 }
 
 @media (max-width: 1160px) {
@@ -998,4 +1018,133 @@ a .industrial-card:hover {
 }
 .card-rail::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------------------------------------------------------- Build backdrops
+   Line drawings of a stand being built, behind the sections below the hero
+   (src/components/backdrops). The root sets --draw (0..1) and --u (drawing
+   units per screen pixel). Each timed element has a window --a..--b; --t is
+   its local progress. Only stroke-dashoffset, opacity and transform change. */
+.bb {
+  --draw: 0;
+  --u: 1;
+  --bb-gold: rgba(214, 174, 101, 0.17);
+  --bb-gold-faint: rgba(214, 174, 101, 0.09);
+  --bb-teal: rgba(125, 220, 232, 0.15);
+  --bb-teal-faint: rgba(125, 220, 232, 0.075);
+  --bb-label: rgba(214, 174, 101, 0.46);
+  --bb-fill-gold: rgba(214, 174, 101, 0.07);
+  --bb-fill-teal: rgba(125, 220, 232, 0.035);
+  --bb-beam-gold: rgba(232, 201, 135, 0.085);
+  --bb-beam-teal: rgba(125, 220, 232, 0.06);
+  overflow: visible;
+}
+
+.bb--quiet {
+  --bb-gold: rgba(214, 174, 101, 0.12);
+  --bb-gold-faint: rgba(214, 174, 101, 0.065);
+  --bb-teal: rgba(125, 220, 232, 0.1);
+  --bb-teal-faint: rgba(125, 220, 232, 0.055);
+  --bb-label: rgba(214, 174, 101, 0.32);
+  --bb-fill-gold: rgba(214, 174, 101, 0.05);
+  --bb-beam-gold: rgba(232, 201, 135, 0.06);
+  --bb-beam-teal: rgba(125, 220, 232, 0.04);
+}
+
+.bb-ln {
+  fill: none;
+  stroke: var(--bb-gold);
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+.bb-w1 { stroke-width: calc(0.75px * var(--u)); }
+.bb-w2 { stroke-width: calc(1px * var(--u)); }
+.bb-w3 { stroke-width: calc(1.4px * var(--u)); }
+.bb-teal { stroke: var(--bb-teal); }
+.bb-faint { stroke: var(--bb-gold-faint); }
+.bb-teal-faint { stroke: var(--bb-teal-faint); }
+.bb-panel { fill: var(--bb-fill-gold); }
+.bb-panel--teal { fill: var(--bb-fill-teal); }
+.bb-solid-gold { fill: var(--bb-fill-gold); }
+.bb-solid-dark { fill: rgba(125, 220, 232, 0.03); }
+.bb-solid-teal { fill: var(--bb-teal); }
+
+.bb-label {
+  direction: ltr;
+  fill: var(--bb-label);
+  font-family: var(--font-geist-sans), Inter, Arial, sans-serif;
+  font-size: calc(11px * var(--u));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+html[lang="fa"] .bb-label { font-family: var(--font-persian), Tahoma, sans-serif; letter-spacing: 0; }
+.bb-label--md { font-size: calc(12px * var(--u)); }
+
+.bb-d,
+.bb-f,
+.bb-m,
+.bb-mv,
+.bb-sy,
+.bb-st {
+  --t: clamp(0, (var(--draw) - var(--a)) / (var(--b) - var(--a)), 1);
+}
+
+/* Draw on: the path is normalised to length 1 (pathLength). */
+.bb-d {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: calc(1 - var(--t));
+  opacity: min(1, calc(var(--t) * 40));
+}
+
+.bb-f { opacity: var(--t); }
+
+.bb-m,
+.bb-mv {
+  transform: translate(calc((1 - var(--t)) * var(--dx, 0) * 1px), calc((1 - var(--t)) * var(--dy, 0) * 1px));
+}
+.bb-m { opacity: min(1, calc(var(--t) * 4)); }
+
+/* A frame standing up, seen in elevation: it grows from its base line. */
+.bb-sy {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scaleY(max(0.002, var(--t)));
+  opacity: min(1, calc(var(--t) * 12));
+}
+
+/* Hoist chain: hangs from the top and shortens as the load rises. */
+.bb-st {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(calc(1 + (1 - var(--t)) * var(--k, 0)));
+}
+.bb-chain { stroke-dasharray: calc(3px * var(--u)) calc(2px * var(--u)); }
+
+/* Idle life once a drawing is complete and on screen (.is-live). */
+.bb.is-live .bb-breathe { animation: bb-breathe 5.6s ease-in-out infinite alternate; }
+.bb.is-live .bb-breathe--2 { animation-delay: -1.9s; animation-duration: 6.4s; }
+.bb.is-live .bb-breathe--3 { animation-delay: -3.7s; animation-duration: 7.2s; }
+.bb.is-live .bb-tick { animation: bb-tick 2.4s steps(5) infinite; }
+.bb.is-live .bb-settle { animation: bb-settle 9s ease-in-out infinite; }
+
+@keyframes bb-breathe {
+  to { opacity: 0.5; }
+}
+
+@keyframes bb-tick {
+  to { stroke-dashoffset: calc(-10px * var(--u)); }
+}
+
+@keyframes bb-settle {
+  0%, 62%, 100% { transform: translateY(0); }
+  70% { transform: translateY(calc(-9px * var(--u))); }
+  78% { transform: translateY(calc(-9px * var(--u))); }
+  86% { transform: translateY(calc(1px * var(--u))); }
+  90% { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb { --draw: 1 !important; }
+  .bb *,
+  .bb.is-live * { animation: none !important; }
 }

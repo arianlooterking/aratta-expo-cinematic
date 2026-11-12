@@ -39,6 +39,8 @@ import { UpcomingExhibitions } from "@/components/UpcomingExhibitions";
 import { toCards, type CalendarCard } from "@/lib/public-calendar";
 import { getUpcomingExhibitions } from "@/lib/public-calendar-source";
 import { SiteChrome } from "@/components/SiteChrome";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
+import type { MotifName } from "@/components/backdrops/motifs";
 import { SiteFooter } from "@/components/SiteFooter";
 import { PartnersSection } from "@/components/PartnersSection";
 import { telHref } from "@/data/site-nav";
@@ -139,7 +141,8 @@ export default async function RoutedPage({ params }: PageProps) {
   return (
     <>
       <SiteChrome content={content} />
-      <main id="main-content" dir={content.dir} lang={content.lang} className="min-h-screen pt-32">
+      <main id="main-content" dir={content.dir} lang={content.lang} className="relative isolate min-h-screen pt-28 sm:pt-32">
+        <PageBackdrop lang={lang} page={page} />
         <section className="section-shell pb-24">
           <PageHeader
             lang={lang}
@@ -156,6 +159,30 @@ export default async function RoutedPage({ params }: PageProps) {
       </main>
       <SiteFooter content={content}/>
     </>
+  );
+}
+
+// A quieter build drawing behind each page header, chosen for what the page is about.
+const pageBackdrops: Record<PageSlug, { motif: MotifName; className: string }> = {
+  about: { motif: "logo", className: "end-[-12%] top-16 w-[min(30rem,80vw)] lg:end-[calc(50%-min(590px,47%)-22rem)] lg:top-10" },
+  exhibitions: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  registration: { motif: "floor", className: "end-[-20%] top-6 w-[min(40rem,120vw)] lg:end-[calc(50%-min(590px,47%)-26rem)]" },
+  forms: { motif: "walls", className: "inset-x-0 top-8 mx-auto w-[min(1500px,200vw)]" },
+  equipment: { motif: "truss", className: "inset-x-0 top-0 mx-auto w-[min(1600px,220vw)]" },
+  participants: { motif: "truss", className: "inset-x-0 top-0 mx-auto w-[min(1600px,220vw)]" },
+  news: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  "industry-news": { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  gallery: { motif: "stand", className: "inset-x-0 top-0 mx-auto w-[min(1500px,210vw)]" },
+  contact: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  search: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+};
+
+function PageBackdrop({ lang, page }: { lang: Lang; page: PageSlug }) {
+  const { motif, className } = pageBackdrops[page];
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[46rem] [mask-image:linear-gradient(to_bottom,black_55%,transparent)]">
+      <BuildBackdrop motif={motif} lang={lang} mode="intro" tone="quiet" className={className} />
+    </div>
   );
 }
 
