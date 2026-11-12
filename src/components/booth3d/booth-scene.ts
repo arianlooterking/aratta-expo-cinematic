@@ -24,6 +24,7 @@ import { buildFurniture } from "./furniture";
 import { buildSite } from "./site";
 import { createCameraRig, pathStats, type CameraPose } from "./camera";
 import { clamp01 } from "./timeline";
+import type { ReelText } from "./reel";
 
 export type BoothQuality = "auto" | "high" | "low";
 
@@ -32,6 +33,8 @@ export type BoothSceneOptions = {
   compact: boolean; // phones: lighter renderer, portrait framing
   fontFamily: string;
   onFrame?: (progress: number) => void;
+  /** Text for the LED wall's brand reel, from the site content. */
+  reel?: ReelText;
   /** The free band for the closing elevation (fractions of the canvas height, 0 = top). */
   safeBand?: () => { top: number; bottom: number } | null;
   /** "auto" picks from `compact` and a short frame-time probe. */
@@ -135,6 +138,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   scene.add(root);
   const mats = createMaterials(track, rich);
   const ctx = createCtx({ scene, root, rich, compact, fa, font, track, mats, shadows: renderer.shadowMap.enabled });
+  ctx.hooks.reel = options.reel;
 
   // Decal masks: soft contact blob, linear wall-foot gradient, light pool.
   const blob = canvasTexture(128, 128, (c, w, h) => {
@@ -270,6 +274,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   const SPEED = 0.05;
   const SPEED_FAR = 0.2;
   const FAR_GAP: [number, number] = [0.18, 0.32];
+  // When the scroll is still, the reel keeps playing at a capped frame rate.
+  const IDLE_FPS = compact ? 20 : 30;
   const VELOCITY_TAU = 0.22; // s: how smoothly the speed itself changes
   const FOLLOW = 4 * VELOCITY_TAU; // s: gap closing time; 4x the velocity lag is critically damped (no overshoot)
   // Frame-time probe: render every frame for a short window and step down if slow.
@@ -335,8 +341,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     }
     const moving = before !== current || now - pointerAt < 1500;
     const probe = probing();
-    // Settled frames still animate the LED wall and the sign, at a gentler rate.
-    if (probe || moving || now - lastRender > 1000 / 30) {
+    // Settled frames still play the LED reel and the sign, at a capped rate.
+    if (probe || moving || now - lastRender > 1000 / IDLE_FPS) {
       lastRender = now;
       draw(current, elapsed);
       if (probe) {
@@ -361,7 +367,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
 
   const loop = (now: number) => {
     if (disposed) return;
-    if (active && !frozen) render(now);
+    // Nothing is drawn while the hero is off screen or the tab is hidden.
+    if (active && !frozen && !document.hidden) render(now);
     frame = requestAnimationFrame(loop);
   };
 
@@ -430,6 +437,11 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
               if (hit) hits.push({ point: point.toArray(), object: hit.object.name || hit.object.type, distance: Math.round(hit.distance * 100) / 100 });
             }
         return { p, rays, hits: hits.length, sample: hits.slice(0, 6), camera: camera.position.toArray().map((v) => Math.round(v * 100) / 100) };
+      },
+      /** Pin the LED reel to a time in seconds (null lets it run), and redraw. */
+      reel(t: number | null) {
+        (ctx.hooks.setReel as (t: number | null) => void)(t);
+        draw(current, elapsed);
       },
       /** Per chapter and finale: camera travel, view rotation, azimuth, height, distance; monotone checks. */
       pathStats(step = 0.0005) {

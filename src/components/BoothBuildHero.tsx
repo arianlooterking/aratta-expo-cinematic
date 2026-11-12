@@ -45,6 +45,12 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     : { registration: "Book a booth", exhibitions: "Exhibitions", forms: "Forms", continue: "Continue" };
   const loaderLabel = fa ? "در حال آماده‌سازی سالن نمایشگاه" : "Preparing the exhibition hall";
 
+  // The scene is built once per language; it reads the reel text from the latest content.
+  const contentRef = useRef(content);
+  useEffect(() => {
+    contentRef.current = content;
+  });
+
   useEffect(() => {
     const root = rootRef.current;
     const canvas = canvasRef.current;
@@ -111,6 +117,14 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
             quality,
             fontFamily: getComputedStyle(document.body).fontFamily || "sans-serif",
             onFrame: paint,
+            // The LED wall's reel shows only the site's own text: event names and hero copy.
+            reel: {
+              heading: contentRef.current.exhibitions.title,
+              events: contentRef.current.exhibitions.items.map((item) => item.title),
+              caption: contentRef.current.services.items[0]?.title ?? "",
+              title: contentRef.current.hero.title,
+              line: contentRef.current.hero.subtitle,
+            },
             // The closing elevation sits between the fixed site header and the closing copy.
             safeBand: () => {
               const frame = canvas.getBoundingClientRect();
