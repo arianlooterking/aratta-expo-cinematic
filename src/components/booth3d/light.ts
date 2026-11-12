@@ -10,6 +10,7 @@
 import * as THREE from "three";
 import { merge, type Ctx, type V3 } from "./core";
 import { FLOOR_TOP } from "./floor";
+import { themeLevel } from "./theme";
 import { RIG, type Fixture } from "./rigging";
 import { DECK } from "./structure";
 import {
@@ -39,6 +40,9 @@ const AIR_BUILD = new THREE.Color("#3d444b");
 const AIR_SHOW = new THREE.Color("#161c23");
 // The closing frame: the hall falls to a deep blue-grey (never black) around the lit stand.
 const AIR_FINALE = new THREE.Color("#0e141c");
+// The light theme (a bright opening day): pale daylight haze that only deepens a little for the show.
+const AIR_DAY = new THREE.Color("#9ca7b0");
+const AIR_DAY_SHOW = new THREE.Color("#8d98a2");
 const SKY_BUILD = new THREE.Color("#dfe6ec");
 const SKY_SHOW = new THREE.Color("#8ea2b6");
 
@@ -314,14 +318,19 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
     key.color.copy(keyColor);
     key.intensity = 0.9 + 1.5 * hall;
     hemi.color.copy(SKY_SHOW).lerp(SKY_BUILD, Math.max(0, (hall - 0.32) / 0.68));
-    hemi.intensity = 0.42 + 1.1 * hall;
+    // Hall and ambient only; the theme lifts the daylight fill (the stand's own show lights are untouched).
+    const day = themeLevel(ctx);
+    hemi.intensity = 0.42 + 1.1 * hall + day * (0.1 + 0.55 * (1 - hall));
     rim.intensity = 0.45 + show * 0.15;
     flood.intensity = fl * 1.3;
-    scene.environmentIntensity = 0.32 + 0.6 * hall;
+    scene.environmentIntensity = 0.32 + 0.6 * hall + day * 0.3;
     air.copy(AIR_SHOW).lerp(AIR_BUILD, Math.max(0, (hall - 0.32) / 0.68)).lerp(AIR_FINALE, fin);
+    if (day) air.copy(AIR_DAY_SHOW).lerp(AIR_DAY, Math.max(0, (hall - 0.32) / 0.68));
+    if (day) hemi.color.copy(SKY_BUILD);
     fog.color.copy(air);
     // The closing elevation is shot from further out: thin the haze so the stand stays crisp.
-    fog.density = fogDensity * (1 - 0.4 * fin);
+    // Daylight air is clearer: less haze, so the bright hall does not wash out.
+    fog.density = fogDensity * (1 - 0.4 * fin) * (1 - 0.45 * day);
     beamMat.uniforms.uStrength.value = baseStrength * (1 + 0.55 * fin) * breath;
 
     const led = mats.led.uniforms;

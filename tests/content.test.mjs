@@ -414,3 +414,25 @@ test("operating system section uses stage imagery and real route links", () => {
   }
   assert.match(animatedTabs, /href=\{`\/\$\{content\.lang\}\/\$\{activeMeta\.route\}`\}/);
 });
+
+test("the hall around the stand is designed and built in the background", async () => {
+  const dir = new URL("../src/components/booth3d/", import.meta.url);
+  const read = (name) => readFile(new URL(`${name}.ts`, dir), "utf8");
+  const [architecture, neighbours, surroundings, theme, scene, hall] = await Promise.all(["hall-architecture", "neighbours", "surroundings-timeline", "theme", "booth-scene", "hall"].map(read));
+  // A vaulted hall with a glazed back wall, a gallery, ring lights and banners.
+  for (const part of ["curtain wall", "mezzanine", "wayfinding", "ring lights", "banners"]) assert.match(architecture, new RegExp(part, "i"));
+  // Five unbranded neighbours, two of them round, each with its own build windows.
+  for (const stand of ["rotunda", "portal", "ribbon", "pergola", "dome"]) {
+    assert.match(neighbours, new RegExp(`\\b${stand}\\b`));
+    assert.match(surroundings, new RegExp(`${stand}: \\{`));
+  }
+  assert.match(neighbours, /TorusGeometry/);
+  assert.match(scene, /buildHallArchitecture\(ctx\)/);
+  assert.match(scene, /buildNeighbours\(ctx\)/);
+  // A live theme switch (dark default, light opening day with a red carpet).
+  assert.match(theme, /"dark" \| "light"/);
+  assert.match(scene, /setTheme\(theme\)/);
+  assert.match(hall, /AISLE\.light/);
+  const sources = [architecture, neighbours, surroundings, theme].join("\n");
+  assert.doesNotMatch(sources, /^\s*(?:if \(.*\)\s*)?\[[\w.,\s]+\]\s*=\s*\[/m);
+});

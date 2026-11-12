@@ -9,6 +9,8 @@ import { canvasTexture, rng } from "./core";
 
 export const BRASS = "#d3a84b";
 export const TEAL = "#63c9a4";
+/** Aisle carpet colour per scene theme (the pile texture is neutral). */
+export const AISLE = { dark: "#26343b", light: "#8e1820" } as const;
 
 type Track = <T extends { dispose(): void }>(item: T) => T;
 
@@ -55,30 +57,31 @@ export function createMaterials(track: Track, rich: boolean) {
   const S = rich ? 1024 : 512;
   const tex = <T extends THREE.Texture>(t: T) => track(t);
 
-  // ---- polished concrete: 8 m slabs with saw-cut joints, mottled, glossy.
+  // ---- polished concrete: dark, power-floated and sealed (8 m slabs with
+  // saw-cut joints, soft mottling), with a low sheen that picks up the hall lights.
   const concreteMap = canvasTexture(S, S, (ctx, w, h) => {
-    ctx.fillStyle = "#7d7e7c";
+    ctx.fillStyle = "#4c4e50";
     ctx.fillRect(0, 0, w, h);
-    blotches(ctx, w, h, 70, 11, "rgba(160,158,150,0.2)", "rgba(60,62,64,0.18)", w * 0.22);
-    blotches(ctx, w, h, 260, 12, "rgba(170,166,158,0.1)", "rgba(50,52,54,0.12)", w * 0.05);
-    noise(ctx, w, h, 14, 13);
-    ctx.fillStyle = "rgba(40,42,44,0.8)";
+    blotches(ctx, w, h, 70, 11, "rgba(110,110,108,0.07)", "rgba(28,30,33,0.1)", w * 0.22);
+    blotches(ctx, w, h, 260, 12, "rgba(120,118,114,0.06)", "rgba(24,26,28,0.07)", w * 0.05);
+    noise(ctx, w, h, 9, 13);
+    ctx.fillStyle = "rgba(18,19,21,0.85)";
     ctx.fillRect(0, 0, w, 2);
     ctx.fillRect(0, 0, 2, h);
   });
   const concreteRough = canvasTexture(S / 2, S / 2, (ctx, w, h) => {
-    ctx.fillStyle = "#a0a0a0";
+    ctx.fillStyle = "#6a6a6a";
     ctx.fillRect(0, 0, w, h);
-    blotches(ctx, w, h, 90, 14, "rgba(150,150,150,0.35)", "rgba(40,40,40,0.4)", w * 0.18);
-    noise(ctx, w, h, 30, 15);
+    blotches(ctx, w, h, 90, 14, "rgba(140,140,140,0.3)", "rgba(40,40,40,0.35)", w * 0.18);
+    noise(ctx, w, h, 24, 15);
   }, true);
   const concrete = track(
     new THREE.MeshStandardMaterial({
       map: tex(repeat(concreteMap.texture, 1, 1)),
       roughnessMap: tex(repeat(concreteRough.texture, 1, 1)),
-      roughness: 0.82,
+      roughness: 0.46,
       metalness: 0.0,
-      envMapIntensity: 0.6,
+      envMapIntensity: 0.9,
     }),
   );
 
@@ -169,8 +172,10 @@ export function createMaterials(track: Track, rich: boolean) {
     });
   const carpetMap = carpetDraw("#5f5a52", 41);
   const carpet = track(new THREE.MeshStandardMaterial({ map: tex(repeat(carpetMap.texture, 6, 6)), roughness: 1, metalness: 0 }));
-  const aisleMap = carpetDraw("#203650", 43);
-  const aisle = track(new THREE.MeshStandardMaterial({ map: tex(repeat(aisleMap.texture, 1, 1)), roughness: 1, metalness: 0, envMapIntensity: 0.2 }));
+  // Aisle carpet: a neutral pile texture tinted by the theme (deep petrol
+  // graphite in the dark hall, a deep trade-fair red on the light opening day).
+  const aisleMap = carpetDraw("#dcdcdc", 43);
+  const aisle = track(new THREE.MeshStandardMaterial({ color: AISLE.dark, map: tex(repeat(aisleMap.texture, 1, 1)), roughness: 1, metalness: 0, envMapIntensity: 0.2 }));
   const rugMap = canvasTexture(S / 2, S / 2, (ctx, w, h) => {
     ctx.fillStyle = "#8a7d6c";
     ctx.fillRect(0, 0, w, h);
@@ -375,6 +380,21 @@ export function createMaterials(track: Track, rich: boolean) {
 }
 
 export type Materials = ReturnType<typeof createMaterials>;
+
+/**
+ * Shared materials for the hall and the neighbouring stands. Colours come from
+ * per-instance colours (one batch per material), so the whole hall shell and
+ * every neighbour's panels, frames and floors cost two draw calls.
+ */
+export function createSurroundMaterials(track: Track) {
+  const matte = track(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.8, metalness: 0, side: THREE.DoubleSide }));
+  const metal = track(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.42, metalness: 0.65 }));
+  /** Self-lit pieces whose level is driven per frame (colour = level). */
+  const glow = () => track(new THREE.MeshBasicMaterial({ color: "#000000", toneMapped: false }));
+  return { matte, metal, glow };
+}
+
+export type SurroundMaterials = ReturnType<typeof createSurroundMaterials>;
 
 /** Hidden LED lines: dark until the sweep passes, then warm 3000 K. */
 export function createLedLineMaterial() {

@@ -2,11 +2,14 @@
 // (the motivated key light of the build), flight cases, a pallet of floor
 // panels, a rolling ladder, a cable drum and a pallet truck. Small and cheap
 // (they join the existing material batches), and they leave before the brand.
+// Around the neighbouring stands, in the opening frame already: a scissor lift
+// raised in the aisle behind the plot and timber crates (they leave as those stands finish).
 
 import * as THREE from "three";
 import { merge, rod, v3, type Ctx, type V3, type Win } from "./core";
 import { floodLevel } from "./light";
 import { BOOTH_TIMELINE as T } from "./timeline";
+import { SURROUNDINGS as S } from "./surroundings-timeline";
 
 type Piece = [THREE.BufferGeometry, THREE.Material];
 
@@ -43,7 +46,8 @@ export function buildSite(ctx: Ctx) {
     return byMat(pieces);
   };
   const floods: Array<{ at: V3; aim: V3; h: number }> = [
-    { at: [-2.6, 0, 7.4], aim: [-1, 0.8, 0], h: 2.8 },
+    // (at the front corner, outside the camera's corridor to the open front)
+    { at: [-7.3, 0, 4.9], aim: [-1, 0.8, 0], h: 2.8 },
     { at: [8.9, 0, -4.4], aim: [1, 0.8, -0.5], h: 2.6 },
     { at: [-8.8, 0, -4.8], aim: [-2, 0.6, -1], h: 2.4 },
   ];
@@ -110,6 +114,43 @@ export function buildSite(ctx: Ctx) {
     [rod(v3(-0.12, 1.15, -0.72), v3(0.12, 1.15, -0.72), 0.018, 6), mats.hoist],
   ];
   place(byMat(truck), -8.6, 4.6, 0.6, [-3, 0, 0], [0.117, 0.123]);
+
+  // ---- scissor lift in the aisle behind the plot: chassis, four scissor stages, a railed deck.
+  const lift: Piece[] = [];
+  const deckY = 4.6;
+  lift.push([rb(1.2, 0.45, 2.4, 0, 0.36, 0, 0.03), mats.cableOrange]);
+  for (const x of [-0.5, 0.5]) for (const z of [-0.85, 0.85]) lift.push([new THREE.CylinderGeometry(0.16, 0.16, 0.12, 12).rotateZ(Math.PI / 2).translate(x, 0.16, z), mats.hoist]);
+  const stages = 4;
+  const stageH = (deckY - 0.6) / stages;
+  for (let k = 0; k < stages; k += 1) {
+    const y0 = 0.6 + k * stageH;
+    for (const x of [-0.52, 0.52]) {
+      lift.push([rod(v3(x, y0, -1.0), v3(x, y0 + stageH, 1.0), 0.04, 5), mats.graphite]);
+      lift.push([rod(v3(x, y0, 1.0), v3(x, y0 + stageH, -1.0), 0.04, 5), mats.graphite]);
+    }
+  }
+  lift.push([rb(1.3, 0.12, 2.6, 0, deckY + 0.06, 0, 0.01), mats.cableOrange]);
+  for (const x of [-0.63, 0.63]) lift.push([rb(0.04, 0.04, 2.6, x, deckY + 1.1, 0, 0.004), mats.alu]);
+  for (const z of [-1.28, 1.28]) lift.push([rb(1.3, 0.04, 0.04, 0, deckY + 1.1, z, 0.004), mats.alu]);
+  for (const x of [-0.63, 0.63]) for (const z of [-1.28, 0, 1.28]) lift.push([rb(0.04, 1.05, 0.04, x, deckY + 0.6, z, 0.004), mats.alu]);
+  parts.compound(byMat(lift), root, { p: [3.0, 0, -10.9], r: [0, 0.12, 0] }, [-1.0001, -1], { ease: () => 1, out: { win: S.lift.out, to: [7, 0, 0] } });
+
+  // ---- timber crates at the rotunda and the ribbon stand.
+  const crate = (w: number, h: number, d: number): Piece[] => {
+    const pieces: Piece[] = [[rb(w, h, d, 0, h / 2, 0, 0.01), mats.oakSolid]];
+    for (const y of [0.08, h - 0.08]) pieces.push([rb(w + 0.03, 0.1, d + 0.03, 0, y, 0, 0.005), mats.oakSolid]);
+    pieces.push([rb(w + 0.02, 0.06, 0.02, 0, h * 0.5, d / 2 + 0.01, 0.003), mats.black]);
+    return pieces;
+  };
+  const crates: Array<[number, number, number, number, number, number]> = [
+    // x, z, w, h, d, yaw
+    [-11.3, 2.4, 1.4, 1.0, 1.0, 0.2],
+    [-11.1, 1.0, 1.0, 0.8, 0.9, -0.15],
+    [-12.3, -6.6, 1.6, 1.1, 1.1, 0.4],
+    [0.4, -10.4, 1.2, 0.9, 1.0, -0.3],
+    [-1.0, -10.8, 1.0, 1.2, 1.0, 0.1],
+  ];
+  crates.forEach(([x, z, w, h, d, yaw]) => parts.compound(byMat(crate(w, h, d)), root, { p: [x, 0, z], r: [0, yaw, 0] }, [-1.0001, -1], { ease: () => 1, out: { win: S.crates.out, to: [x < 0 ? -4 : 4, 0, 0] } }));
 
   ctx.anims.push((p) => {
     faceMat.color.setScalar(floodLevel(p) * 2.6);

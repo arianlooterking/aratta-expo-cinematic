@@ -14,6 +14,9 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { canvasTexture, createCtx, preloadLogo } from "./core";
 import { createMaterials } from "./materials";
 import { buildHall } from "./hall";
+import { buildHallArchitecture } from "./hall-architecture";
+import { buildNeighbours } from "./neighbours";
+import { applyTheme, initialTheme, type SceneTheme } from "./theme";
 import { buildRigging } from "./rigging";
 import { buildFloor } from "./floor";
 import { buildStructure } from "./structure";
@@ -39,6 +42,8 @@ export type BoothSceneOptions = {
   safeBand?: () => { top: number; bottom: number } | null;
   /** "auto" picks from `compact` and a short frame-time probe. */
   quality?: BoothQuality;
+  /** Surroundings theme ("dark" default; `?booth-theme=light` for testing). */
+  theme?: SceneTheme;
 };
 
 export type BoothScene = {
@@ -46,6 +51,7 @@ export type BoothScene = {
   setPointer(x: number, y: number): void;
   setActive(active: boolean): void;
   resize(): void;
+  setTheme(theme: SceneTheme): void;
   dispose(): void;
 };
 
@@ -181,6 +187,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
 
   // ---- build the stand in its real order.
   buildHall(ctx);
+  buildHallArchitecture(ctx);
+  buildNeighbours(ctx);
   buildSite(ctx);
   buildRigging(ctx);
   buildFloor(ctx);
@@ -189,6 +197,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   const light = buildLight(ctx, { realSpots: rich });
   buildIdentity(ctx);
   buildFurniture(ctx);
+  applyTheme(ctx, initialTheme(options.theme));
   ctx.parts.finalize();
   ctx.decals.finalize();
   track(ctx.sparkles.finalize(root));
@@ -252,6 +261,18 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   canvas.dataset.tier = tier;
 
   const rig = createCameraRig(camera, fa);
+  // Debug only (with booth-debug): ?booth-cam=x,y,z,tx,ty,tz pins the camera to a pose.
+  const debugCam = (() => {
+    const q = new URLSearchParams(window.location.search);
+    const v = (q.get("booth-cam") ?? "").split(",").map(Number);
+    if (!q.has("booth-debug") || v.length !== 6 || v.some((n) => !Number.isFinite(n))) return null;
+    return (c: THREE.PerspectiveCamera) => {
+      c.clearViewOffset();
+      c.position.set(v[0], v[1], v[2]);
+      c.lookAt(v[3], v[4], v[5]);
+      c.updateMatrixWorld(true);
+    };
+  })();
   const pointer = new THREE.Vector2();
   let width = 1;
   let height = 1;
@@ -310,6 +331,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     ctx.decals.update(p);
     ctx.sparkles.update(p, time);
     rig.apply(p, frameDt, width, height, pointer);
+    if (debugCam) debugCam(camera);
     if (renderer.shadowMap.enabled && p !== lastShadowAt) {
       renderer.shadowMap.needsUpdate = true;
       lastShadowAt = p;
@@ -540,6 +562,10 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       last = performance.now();
     },
     resize,
+    setTheme(theme) {
+      applyTheme(ctx, theme);
+      renderer.shadowMap.needsUpdate = true;
+    },
     dispose() {
       disposed = true;
       cancelAnimationFrame(frame);

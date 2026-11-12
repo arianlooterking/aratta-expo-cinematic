@@ -1,16 +1,22 @@
-// The trade hall around the stand (polished concrete, aisle carpet, service
-// duct, roof steel, distant neighbours) and chapter 1: tape on the floor,
-// the stand number and the plan projected onto the plot.
+// The floor of the hall around the stand (polished dark concrete, graphite
+// aisle carpet with a fine light edge, the service duct behind the plot) and
+// chapter 1: tape on the floor, the stand number and the plan projected onto
+// the plot. The hall shell is in hall-architecture.ts, the neighbouring stands
+// in neighbours.ts.
 
 import * as THREE from "three";
-import { canvasTexture, merge, toFa, type Ctx } from "./core";
-import { BOOTH_TIMELINE as T, clamp01, easeOutCubic, hallLight, window01 } from "./timeline";
-import { TEAL } from "./materials";
+import { canvasTexture, toFa, type Ctx } from "./core";
+import { BOOTH_TIMELINE as T, clamp01, easeOutCubic, window01 } from "./timeline";
+import { AISLE, TEAL } from "./materials";
+import { onTheme, themeLevel } from "./theme";
+import { hallPoolKind } from "./hall-architecture";
+import { SURROUNDINGS as S } from "./surroundings-timeline";
 
 export const PLOT = { x0: -6, x1: 6, z0: -4.5, z1: 4.5 };
 
 export function buildHall(ctx: Ctx) {
-  const { mats, scene, track, rich, parts, font, fa } = ctx;
+  const { mats, scene, root, decals } = ctx;
+  const track = ctx.track;
 
   // ---- floor: polished concrete, 8 m slabs.
   const floorSize = 220;
@@ -21,171 +27,53 @@ export function buildHall(ctx: Ctx) {
   floor.receiveShadow = ctx.shadows;
   scene.add(floor);
 
-  // ---- aisle carpet: 4 m aisles on the three open sides.
-  const carpetStrip = (x: number, z: number, w: number, d: number) => {
+  // ---- aisle carpet: the deep main aisle in front, side aisles, the cross aisle
+  // behind the plot and the long aisle between the rear stands. Each strip has a
+  // fine light edge (it joins the tape batch).
+  const carpet = (x: number, z: number, w: number, d: number) => {
     const mesh = new THREE.Mesh(track(new THREE.BoxGeometry(w, 0.008, d)), mats.aisle);
     mesh.position.set(x, 0.004, z);
     mesh.receiveShadow = ctx.shadows;
-    (mats.aisle.map as THREE.Texture).repeat.set(1, 1);
     scene.add(mesh);
   };
-  const aisleW = 4;
+  const edges = ctx.bars(mats.tape, root, { cast: false });
+  const edge = (x: number, z: number, w: number, d: number) => edges.place({ p: [x, 0.0095, z], s: [w, 0.002, d] });
+  const strip = (x0: number, x1: number, z0: number, z1: number, sides: { n?: boolean; s?: boolean; e?: boolean; w?: boolean } = {}) => {
+    carpet((x0 + x1) / 2, (z0 + z1) / 2, x1 - x0, z1 - z0);
+    const lw = 0.035;
+    if (sides.n !== false) edge((x0 + x1) / 2, z0 + lw, x1 - x0, lw);
+    if (sides.s !== false) edge((x0 + x1) / 2, z1 - lw, x1 - x0, lw);
+    if (sides.w !== false) edge(x0 + lw, (z0 + z1) / 2, lw, z1 - z0);
+    if (sides.e !== false) edge(x1 - lw, (z0 + z1) / 2, lw, z1 - z0);
+  };
   // The front aisle is the hall's main aisle and runs deeper, so its near edge
   // stays below the closing frame instead of cutting across the closing copy.
   const mainAisleW = 9.5;
-  carpetStrip(0, PLOT.z1 + 0.9 + mainAisleW / 2, 80, mainAisleW); // front aisle (leaves 0.9 m for the ramp and tape)
-  carpetStrip(PLOT.x0 - 1.6 - aisleW / 2, -2, aisleW, 40);
-  carpetStrip(PLOT.x1 + 1.6 + aisleW / 2, -2, aisleW, 40);
-  const aisleTex = mats.aisle.map as THREE.Texture;
-  aisleTex.repeat.set(20, 20);
+  const front = PLOT.z1 + 0.9; // leaves 0.9 m for the ramp and tape
+  strip(-40, 40, front, front + mainAisleW, { w: false, e: false });
+  strip(-11.6, -7.6, -8.6, front, { s: false });
+  strip(7.6, 11.6, -8.6, front, { s: false });
+  strip(-24, 24, -8.6, -5.8, { w: false, e: false });
+  strip(1.2, 4.8, -32, -8.6, { s: false });
+  (mats.aisle.map as THREE.Texture).repeat.set(20, 20);
+  // Theme: carpet colour, and a lighter power-floated floor on the light opening day.
+  onTheme(ctx, (theme) => {
+    mats.aisle.color.set(theme === "light" ? AISLE.light : AISLE.dark);
+    mats.concrete.color.setScalar(theme === "light" ? 1.85 : 1);
+  });
 
   // ---- service duct cover behind the plot (power and data come from here).
   const duct = ctx.bars(mats.galv, scene);
-  duct.place({ p: [0, 0.006, PLOT.z0 - 0.9], s: [90, 0.012, 0.6] });
-  for (let x = -44; x <= 44; x += 1.2) duct.place({ p: [x, 0.0125, PLOT.z0 - 0.9], s: [0.02, 0.002, 0.58] });
+  duct.place({ p: [0, 0.006, PLOT.z0 - 0.9], s: [48, 0.012, 0.6] });
+  for (let x = -23.4; x <= 23.4; x += 1.2) duct.place({ p: [x, 0.0125, PLOT.z0 - 0.9], s: [0.02, 0.002, 0.58] });
 
-  // ---- hall steel: columns (with bay numbers), roof girders, purlins and high-bay lights.
-  const hallSteel = track(new THREE.MeshStandardMaterial({ color: "#6a7076", roughness: 0.6, metalness: 0.4 }));
-  const steelBars = ctx.bars(hallSteel, scene, { cast: false, receive: false });
-  const columns: Array<[number, number]> = [];
-  // Hall columns stand well outside the camera orbit.
-  for (let x = -36; x <= 36; x += 24) for (const z of [-52, 52]) columns.push([x, z]);
-  for (const z of [-24, 0, 24]) for (const x of [-60, 60]) columns.push([x, z]);
-  for (const [x, z] of columns) {
-    steelBars.place({ p: [x, 10, z], s: [0.9, 20, 0.9] });
-    steelBars.place({ p: [x, 0.15, z], s: [1.4, 0.3, 1.4] });
-  }
-  // Bay numbers: one atlas, one merged mesh of plates facing the stand.
-  const bayNames = columns.map(([x, z]) => `${String.fromCharCode(67 + Math.round((z + 52) / 26))}${Math.round((x + 60) / 12) + 1}`);
-  const cells = 4;
-  const atlas = canvasTexture(1024, 512, (c, w, h) => {
-    c.fillStyle = "#d9d4c4";
-    c.fillRect(0, 0, w, h);
-    c.fillStyle = "#1c2026";
-    c.textAlign = "center";
-    c.textBaseline = "middle";
-    c.font = font(800, 92);
-    bayNames.forEach((name, i) => {
-      const cx = (i % cells) * (w / cells) + w / cells / 2;
-      const cy = Math.floor(i / cells) * (h / cells) + h / cells / 2;
-      c.fillText(name, cx, cy + 4);
-    });
-  });
-  track(atlas.texture);
-  const plates: THREE.BufferGeometry[] = [];
-  columns.forEach(([x, z], i) => {
-    const g = new THREE.PlaneGeometry(1.4, 0.7);
-    const u0 = (i % cells) / cells;
-    const v0 = 1 - (Math.floor(i / cells) + 1) / cells;
-    const uv = g.attributes.uv as THREE.BufferAttribute;
-    for (let k = 0; k < uv.count; k += 1) uv.setXY(k, u0 + uv.getX(k) / cells, v0 + uv.getY(k) / cells);
-    const face = Math.atan2(-x, -z);
-    g.rotateY(face);
-    g.translate(x - Math.sin(face) * -0.47, 5.2, z - Math.cos(face) * -0.47);
-    plates.push(g);
-  });
-  const plateMesh = new THREE.Mesh(track(merge(plates)), track(new THREE.MeshStandardMaterial({ map: atlas.texture, roughness: 0.7 })));
-  scene.add(plateMesh);
-  // Lattice roof girders every 12 m: top and bottom chords plus verticals.
-  for (let z = -42; z <= 42; z += 12) {
-    steelBars.place({ p: [0, 19.6, z], s: [130, 0.25, 0.3] });
-    steelBars.place({ p: [0, 18.2, z], s: [130, 0.2, 0.25] });
-    for (let x = -60; x <= 60; x += rich ? 3 : 6) steelBars.place({ p: [x, 18.9, z], s: [0.08, 1.4, 0.08] });
-  }
-  for (let x = -54; x <= 54; x += 9) steelBars.place({ p: [x, 19.85, 0], s: [0.18, 0.18, 90] });
-  // High-bay fittings: a housing and a lit diffuser; bright for the build, dimmed for the show.
-  const roofLightMat = track(new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 2.2, 2.1), toneMapped: false }));
-  const housing = parts.pool(track(new THREE.CylinderGeometry(0.22, 0.36, 0.4, 12, 1, true).translate(0, 0.2, 0)), hallSteel, scene, { cast: false, receive: false });
-  const diffuser = parts.pool(track(new THREE.CircleGeometry(0.34, 16).rotateX(Math.PI / 2)), roofLightMat, scene, { cast: false, receive: false });
-  for (let z = -36; z <= 36; z += 12) {
-    for (let x = -54; x <= 54; x += rich ? 6 : 9) {
-      housing.place({ p: [x + 3, 17.6, z + 6] });
-      diffuser.place({ p: [x + 3, 17.6, z + 6] });
-      steelBars.place({ p: [x + 3, 18.0, z + 6], s: [0.02, 0.6, 0.02] });
-    }
-  }
-
-  // ---- end wall behind the stand: panels, loading doors and a large hall number.
-  const endWall = canvasTexture(2048, 320, (c, w, h) => {
-    c.fillStyle = "#6f767d";
-    c.fillRect(0, 0, w, h);
-    c.fillStyle = "rgba(0,0,0,0.12)";
-    for (let x = 0; x < w; x += 28) c.fillRect(x, 0, 2, h);
-    for (let i = 0; i < 6; i += 1) {
-      const x = w * (0.08 + i * 0.16);
-      c.fillStyle = "#3a3f45";
-      c.fillRect(x, h - 96, 72, 96);
-      c.fillStyle = "rgba(255,255,255,0.08)";
-      for (let y = h - 92; y < h; y += 8) c.fillRect(x + 4, y, 64, 2);
-      c.fillStyle = "#c9a54a";
-      c.fillRect(x, h - 100, 72, 4);
-    }
-    c.fillStyle = "#858c93";
-    c.textAlign = "center";
-    c.textBaseline = "middle";
-    c.font = font(800, 56);
-    c.direction = fa ? "rtl" : "ltr";
-    c.fillText(fa ? `سالن ${toFa(3)}` : "HALL 3", w * 0.22, h * 0.3);
-  });
-  track(endWall.texture);
-  const wall = new THREE.Mesh(track(new THREE.PlaneGeometry(128, 20)), track(new THREE.MeshStandardMaterial({ map: endWall.texture, roughness: 0.85 })));
-  wall.position.set(0, 10, -58);
-  scene.add(wall);
-
-  // ---- neighbour stands: white shell scheme with fascia boards, varied sizes,
-  // a few with a small truss or a lit panel; desaturated so they never compete.
-  const nFloor = track(new THREE.MeshStandardMaterial({ color: "#5d5a56", roughness: 0.95, metalness: 0 }));
-  const nWhite = track(new THREE.MeshStandardMaterial({ color: "#9b9e9f", roughness: 0.75, metalness: 0 }));
-  const nBand = track(new THREE.MeshStandardMaterial({ color: "#3b4148", roughness: 0.7, metalness: 0 }));
-  const nPost = track(new THREE.MeshStandardMaterial({ color: "#9aa0a5", roughness: 0.4, metalness: 0.8 }));
-  const nGlowWarm = track(new THREE.MeshBasicMaterial({ color: new THREE.Color(0.75, 0.66, 0.5), toneMapped: false }));
-  const nGlowCool = track(new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 0.62, 0.68), toneMapped: false }));
-  const floors = ctx.bars(nFloor, scene, { cast: false });
-  const whites = ctx.bars(nWhite, scene, { cast: false });
-  const bands = ctx.bars(nBand, scene, { cast: false });
-  const posts = ctx.bars(nPost, scene, { cast: false });
-  const warm = ctx.bars(nGlowWarm, scene, { cast: false, receive: false });
-  const cool = ctx.bars(nGlowCool, scene, { cast: false, receive: false });
-  const neighbours: Array<[number, number, number, number, "panel" | "truss" | "plain", boolean]> = [
-    // x, z, width, depth, feature, cool accent
-    [-18, -12, 9, 6, "truss", false],
-    [-9, -12, 6, 4, "plain", true],
-    [18, -12, 10, 7, "panel", true],
-    [9, -13, 4, 3, "plain", false],
-    [-19, 15, 8, 6, "panel", true],
-    [20, 15, 9, 6, "truss", false],
-    [0, -22, 14, 7, "panel", false],
-    [-36, 0, 10, 8, "truss", true],
-    [36, 0, 10, 8, "panel", false],
-    [-27, 25, 12, 7, "plain", true],
-    [27, 26, 6, 4, "panel", true],
-  ];
-  const H = 2.5;
-  for (const [x, z, w, d, feature, isCool] of neighbours) {
-    const back = z < 0 ? -1 : 1; // back wall faces away from our aisle
-    const front = -back;
-    floors.place({ p: [x, 0.03, z], s: [w, 0.06, d] });
-    whites.place({ p: [x, H / 2, z + (back * d) / 2], s: [w, H, 0.05] });
-    whites.place({ p: [x - w / 2, H / 2, z], s: [0.05, H, d] });
-    // Shell-scheme posts every metre on the back wall, and the fascia with a name band.
-    for (let k = 0; k <= w; k += 1) posts.place({ p: [x - w / 2 + k, H / 2, z + (back * d) / 2 + front * 0.03], s: [0.03, H, 0.03] });
-    whites.place({ p: [x, H + 0.15, z + (front * d) / 2], s: [w, 0.3, 0.04] });
-    bands.place({ p: [x, H + 0.15, z + (front * d) / 2 + front * 0.022], s: [w * 0.4, 0.14, 0.005] });
-    posts.place({ p: [x - w / 2, (H + 0.3) / 2, z + (front * d) / 2], s: [0.04, H + 0.3, 0.04] });
-    posts.place({ p: [x + w / 2, (H + 0.3) / 2, z + (front * d) / 2], s: [0.04, H + 0.3, 0.04] });
-    whites.place({ p: [x + w * 0.15, 0.5, z + front * d * 0.15], s: [1.6, 1.0, 0.5] });
-    if (feature === "panel") (isCool ? cool : warm).place({ p: [x + w * 0.1, H * 0.6, z + (back * d) / 2 + front * 0.04], s: [Math.min(3, w * 0.4), 1.1, 0.02] });
-    if (feature === "truss") {
-      for (const zz of [z - d / 2 + 0.5, z + d / 2 - 0.5]) posts.place({ p: [x, 3.8, zz], s: [w - 1, 0.25, 0.25] });
-      for (const xx of [x - w / 2 + 0.5, x + w / 2 - 0.5]) posts.place({ p: [xx, 3.8, z], s: [0.25, 0.25, d - 1] });
-      for (let k = 0; k < 3; k += 1) (isCool ? cool : warm).place({ p: [x - w / 4 + (k * w) / 4, 3.6, z + (front * (d / 2 - 0.5))], s: [0.16, 0.12, 0.16] });
-    } else (isCool ? cool : warm).place({ p: [x - w * 0.3, H - 0.05, z + (front * d) / 2 + front * 0.3], s: [0.12, 0.06, 0.12] });
-  }
-
-  ctx.anims.push((p) => {
-    const h = hallLight(p);
-    roofLightMat.color.setRGB(0.4 + 1.8 * h, 0.44 + 1.76 * h, 0.5 + 1.6 * h);
-  });
+  // ---- the empty plot waits in a pool of light until the raised floor covers it.
+  hallPoolKind(ctx);
+  const plotPool = (p: number) => 1 - window01(p, S.plotPool[0], S.plotPool[1]);
+  // Softer on phones (no tone-mapped bloom pass) and by day, so the copy over it stays legible.
+  const k = () => (ctx.rich ? 1 : 0.45) * (1 - 0.45 * themeLevel(ctx));
+  decals.add("hallpool", 0, 0.0045, 0, 17, 13.5, (p) => plotPool(p) * 0.36 * k());
+  decals.add("hallpool", 0, 0.005, 0.4, 30, 24, (p) => plotPool(p) * 0.14 * k());
 
   buildPlot(ctx);
 }
