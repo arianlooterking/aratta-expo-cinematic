@@ -266,7 +266,7 @@ const fa: SiteContent = {
   hero: {
     title: "نمایشگاه‌های صنعت و معدن",
     subtitle:
-      "رویدادهای حرفه‌ای برای معرفی توانمندی‌ها، توسعه ارتباطات و شکل‌گیری همکاری‌های تجاری.",
+      "رویدادهای تخصصی برای معرفی توانمندی‌ها، گسترش ارتباطات و همکاری تجاری.",
     primary: "ثبت درخواست",
     secondary: "مشاهده نمایشگاه‌ها",
     stages: [
@@ -328,12 +328,12 @@ const fa: SiteContent = {
     kicker: "آرشیو نمایشگاه‌ها",
     title: "رویدادهای تخصصی اَرَتَ",
     note:
-      "دوره‌های زیر برگزار شده‌اند. تاریخ دوره‌های بعد به محض اعلام رسمی در تقویم پیش رو منتشر می‌شود.",
+      "این دوره‌ها برگزار شده‌اند. تاریخ دوره‌های بعد، پس از اعلام رسمی، در تقویم منتشر می‌شود.",
     items: faExhibitions,
   },
   services: {
     kicker: "خدمات نمایشگاهی",
-    title: "از برنامه‌ریزی رویداد تا حضور حرفه‌ای در نمایشگاه",
+    title: "از برنامه‌ریزی تا روز افتتاح",
     items: [
       {
         title: "طراحی و سازماندهی رویداد",
@@ -355,9 +355,9 @@ const fa: SiteContent = {
   },
   registration: {
     kicker: "ثبت‌نام",
-    title: "آغاز فرآیند حضور در نمایشگاه",
+    title: "حضور در نمایشگاه را آغاز کنید",
     body:
-      "فرم رسمی را دانلود کنید یا درخواست غرفه را در سه قدم آماده کنید. درخواست با ایمیل به دفتر اَرَتَ می‌رسد و کارشناس فروش برای متراژ، جانمایی و قرارداد با شما تماس می‌گیرد.",
+      "فرم رسمی را دانلود کنید یا درخواست غرفه را در سه قدم بسازید. درخواست با ایمیل به دفتر اَرَتَ می‌رسد و کارشناس فروش برای متراژ، جانمایی و قرارداد تماس می‌گیرد.",
     formTitle: "پیش‌نویس درخواست غرفه",
     fields: {
       name: "نام و نام خانوادگی",
@@ -409,7 +409,7 @@ const fa: SiteContent = {
   },
   gallery: {
     kicker: "گالری",
-    title: "تصویر واقعی از کف نمایشگاه",
+    title: "نمایشگاه از نزدیک",
     items: [
       { src: "/gallery/simex-2019-01.jpg", alt: "نمایشگاه سیمکس ۲۰۱۹", caption: "سیمکس ۲۰۱۹" },
       { src: "/gallery/expo-floor-01.jpg", alt: "سالن نمایشگاه", caption: "کف نمایشگاه" },
@@ -425,7 +425,7 @@ const fa: SiteContent = {
   },
   news: {
     kicker: "اتاق خبر",
-    title: "آخرین خبرهای رسمی اَرَتَ",
+    title: "تازه‌ترین خبرهای اَرَتَ",
     items: [
       {
         date: "۲۲ اردیبهشت ۱۴۰۴",
@@ -459,9 +459,9 @@ const fa: SiteContent = {
       },
     ],
     relatedKicker: "اخبار صنعت",
-    relatedTitle: "اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین",
+    relatedTitle: "معدن، فولاد، مس و زنجیرهٔ تأمین",
     relatedBody:
-      "گزارش‌ها، گفتگوها و مطالب آموزشی مرتبط با بازارهای معدن، فولاد، مس و زنجیره تامین؛ هر مطلب با تاریخ، حوزه و لینک منبع نمایش داده می‌شود.",
+      "گزارش، گفت‌وگو و مطالب آموزشی؛ هر مطلب با تاریخ، حوزه و لینک منبع.",
     relatedItems: [
       {
         date: "۱۴ دی ۱۴۰۲",
@@ -497,9 +497,9 @@ const fa: SiteContent = {
   },
   blog: {
     kicker: "مجله اَرَتَ",
-    title: "راهنمای عملی برای ساخت و مدیریت نمایشگاه",
+    title: "راهنمای عملی نمایشگاه",
     body:
-      "مقاله‌های کوتاه و اجرایی برای تیم‌های برگزارکننده، غرفه‌داران و مدیران عملیات؛ از برنامه‌ریزی سالن تا تحویل تجهیزات و پیگیری تجاری.",
+      "مقاله‌های کوتاه و کاربردی برای برگزارکنندگان، غرفه‌داران و تیم‌های اجرایی؛ از برنامه‌ریزی سالن تا تحویل تجهیزات.",
     emptyLabel: "هنوز مقاله منتشرشده‌ای وجود ندارد.",
     readMoreLabel: "مطالعه مقاله",
     allPostsLabel: "مشاهده همه مقاله‌ها",
@@ -581,14 +581,14 @@ const fa: SiteContent = {
   },
   about: {
     kicker: "درباره اَرَتَ",
-    title: "زیرساخت قابل اعتماد برای رویدادهای تخصصی صنعتی",
+    title: "برگزارکنندهٔ رویدادهای تخصصی صنعت و معدن",
     body:
-      "شرکت توسعه تجارت اَرَتَ برگزارکننده رویدادهای تخصصی در حوزه معدن، صنایع معدنی، فولاد، مس و زنجیره تأمین است؛ بستری برای معرفی توانمندی‌ها، ارتباط تأمین‌کنندگان با صنایع و شکل‌گیری همکاری‌های تجاری.",
+      "شرکت توسعه تجارت اَرَتَ رویدادهای تخصصی معدن، صنایع معدنی، فولاد، مس و زنجیرهٔ تأمین را برگزار می‌کند؛ جایی برای معرفی توانمندی‌ها و پیوند تأمین‌کنندگان با صنایع.",
     proof: ["معدن و صنایع معدنی", "فولاد و مس", "ماشین‌آلات و تجهیزات", "رسانه و مشارکت"],
   },
   contact: {
     kicker: "تماس",
-    title: "تماس مستقیم با دفتر کرمان",
+    title: "تماس با دفتر کرمان",
     addressLabel: "آدرس دفتر",
     address: "کرمان، بلوار جهاد، نبش کوچه ۴۳، ساختمان بانک پارسیان",
     emailLabel: "ایمیل",
@@ -628,14 +628,14 @@ const en: SiteContent = {
   hero: {
     title: "Industry & mining exhibitions",
     subtitle:
-      "Professional events designed to connect capabilities, decision-makers and commercial opportunities.",
+      "Specialized events that connect capability, decision-makers and trade.",
     primary: "Register Interest",
     secondary: "View Exhibitions",
     stages: [
       {
         label: "Plot",
         title: "It starts with a plan",
-        body: "The 12 by 9 metre plot is marked out and every zone is fixed before the first crate arrives.",
+        body: "The 12 by 9 meter plot is marked out and every zone is fixed before the first crate arrives.",
       },
       {
         label: "Rigging",
@@ -687,15 +687,15 @@ const en: SiteContent = {
     ],
   },
   exhibitions: {
-    kicker: "Archive / Exhibitions",
+    kicker: "Exhibition archive",
     title: "Aratta's specialized events",
     note:
-      "The editions below have been held. Dates for the next editions appear in the upcoming calendar as soon as they are officially announced.",
+      "These editions have been held. Dates for the next ones appear in the calendar once they are officially announced.",
     items: enExhibitions,
   },
   services: {
     kicker: "Exhibition Services",
-    title: "From event planning to a professional exhibition presence",
+    title: "From planning to opening day",
     items: [
       {
         title: "Event organization",
@@ -717,9 +717,9 @@ const en: SiteContent = {
   },
   registration: {
     kicker: "Registration",
-    title: "Start your exhibition participation inquiry",
+    title: "Start your exhibition inquiry",
     body:
-      "Download the official form or prepare a booth request in three steps. It reaches the Aratta office by email, and a sales specialist calls you about area, placement and the contract.",
+      "Download the official form or build a booth request in three steps. It reaches the Aratta office by email, and a sales specialist calls you about area, placement and contract.",
     formTitle: "Booth inquiry draft",
     fields: {
       name: "Full name",
@@ -771,7 +771,7 @@ const en: SiteContent = {
   },
   gallery: {
     kicker: "Gallery",
-    title: "Real moments from the exhibition floor",
+    title: "From the exhibition floor",
     items: [
       { src: "/gallery/simex-2019-01.jpg", alt: "SIMEX 2019 exhibition", caption: "SIMEX 2019" },
       { src: "/gallery/expo-floor-01.jpg", alt: "Exhibition hall", caption: "Exhibition floor" },
@@ -787,7 +787,7 @@ const en: SiteContent = {
   },
   news: {
     kicker: "Newsroom",
-    title: "Latest official news from Aratta",
+    title: "Latest news from Aratta",
     items: [
       {
         date: "May 12, 2025",
@@ -820,10 +820,10 @@ const en: SiteContent = {
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
       },
     ],
-    relatedKicker: "Industry Signals",
-    relatedTitle: "Related news for mining, steel, copper, and supply-chain markets",
+    relatedKicker: "Industry news",
+    relatedTitle: "Mining, steel, copper and supply chain",
     relatedBody:
-      "Reports, interviews, and practical insights for mining, steel, copper, and supply-chain markets, with a visible date, sector, and source link for every item.",
+      "Reports, interviews and practical insight, each with its date, sector and source link.",
     relatedItems: [
       {
         date: "January 4, 2024",
@@ -859,9 +859,9 @@ const en: SiteContent = {
   },
   blog: {
     kicker: "Aratta Journal",
-    title: "Practical guidance for building and operating exhibitions",
+    title: "A practical guide to exhibitions",
     body:
-      "Short, field-ready articles for organizers, exhibitors, and operations teams—from hall planning to equipment handover and commercial follow-up.",
+      "Short, practical articles for organizers, exhibitors and operations teams, from hall planning to equipment handover.",
     emptyLabel: "No articles have been published yet.",
     readMoreLabel: "Read article",
     allPostsLabel: "View all articles",
@@ -943,14 +943,14 @@ const en: SiteContent = {
   },
   about: {
     kicker: "About Aratta",
-    title: "Trusted infrastructure for specialized industrial events",
+    title: "Organizer of specialized industry and mining events",
     body:
-      "Aratta Trade Development Company organizes specialized events for mining, mineral industries, steel, copper, and supply chains—connecting industrial capabilities, suppliers, decision-makers, and new commercial opportunities.",
+      "Aratta Trade Development Company organizes specialized events for mining, mineral industries, steel, copper and supply chains, connecting suppliers with industry and capability with opportunity.",
     proof: ["Mining industries", "Steel and copper", "Machinery and equipment", "Media and participation"],
   },
   contact: {
     kicker: "Contact",
-    title: "Direct contact with the Kerman office",
+    title: "Contact the Kerman office",
     addressLabel: "Office address",
     address: "Kerman, Jahad Boulevard, corner of Alley 43, Parsian Bank Building",
     emailLabel: "Email",

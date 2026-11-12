@@ -293,8 +293,8 @@ test("landing page does not render the duplicate build-stage showcase", () => {
 test("related industry news is a dedicated bilingual public section", () => {
   assert.match(content, /relatedTitle/);
   assert.match(content, /relatedItems/);
-  assert.match(content, /اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین/);
-  assert.match(content, /Related news for mining, steel, copper, and supply-chain markets/);
+  assert.match(content, /معدن، فولاد، مس و زنجیرهٔ تأمین/);
+  assert.match(content, /Mining, steel, copper and supply chain/);
   assert.match(routedPage, /"industry-news"/);
   assert.match(routedPage, /RelatedNewsPage/);
   assert.match(homeSections, /RelatedNewsSection/);
