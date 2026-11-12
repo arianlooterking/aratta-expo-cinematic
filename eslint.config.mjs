@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     "ios/**",
     "mobile/shell/**",
     "supabase/functions/**",
+    // Local agent worktrees are full copies of the repo; lint them from inside.
+    ".claude/**",
   ]),
 ]);
 

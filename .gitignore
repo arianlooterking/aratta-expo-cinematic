@@ -47,6 +47,9 @@ qa/
 # netlify local deployment state and generated adapters
 .netlify
 
+# local agent worktrees and settings
+/.claude/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
