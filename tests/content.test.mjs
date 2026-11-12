@@ -16,7 +16,6 @@ const seo = await readFile(new URL("../src/lib/seo.ts", import.meta.url), "utf8"
 const ogPreview = await stat(new URL("../public/og/aratta-expo-booth-preview-v2.png", import.meta.url));
 const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", import.meta.url), "utf8");
 const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", import.meta.url), "utf8");
-const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
 const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
 const homeSections = await readFile(new URL("../src/components/HomeSections.tsx", import.meta.url), "utf8");
 const upcomingExhibitions = await readFile(new URL("../src/components/UpcomingExhibitions.tsx", import.meta.url), "utf8");

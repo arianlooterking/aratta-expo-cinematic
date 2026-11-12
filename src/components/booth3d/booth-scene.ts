@@ -24,7 +24,7 @@ export type BoothScene = {
 
 const GOLD = new THREE.Color("#d3a84b");
 const GOLD_SOFT = new THREE.Color("#f2d28c");
-const CYAN = new THREE.Color("#5fd4e0");
+const CYAN = new THREE.Color("#63c9a4");
 const HALL = new THREE.Color("#06080a");
 
 const W = 10; // booth width (x)
@@ -123,7 +123,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     goldGlow: track(new THREE.MeshBasicMaterial({ color: GOLD_SOFT, toneMapped: false })),
     led: track(new THREE.MeshBasicMaterial({ color: "#fff3d6", toneMapped: false })),
     cyanGlow: track(new THREE.MeshBasicMaterial({ color: CYAN, toneMapped: false, transparent: true, opacity: 0 })),
-    glass: track(new THREE.MeshStandardMaterial({ color: "#a9d7dc", roughness: 0.05, metalness: 0.9, transparent: true, opacity: 0.16, depthWrite: false })),
+    glass: track(new THREE.MeshStandardMaterial({ color: "#a9d7dc", roughness: 0.05, metalness: 0.9, transparent: true, opacity: 0.26, depthWrite: false })),
     counter: track(new THREE.MeshStandardMaterial({ color: "#efebe4", roughness: 0.42, metalness: 0.05 })),
     fabric: track(new THREE.MeshStandardMaterial({ color: "#2d3a3c", roughness: 0.95, metalness: 0 })),
     fabricWarm: track(new THREE.MeshStandardMaterial({ color: "#8c6a46", roughness: 0.9, metalness: 0 })),
@@ -380,14 +380,14 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     const tex = canvasTexture(Math.round(w * scale), Math.round(d * scale), (ctx) => {
       const cw = ctx.canvas.width;
       const ch = ctx.canvas.height;
-      ctx.fillStyle = "rgba(95,212,224,0.08)";
+      ctx.fillStyle = "rgba(99,201,164,0.08)";
       ctx.fillRect(0, 0, cw, ch);
-      ctx.strokeStyle = "rgba(95,212,224,0.9)";
+      ctx.strokeStyle = "rgba(99,201,164,0.9)";
       ctx.lineWidth = 5;
       ctx.setLineDash([22, 14]);
       ctx.strokeRect(4, 4, cw - 8, ch - 8);
       ctx.setLineDash([]);
-      ctx.fillStyle = "rgba(210,248,252,0.96)";
+      ctx.fillStyle = "rgba(222,246,236,0.96)";
       ctx.font = font(700, 46);
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -411,8 +411,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
 
   const dimension = (label: string, length: number, x: number, z: number, rotate: boolean) => {
     const tex = canvasTexture(1024, 128, (ctx) => {
-      ctx.strokeStyle = "rgba(95,212,224,0.95)";
-      ctx.fillStyle = "rgba(210,248,252,0.98)";
+      ctx.strokeStyle = "rgba(99,201,164,0.95)";
+      ctx.fillStyle = "rgba(222,246,236,0.98)";
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(8, 64);
@@ -444,19 +444,19 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   // Visitor path: chevrons that flow from the entrance into the booth.
   const chevrons = canvasTexture(256, 64, (ctx) => {
     ctx.strokeStyle = "rgba(242,210,140,0.95)";
-    ctx.lineWidth = 9;
+    // A clean dashed line with one arrowhead per repeat.
+    ctx.lineWidth = 7;
     ctx.lineCap = "round";
-    for (let i = 0; i < 4; i += 1) {
-      const x = 22 + i * 64;
-      ctx.beginPath();
-      ctx.moveTo(x, 14);
-      ctx.lineTo(x + 22, 32);
-      ctx.lineTo(x, 50);
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.moveTo(16, 32);
+    ctx.lineTo(150, 32);
+    ctx.moveTo(176, 14);
+    ctx.lineTo(206, 32);
+    ctx.lineTo(176, 50);
+    ctx.stroke();
   });
   chevrons.texture.wrapS = THREE.RepeatWrapping;
-  chevrons.texture.repeat.set(3, 1);
+  chevrons.texture.repeat.set(0.7, 1);
   track(chevrons.texture);
   const pathMaterial = track(new THREE.MeshBasicMaterial({ map: chevrons.texture, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
   const pathCurve = new THREE.CatmullRomCurve3([
@@ -465,7 +465,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     new THREE.Vector3(0.2, 0.03, 0.6),
     new THREE.Vector3(-2.2, 0.03, 1.6),
   ]);
-  const pathGeometry = track(ribbon(pathCurve, 0.5, 60));
+  const pathGeometry = track(ribbon(pathCurve, 0.26, 60));
   const path = new THREE.Mesh(pathGeometry, pathMaterial);
   blueprint.add(path);
 
@@ -660,7 +660,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     const g = easeOutCubic(window01(p, T.glass[0], T.glass[1]));
     glassGroup.visible = g > 0.001;
     glassGroup.position.y = (1 - g) * 3;
-    mat.glass.opacity = 0.16 * g;
+    mat.glass.opacity = 0.26 * g;
     const lit = window01(p, T.glass[1], T.glass[1] + 0.03);
     linearLights.forEach((strip) => {
       strip.visible = lit > 0;
@@ -764,7 +764,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     // Slow contour lines, like a geological survey.
     ctx.lineWidth = 2 * s;
     for (let i = 0; i < 9; i += 1) {
-      ctx.strokeStyle = `rgba(95,212,224,${0.08 + i * 0.018})`;
+      ctx.strokeStyle = `rgba(99,201,164,${0.08 + i * 0.018})`;
       ctx.beginPath();
       for (let x = 0; x <= cw; x += 16 * s) {
         const y = ch * 0.62 + i * 18 * s + Math.sin(x / (120 * s) + time * 0.6 + i * 0.7) * 22 * s;

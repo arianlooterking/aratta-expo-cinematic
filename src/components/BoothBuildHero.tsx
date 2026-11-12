@@ -165,7 +165,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
             <p className="font-latin text-[0.68rem] font-black uppercase tracking-[0.42em] text-[var(--gold)]">Aratta Expo · Kerman</p>
             <h1 className="hero-display-title booth3d__title mx-auto mt-5 text-balance">{content.hero.title}</h1>
             <p className="hero-subtitle mx-auto mt-5 text-white/78">{content.hero.subtitle}</p>
-            <p className="booth3d__hint mt-9 inline-flex flex-col items-center gap-3 text-xs font-bold text-white/62">
+            <p className="booth3d__hint mt-9 hidden flex-col md:inline-flex items-center gap-3 text-xs font-bold text-white/62">
               <span>{content.hero.scrollHint}</span>
               <span className="booth3d__hint-line" aria-hidden="true" />
             </p>
@@ -177,19 +177,27 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
 
         {/* Chapter copy on wide screens: reading-start side, large and calm. */}
         <div dir={content.dir} className="pointer-events-none absolute inset-0 z-10 hidden md:block">
-          <div className="section-shell flex h-full items-center">
+          <div className="booth3d__chapter-wrap section-shell flex h-full items-center">
             <div className={`booth3d__chapter ${inChapter ? "is-on" : ""}`}>
               {stage ? (
                 <div key={`chapter-${chapter}`} className="hero-stage-copy">
                   <div className="flex items-center gap-3">
-                    <span className="font-latin text-[0.72rem] font-black tracking-[0.3em] text-[var(--gold)]">
-                      {number(chapter + 1)} <span className="text-white/36">/ {number(total)}</span>
+                    <span className={`text-[0.72rem] font-black text-[var(--gold)] ${fa ? "" : "font-latin tracking-[0.3em]"}`}>
+                      {fa ? (
+                        <>
+                          {faDigits(String(chapter + 1))} <span className="text-white/40">از {faDigits(String(total))}</span>
+                        </>
+                      ) : (
+                        <>
+                          {number(chapter + 1)} <span className="text-white/36">/ {number(total)}</span>
+                        </>
+                      )}
                     </span>
                     <span className="h-px w-10 bg-[var(--gold)]/50" aria-hidden="true" />
                     <span className="text-xs font-bold text-white/66">{stage.label}</span>
                   </div>
                   <h2 className="booth3d__chapter-title mt-5 text-balance text-white">{stage.title}</h2>
-                  <p className="mt-5 max-w-[30rem] text-[0.98rem] leading-8 text-white/76">{stage.body}</p>
+                  <p className={`mt-5 max-w-[30rem] leading-8 text-white/78 ${fa ? "text-[1.06rem]" : "text-[0.98rem]"}`}>{stage.body}</p>
                 </div>
               ) : null}
             </div>
@@ -218,7 +226,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
         {/* Finale: the call to action once the booth stands complete. */}
         <div dir={content.dir} className={`booth3d__finale absolute inset-x-0 z-20 ${finale ? "is-on" : ""}`}>
           <div className="section-shell text-center text-white">
-            <p className="text-xs font-black tracking-[0.2em] text-[var(--gold)]">{content.hero.finale.kicker}</p>
+            <p className={`text-xs font-black text-[var(--gold)] ${fa ? "" : "tracking-[0.2em] uppercase"}`}>{content.hero.finale.kicker}</p>
             <h2 className="booth3d__chapter-title mx-auto mt-4 max-w-[22ch] text-balance">{content.hero.finale.title}</h2>
             <p className="mx-auto mt-4 max-w-[38rem] text-sm leading-7 text-white/74 md:text-base md:leading-8">{content.hero.finale.body}</p>
             <div className="mt-7 hidden flex-wrap justify-center gap-2.5 md:flex">
@@ -249,8 +257,8 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
               <div key={`m-chapter-${chapter}`} className="hero-stage-copy">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[0.66rem] font-black text-[var(--gold)]">{stage.label}</span>
-                  <span className="font-latin text-[0.66rem] font-black text-white/56">
-                    {number(chapter + 1)}/{number(total)}
+                  <span className="text-[0.66rem] font-black text-white/56">
+                    {fa ? `${faDigits(String(chapter + 1))} از ${faDigits(String(total))}` : `${number(chapter + 1)}/${number(total)}`}
                   </span>
                 </div>
                 <h2 className="mt-1.5 text-balance text-[clamp(1rem,4.8vw,1.18rem)] font-black leading-[1.4]">{stage.title}</h2>

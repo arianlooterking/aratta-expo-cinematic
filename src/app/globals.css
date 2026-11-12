@@ -636,6 +636,23 @@ html[lang="fa"] .booth3d__chapter-title {
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
 
+/* Portrait tablets: the booth sits in the upper part, the copy below it. */
+@media (min-width: 768px) and (orientation: portrait) {
+  .booth3d__chapter-wrap {
+    align-items: flex-end !important;
+    padding-bottom: 7.5rem;
+  }
+
+  .booth3d__chapter {
+    width: min(36rem, 100%);
+    margin-top: 0;
+  }
+
+  .booth3d__side-scrim {
+    background: linear-gradient(180deg, transparent 50%, rgba(3, 5, 6, 0.85) 82%) !important;
+  }
+}
+
 @media (max-width: 767px) {
   .booth3d__intro {
     top: 38%;

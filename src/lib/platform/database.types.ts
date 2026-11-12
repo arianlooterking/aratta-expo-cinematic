@@ -5,6 +5,99 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      ai_agents: {
+        Row: {
+          id: string;
+          name: string;
+          provider: "claude" | "chatgpt" | "grok" | "other";
+          acts_for: string | null;
+          scopes: string[];
+          needs_approval: boolean;
+          token_hash: string;
+          token_hint: string;
+          created_by: string | null;
+          created_at: string;
+          last_used_at: string | null;
+          expires_at: string | null;
+          revoked_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          provider?: "claude" | "chatgpt" | "grok" | "other";
+          acts_for?: string | null;
+          scopes?: string[];
+          needs_approval?: boolean;
+          token_hash: string;
+          token_hint: string;
+          created_by?: string | null;
+          created_at?: string;
+          last_used_at?: string | null;
+          expires_at?: string | null;
+          revoked_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          provider?: "claude" | "chatgpt" | "grok" | "other";
+          acts_for?: string | null;
+          scopes?: string[];
+          needs_approval?: boolean;
+          token_hash?: string;
+          token_hint?: string;
+          created_by?: string | null;
+          created_at?: string;
+          last_used_at?: string | null;
+          expires_at?: string | null;
+          revoked_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ai_agent_actions: {
+        Row: {
+          id: string;
+          agent_id: string;
+          acting_for: string | null;
+          tool: string;
+          summary: string;
+          input: Json;
+          status: "done" | "failed" | "pending" | "approved" | "rejected";
+          result: Json | null;
+          error: string | null;
+          created_at: string;
+          decided_by: string | null;
+          decided_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          acting_for?: string | null;
+          tool: string;
+          summary: string;
+          input?: Json;
+          status: "done" | "failed" | "pending" | "approved" | "rejected";
+          result?: Json | null;
+          error?: string | null;
+          created_at?: string;
+          decided_by?: string | null;
+          decided_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          acting_for?: string | null;
+          tool?: string;
+          summary?: string;
+          input?: Json;
+          status?: "done" | "failed" | "pending" | "approved" | "rejected";
+          result?: Json | null;
+          error?: string | null;
+          created_at?: string;
+          decided_by?: string | null;
+          decided_at?: string | null;
+        };
+        Relationships: [];
+      };
       activities: {
         Row: {
           id: string;
