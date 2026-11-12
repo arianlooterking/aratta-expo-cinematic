@@ -1,15 +1,18 @@
-// Camera path. Wide shots alternate with close details; the path is a monotone
-// cubic (PCHIP) per axis against scroll progress, so position and velocity are
-// continuous everywhere and the path never overshoots a key into the set. Close
-// keys hold a little longer. Desktop keeps the booth on the side away from the
-// copy; portrait screens step back on wide shots (so the 7 m sign fits) but keep
-// close shots close.
+// Camera path: one slow, continuous crane move on the open front side of the
+// stand (see CAMERA_KEYS). Azimuth, distance and height around the plot centre
+// and the look-at point are each a monotone cubic (PCHIP) against scroll
+// progress, so position and velocity are continuous everywhere and the path
+// never overshoots a key. Desktop keeps the booth on the side away from the
+// copy with a constant lens shift; portrait screens step back and aim closer
+// to the stand's centre, and ease out further during the last chapters so the
+// hand-over to the (more distant) portrait finale stays gentle.
 //
-// The finale is a front elevation: from the last detail the camera eases out to
-// the stand's centre line in front of the open long side, then makes a slow
-// ease-out push-in to a symmetric front view at eye height. Its distance comes
-// from the share of the screen width the stand should fill, and a lens shift
-// (view offset) places it in the free band above the closing copy.
+// The finale is a front elevation: the camera arrives on the stand's centre
+// line in front of the open long side and makes a slow ease-out push-in to a
+// symmetric front view at eye height. Its distance comes from the share of the
+// screen width the stand should fill, and a lens shift (view offset) places it
+// in the free band above the closing copy. There is no idle sway; only a small
+// pointer parallax on fine pointers.
 
 import * as THREE from "three";
 import { CAMERA_KEYS, FINALE_AT, clamp01 } from "./timeline";
@@ -18,7 +21,7 @@ import { CAMERA_KEYS, FINALE_AT, clamp01 } from "./timeline";
 const STAND = { halfWidth: 6.05, front: 4.5, top: 7.15, bottom: 0 };
 /** The finale's blend in from the last detail, and its push-in. */
 export const FINALE_BLEND: [number, number] = [0.846, 0.912];
-const PUSH_FROM = 1.2;
+const PUSH_FROM = 1.05;
 const EYE = { start: 2.95, end: 2.45 };
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -85,35 +88,41 @@ function sample(tr: Track, p: number, out: THREE.Vector3) {
 export type CameraPose = { pos: THREE.Vector3; tgt: THREE.Vector3; offX: number; offY: number };
 
 export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
-  // The detail path ends at the last close shot; the finale owns everything after it.
-  const keys = CAMERA_KEYS.filter((k) => k.at < FINALE_AT);
+  // The crane path ends at the finale's hand-over key; the finale owns everything after it.
+  const keys = CAMERA_KEYS.filter((k) => k.at <= FINALE_AT);
   const times = keys.map((k) => k.at);
-  const hold = keys.map((k) => (k.close ? 0.55 : 1));
-  const posTrack = track(times, keys.map((k) => [...k.position]), hold);
+  const hold = keys.map(() => 1);
+  const cylTrack = track(times, keys.map((k) => [k.azimuth, k.distance, k.height]), hold);
   const tgtTrack = track(times, keys.map((k) => [...k.target]), hold);
-  const closeFlags = keys.map((k) => (k.close ? 1 : 0));
   const centre = new THREE.Vector3(0, 2.6, 0);
   const pointerSmooth = new THREE.Vector2();
   const pose: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
+  const cyl = new THREE.Vector3();
   const fPos = new THREE.Vector3();
   const fTgt = new THREE.Vector3();
+  const endPos = new THREE.Vector3();
+  const endTgt = new THREE.Vector3();
   const probe = new THREE.PerspectiveCamera();
   const point = new THREE.Vector3();
   // Free band for the finale (fractions of the screen height), set by the hero from its layout.
   const safe = { top: 0.1, bottom: 0.62 };
   let cacheKey = "";
-  const finale = { near: 0, far: 0, offNear: 0, offFar: 0, driftX: 0 };
+  const finale = { near: 0, far: 0, offNear: 0, offFar: 0, driftX: 0, extra: 0, extraEnd: 0 };
 
   const fov = (aspect: number) => (aspect < 0.8 ? 52 : aspect < 1.2 ? 45 : 37);
-  const closeness = (p: number) => {
-    if (p <= times[0]) return closeFlags[0];
-    const n = times.length;
-    if (p >= times[n - 1]) return closeFlags[n - 1];
-    let i = 0;
-    while (i < n - 2 && p > times[i + 1]) i += 1;
-    const a = closeFlags[i];
-    const b = closeFlags[i + 1];
-    return a + (b - a) * smoothstep(times[i], times[i + 1], p);
+  /** Portrait and tablet screens stand further off than the desktop path. */
+  const baseStepBack = (aspect: number) => (aspect < 1 ? THREE.MathUtils.clamp(0.62 / aspect, 1, 1.45) : aspect < 1.3 ? 1.15 : 1);
+  /** Portrait screens also look down a little more, so the plan still reads from above. */
+  const heightStepBack = (aspect: number) => baseStepBack(aspect) * (aspect < 1 ? 1.2 : 1);
+  /** Portrait screens aim a little closer to the stand's centre. */
+  const aimCentre = (aspect: number) => (aspect < 1 ? 0.45 : 0);
+
+  /** The crane pose at p on the desktop path (no screen adjustments). */
+  const crane = (p: number, pos: THREE.Vector3, tgt: THREE.Vector3) => {
+    sample(cylTrack, p, cyl);
+    const az = THREE.MathUtils.degToRad(cyl.x);
+    pos.set(Math.sin(az) * cyl.y, cyl.z, Math.cos(az) * cyl.y);
+    sample(tgtTrack, p, tgt);
   };
 
   /** Screen fractions (0 = top) of the stand's top and floor edge from an unshifted camera at z. */
@@ -166,26 +175,40 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     const far = span(aspect, finale.far, EYE.start);
     finale.offNear = ((near.top + near.bottom) / 2 - place(near)) * height;
     finale.offFar = ((far.top + far.bottom) / 2 - place(far)) * height;
-    // A small drift toward the reading side on the way in.
-    finale.driftX = (fa ? -1 : 1) * Math.min(1.4, d * 0.05);
+    // The camera arrives a little to the side it came from (+x) and settles on the centre line,
+    // so the swing round the stand keeps one direction in both languages.
+    finale.driftX = Math.min(1, d * 0.04);
+    // How far this screen's path must ease back by the hand-over so that it meets the
+    // finale's distance instead of pulling back fast inside the blend.
+    crane(FINALE_AT, endPos, endTgt);
+    endTgt.lerp(centre, aimCentre(aspect));
+    finale.extraEnd = Math.max(0, finale.far - endTgt.z - Math.hypot(endPos.x - endTgt.x, endPos.z - endTgt.z));
+    crane(0, endPos, endTgt);
+    endTgt.lerp(centre, aimCentre(aspect));
+    finale.extra = (baseStepBack(aspect) - 1) * Math.hypot(endPos.x - endTgt.x, endPos.z - endTgt.z);
   };
 
-  /** The camera pose at p without pointer or idle sway: the pure scroll path. */
+  /** The camera pose at p without pointer parallax: the pure scroll path. */
   const at = (p: number, width: number, height: number, out: CameraPose) => {
     const aspect = width / height;
-    sample(posTrack, p, out.pos);
-    sample(tgtTrack, p, out.tgt);
-    const close = closeness(p);
-    // Portrait: step back for wide shots and aim closer to the stand's centre.
-    let distance = 1;
-    if (aspect < 1) distance = THREE.MathUtils.clamp(0.62 / aspect, 1, 1.45);
-    else if (aspect < 1.3) distance = 1.15;
-    distance += (1 + (distance - 1) * 0.3 - distance) * close;
-    if (aspect < 1) out.tgt.lerp(centre, 0.45 * (1 - close));
-    out.pos.sub(out.tgt).multiplyScalar(distance).add(out.tgt);
-    out.pos.y = Math.max(0.6, out.pos.y);
+    frameFinale(width, height);
+    crane(p, out.pos, out.tgt);
+    // Portrait and tablet screens aim closer to the centre and stand further off: a constant
+    // extra distance (not a factor, so the slow pace of the move is kept), which eases in the
+    // last chapters toward what this screen's finale needs. Height scales about eye level,
+    // so it keeps coming down.
+    out.tgt.lerp(centre, aimCentre(aspect));
+    const dx = out.pos.x - out.tgt.x;
+    const dz = out.pos.z - out.tgt.z;
+    const r = Math.max(1e-3, Math.hypot(dx, dz));
+    const extra = finale.extra + (finale.extraEnd - finale.extra) * smoothstep(0.45, FINALE_AT, p);
+    const k = (r + extra) / r;
+    out.pos.x = out.tgt.x + dx * k;
+    out.pos.z = out.tgt.z + dz * k;
+    out.pos.y = EYE.start + Math.max(0, out.pos.y - EYE.start) * heightStepBack(aspect);
 
     // Lens shift for the copy: phones keep a card at the bottom, desktop the reading-start side.
+    // It changes only in the intro and in the finale blend.
     const blend = smoothstep(FINALE_BLEND[0], FINALE_BLEND[1], p);
     if (aspect < 1) {
       out.offX = 0;
@@ -197,7 +220,6 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     }
 
     if (blend > 0) {
-      frameFinale(width, height);
       const t = pushEase((p - FINALE_BLEND[1]) / (1 - FINALE_BLEND[1]));
       const z = finale.far + (finale.near - finale.far) * t;
       const eye = EYE.start + (EYE.end - EYE.start) * t;
@@ -212,6 +234,8 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     return out;
   };
 
+  const fine = typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches;
+
   return {
     at,
     fov,
@@ -220,21 +244,139 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
       safe.top = clamp01(top);
       safe.bottom = Math.max(safe.top + 0.2, clamp01(bottom));
     },
-    apply(p: number, time: number, dt: number, width: number, height: number, pointer: THREE.Vector2) {
+    apply(p: number, dt: number, width: number, height: number, pointer: THREE.Vector2) {
       at(p, width, height, pose);
-      pointerSmooth.lerp(pointer, 1 - Math.exp(-dt / 0.35));
-      const close = closeness(p);
-      // Idle sway and pointer parallax: lighter on details, nearly still on the closing elevation.
-      const still = smoothstep(FINALE_BLEND[0], 1, p);
-      const sway = (1 - close * 0.7) * (1 - still * 0.75);
-      pose.pos.x += (pointerSmooth.x * 0.8 + Math.sin(time * 0.23) * 0.14) * sway;
-      pose.pos.y += (pointerSmooth.y * 0.4 + Math.sin(time * 0.29) * 0.07) * sway;
+      // Pointer parallax on fine pointers only, at most a quarter of a metre; none on touch.
+      if (fine) {
+        pointerSmooth.lerp(pointer, 1 - Math.exp(-dt / 0.45));
+        const still = 1 - 0.5 * smoothstep(FINALE_BLEND[0], 1, p);
+        pose.pos.x += pointerSmooth.x * 0.2 * still;
+        pose.pos.y += pointerSmooth.y * 0.12 * still;
+      }
       // Stay under the hall roof steel (lights at 18 m) and above the floor.
       pose.pos.y = THREE.MathUtils.clamp(pose.pos.y, 0.6, 17.2);
       camera.position.copy(pose.pos);
       camera.lookAt(pose.tgt);
       camera.setViewOffset(width, height, pose.offX, pose.offY, width, height);
-      return { moving: pointerSmooth.distanceToSquared(pointer) > 1e-6 };
     },
+  };
+}
+
+/** The windows pathStats reports: the eight chapters and the finale. */
+const STAT_WINDOWS: Array<[string, number, number]> = [
+  ["1 plan", 0, 0.11],
+  ["2 rigging", 0.11, 0.22],
+  ["3 floor", 0.22, 0.33],
+  ["4 structure", 0.33, 0.44],
+  ["5 walls", 0.44, 0.55],
+  ["6 power", 0.55, 0.66],
+  ["7 brand", 0.66, 0.77],
+  ["8 hosting", 0.77, FINALE_AT],
+  ["finale", FINALE_AT, 1],
+];
+
+/**
+ * Measures the scroll path: per chapter and for the finale, camera travel (m),
+ * view rotation (deg, summed), azimuth and height at both ends, and the range of
+ * horizontal distance to the plot centre; plus the worst 0.11 window anywhere,
+ * how much azimuth and height ever reverse, and where the lens shift changes.
+ * Plain assignments throughout (the production minifier breaks destructuring
+ * assignments onto object fields).
+ */
+export function pathStats(at: (p: number, width: number, height: number, out: CameraPose) => CameraPose, width: number, height: number, step = 0.0005) {
+  const n = Math.round(1 / step);
+  const pos: THREE.Vector3[] = [];
+  const dir: THREE.Vector3[] = [];
+  const off: number[] = [];
+  const pose: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
+  for (let i = 0; i <= n; i += 1) {
+    at(i / n, width, height, pose);
+    pos.push(pose.pos.clone());
+    dir.push(pose.tgt.clone().sub(pose.pos).normalize());
+    off.push(pose.offX / width + pose.offY / height);
+  }
+  const deg = THREE.MathUtils.radToDeg;
+  const azimuth = (v: THREE.Vector3) => deg(Math.atan2(v.x, v.z));
+  const dist = (v: THREE.Vector3) => Math.hypot(v.x, v.z);
+  const move: number[] = [0];
+  const turn: number[] = [0];
+  for (let i = 1; i <= n; i += 1) {
+    move.push(pos[i].distanceTo(pos[i - 1]));
+    turn.push(deg(dir[i].angleTo(dir[i - 1])));
+  }
+  const r = (v: number, k = 100) => Math.round(v * k) / k;
+  const sum = (list: number[], a: number, b: number) => {
+    let total = 0;
+    for (let i = a + 1; i <= b; i += 1) total += list[i];
+    return total;
+  };
+  const chapters = STAT_WINDOWS.map(([name, p0, p1]) => {
+    const a = Math.round(p0 * n);
+    const b = Math.round(p1 * n);
+    let near = Infinity;
+    let far = 0;
+    let pitch = -90;
+    for (let i = a; i <= b; i += 1) {
+      near = Math.min(near, dist(pos[i]));
+      far = Math.max(far, dist(pos[i]));
+      pitch = Math.max(pitch, -deg(Math.asin(dir[i].y)));
+    }
+    return {
+      name,
+      travel: r(sum(move, a, b)),
+      rotation: r(sum(turn, a, b)),
+      azFrom: r(azimuth(pos[a])),
+      azTo: r(azimuth(pos[b])),
+      yFrom: r(pos[a].y),
+      yTo: r(pos[b].y),
+      distMin: r(near),
+      distMax: r(far),
+      lensShift: r(Math.abs(off[b] - off[a]), 1000),
+      lookDownMax: r(pitch),
+    };
+  });
+  // Worst 0.11 window anywhere on the path.
+  const w = Math.round(0.11 * n);
+  let worstTravel = 0;
+  let worstTravelAt = 0;
+  let worstTurn = 0;
+  let worstTurnAt = 0;
+  for (let a = 0; a + w <= n; a += 1) {
+    const t = sum(move, a, a + w);
+    const q = sum(turn, a, a + w);
+    if (t > worstTravel) {
+      worstTravel = t;
+      worstTravelAt = a / n;
+    }
+    if (q > worstTurn) {
+      worstTurn = q;
+      worstTurnAt = a / n;
+    }
+  }
+  // Monotone checks: the biggest reversal of azimuth (deg) and rise of height (m).
+  let azPeak = azimuth(pos[0]);
+  let azBack = 0;
+  let yLow = pos[0].y;
+  let yRise = 0;
+  let offOutside = 0;
+  for (let i = 1; i <= n; i += 1) {
+    const a = azimuth(pos[i]);
+    azPeak = Math.min(azPeak, a);
+    azBack = Math.max(azBack, a - azPeak);
+    yLow = Math.min(yLow, pos[i].y);
+    yRise = Math.max(yRise, pos[i].y - yLow);
+    const p = i / n;
+    if (p > 0.1 + 1e-9 && p < FINALE_BLEND[0] - 1e-9) offOutside = Math.max(offOutside, Math.abs(off[i] - off[i - 1]));
+  }
+  return {
+    screen: `${width}x${height}`,
+    chapters,
+    worstWindow: { travel: r(worstTravel), travelAt: r(worstTravelAt, 1000), rotation: r(worstTurn), rotationAt: r(worstTurnAt, 1000) },
+    azimuthMonotone: azBack <= 3,
+    azimuthMaxReversal: r(azBack),
+    heightMonotone: yRise <= 0.01,
+    heightMaxRise: r(yRise, 1000),
+    lensShiftOutsideIntroAndFinale: r(offOutside, 10000),
+    totalTravel: r(sum(move, 0, n)),
   };
 }

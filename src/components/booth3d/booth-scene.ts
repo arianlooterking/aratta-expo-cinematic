@@ -22,7 +22,7 @@ import { buildLight } from "./light";
 import { buildIdentity } from "./identity";
 import { buildFurniture } from "./furniture";
 import { buildSite } from "./site";
-import { createCameraRig, type CameraPose } from "./camera";
+import { createCameraRig, pathStats, type CameraPose } from "./camera";
 import { clamp01 } from "./timeline";
 
 export type BoothQuality = "auto" | "high" | "low";
@@ -295,7 +295,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     ctx.parts.update(p);
     ctx.decals.update(p);
     ctx.sparkles.update(p, time);
-    rig.apply(p, time, frameDt, width, height, pointer);
+    rig.apply(p, frameDt, width, height, pointer);
     if (renderer.shadowMap.enabled && p !== lastShadowAt) {
       renderer.shadowMap.needsUpdate = true;
       lastShadowAt = p;
@@ -413,7 +413,11 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
             }
         return { p, rays, hits: hits.length, sample: hits.slice(0, 6), camera: camera.position.toArray().map((v) => Math.round(v * 100) / 100) };
       },
-      /** Largest per-step change of the scroll path (no sway), sampled every 0.001. */
+      /** Per chapter and finale: camera travel, view rotation, azimuth, height, distance; monotone checks. */
+      pathStats(step = 0.0005) {
+        return pathStats(rig.at, width, height, step);
+      },
+      /** Largest per-step change of the scroll path (no pointer parallax), sampled every 0.001. */
       pathJumps(step = 0.001) {
         const a: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
         const b: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };

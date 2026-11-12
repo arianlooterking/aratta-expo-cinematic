@@ -199,6 +199,11 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
   assert.match(boothHero, /h-\[840svh\]/);
+  // One calm crane move: no idle sway, a measurable path.
+  assert.doesNotMatch(sources.camera, /Math\.sin\(time/);
+  assert.match(sources.camera, /export function pathStats/);
+  assert.match(sources["booth-scene"], /pathStats\(/);
+  assert.match(timeline, /CAMERA_KEYS: Array<\{ at: number; azimuth: number; distance: number; height: number; target: Vec3 \}>/);
   assert.match(boothHero, /grid-cols-8/);
   assert.match(boothHero, /data-mobile-hero-card/);
   assert.match(boothHero, /data-hero-loader/);

@@ -72,43 +72,39 @@ export type TimelineKey = keyof typeof BOOTH_TIMELINE;
 type Vec3 = [number, number, number];
 
 /**
- * Camera path: wide shots alternate with close details (a coupler pinning,
- * pedestals levelling, LED tiles landing). `close` keys keep their framing on
- * portrait screens instead of stepping back as far as the wide ones.
+ * Camera path: one slow crane move from the open front of the stand. The
+ * camera never goes beside, behind, over or inside the stand. Keys are in
+ * cylindrical form around the plot centre (0, 0): `azimuth` in degrees from
+ * the front axis (+z) toward +x, `distance` horizontal metres, `height` metres.
+ * Azimuth and height only ever decrease (the camera swings slowly from the
+ * front-right toward the centre line and comes down from above the plan to eye
+ * height); detail beats are dollies along the view axis plus a slow drift of
+ * the look-at point toward the part being built. The path ends where the
+ * finale's front elevation takes over (see camera.ts).
  */
-export const CAMERA_KEYS: Array<{ at: number; position: Vec3; target: Vec3; close?: boolean }> = [
-  { at: 0, position: [0, 9.5, 34], target: [0, 2.6, 0] },
-  { at: 0.05, position: [1.5, 15, 15], target: [0, 0, 0.8] },
-  { at: 0.1, position: [-1, 16.5, 9.5], target: [0, 0, 0.6] },
-  // 2 Rigging: low and close while the truss is pinned at chest height, then back for the rise.
-  { at: 0.135, position: [-6.8, 2.6, 10.5], target: [0.2, 1.1, 1.4] },
-  { at: 0.158, position: [7.4, 1.75, 6.0], target: [4.9, 1.05, 3.5], close: true },
-  { at: 0.2, position: [11.5, 2.4, 16.5], target: [0, 3.5, 0.5] },
-  // 3 Floor: low at the front-right corner so the void shows, then the panel wave and finish.
-  { at: 0.235, position: [6.75, 0.55, 5.45], target: [5.0, 0.06, 3.75], close: true },
-  { at: 0.28, position: [9.5, 3.6, 11.0], target: [1.4, 0.1, 1.2] },
-  { at: 0.322, position: [8.8, 2.6, 10.5], target: [0.8, 0.2, 1.0] },
-  // 4 Structure.
-  { at: 0.36, position: [-11.5, 4.2, 8.5], target: [-3.5, 1.4, -2.4] },
-  { at: 0.405, position: [-9.5, 3.6, 5.5], target: [-3.5, 2.3, -3.0], close: true },
-  // 5 Walls: a wide three-quarter view from the open front, then the glass room.
-  { at: 0.44, position: [7.5, 4.4, 13.5], target: [-0.8, 2.0, -3.0] },
-  { at: 0.48, position: [7.0, 3.6, 12.5], target: [-1.2, 1.9, -3.0] },
-  { at: 0.525, position: [-1.9, 1.6, 2.7], target: [-4.5, 1.25, -1.5], close: true },
-  // 6 Power and light.
-  { at: 0.58, position: [-8.5, 3.6, 15.5], target: [0, 2.0, 0] },
-  { at: 0.635, position: [9.5, 2.0, 13.5], target: [0, 4.0, -0.5] },
-  // 7 Brand: the LED wall whole, the mark close, then the sign.
-  { at: 0.69, position: [3.6, 2.3, 4.2], target: [4.05, 2.05, -4.4], close: true },
-  { at: 0.73, position: [0.55, 4.75, 0.6], target: [0.45, 4.55, -4.0], close: true },
-  { at: 0.762, position: [-7.5, 2.4, 13.5], target: [0.4, 5.0, 0.4] },
-  // 8 Hosting.
-  { at: 0.8, position: [4.6, 1.9, 10.0], target: [0.4, 1.0, 3.0] },
-  { at: 0.835, position: [6.6, 2.0, 3.6], target: [5.1, 1.1, -0.4], close: true },
-  { at: 0.866, position: [0.6, 4.9, 2.4], target: [-3.5, 3.4, -3], close: true },
-  // Finale: an architectural three-quarter view from the open front corner, eye height 3 m.
-  { at: 0.9, position: [11.0, 3.1, 20.2], target: [-0.3, 2.9, 0] },
-  { at: 1, position: [15.6, 3.3, 17.0], target: [-0.3, 2.9, 0] },
+export const CAMERA_KEYS: Array<{ at: number; azimuth: number; distance: number; height: number; target: Vec3 }> = [
+  // Opening: about (9, 8.4, 31) looking at (0, 3, 0), shared with the hall.
+  { at: 0, azimuth: 16.2, distance: 32.3, height: 8.4, target: [0, 3, 0] },
+  // 1 Plan: the look-at drops to the floor so the tape and plan read from above.
+  { at: 0.1, azimuth: 15.2, distance: 29.2, height: 8.35, target: [0.2, 0.6, 0.4] },
+  // 2 Rigging: a little closer; the truss rises toward the camera's height.
+  { at: 0.2, azimuth: 14.0, distance: 26.8, height: 8.2, target: [0.3, 0.9, 0.4] },
+  // 3 Raised floor: the steepest look over the panels.
+  { at: 0.3, azimuth: 12.8, distance: 25.6, height: 7.8, target: [0.2, 0.4, 0.4] },
+  // 4 Structure: down to deck height; the look-at follows the deck and tower up.
+  { at: 0.4, azimuth: 11.6, distance: 24.8, height: 5.9, target: [-0.4, 2.0, -0.8] },
+  // 5 Walls and glass.
+  { at: 0.5, azimuth: 10.4, distance: 24.2, height: 5.0, target: [-0.3, 2.1, -1.0] },
+  // 6 Power and light: just above eye level, the whole stand lighting up.
+  { at: 0.6, azimuth: 9.2, distance: 23.0, height: 3.6, target: [0.1, 2.3, -1.2] },
+  // 7 LED wall: near-frontal at a calm medium distance, a slow push of about 1 m.
+  { at: 0.664, azimuth: 8.4, distance: 16.4, height: 3.2, target: [1.6, 2.15, -2.6] },
+  { at: 0.716, azimuth: 7.6, distance: 15.4, height: 3.05, target: [2.0, 2.1, -3.0] },
+  // Mark and sign: back out, the look-at rises toward the tower and the sign ring.
+  { at: 0.77, azimuth: 5.8, distance: 18.2, height: 3.0, target: [0.8, 3.2, -1.2] },
+  // 8 Hosting: the front zone, easing back to the finale's distance.
+  { at: 0.835, azimuth: 3.8, distance: 21.0, height: 2.97, target: [0.3, 3.0, -0.3] },
+  { at: 0.9, azimuth: 2.0, distance: 23.4, height: 2.95, target: [0, 2.95, 0] },
 ];
 
 export const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
