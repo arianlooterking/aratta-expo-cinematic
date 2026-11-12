@@ -170,8 +170,8 @@ function FaqSection({ content }: HomeSectionsProps) {
       <BuildBackdrop motif="walls" lang={content.lang} className="start-[-2%] bottom-[6%] w-[min(600px,125vw)] max-lg:bottom-auto max-lg:top-0" />
       <div className="section-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Frequent questions"}</div>
-          <h2 className="section-display-title mt-4 font-black text-white">{fa ? "پیش از تماس بدانید" : "Good to know first"}</h2>
+          <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Common questions"}</div>
+          <h2 className="section-display-title mt-4 font-black text-white">{fa ? "پیش از تماس بدانید" : "Before you call"}</h2>
           <p className="site-copy mt-4 text-white/60">
             {fa ? "پاسخ کوتاه به سوال‌هایی که بیشتر از دفتر اَرَتَ پرسیده می‌شود." : "Short answers to the questions the Aratta office hears most."}
           </p>

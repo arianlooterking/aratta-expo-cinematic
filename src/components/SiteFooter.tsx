@@ -11,7 +11,7 @@ const footerCopy = {
     ctaKicker: "حضور در دوره بعد",
     ctaTitle: "برای غرفه بعدی‌تان از همین حالا برنامه بریزید",
     ctaBody:
-      "تاریخ دوره‌های بعد به محض اعلام رسمی روی سایت منتشر می‌شود. درخواست غرفه را ثبت کنید تا کارشناس فروش با شما تماس بگیرد.",
+      "تاریخ دوره‌های بعد پس از اعلام رسمی همین‌جا منتشر می‌شود. درخواست غرفه بدهید تا کارشناس فروش با شما تماس بگیرد.",
     ctaPrimary: "درخواست غرفه",
     ctaSecondary: "تماس با دفتر",
     about:
@@ -25,7 +25,7 @@ const footerCopy = {
     ctaKicker: "Next edition",
     ctaTitle: "Start planning your next booth now",
     ctaBody:
-      "Dates for the next editions are published here as soon as they are officially announced. Send a booth request and a sales specialist will call you.",
+      "Dates for the next editions appear here once they are official. Send a booth request and a sales specialist will call you.",
     ctaPrimary: "Request a booth",
     ctaSecondary: "Contact the office",
     about:
