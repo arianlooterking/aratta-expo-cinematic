@@ -203,6 +203,9 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.match(sources["booth-scene"], /const SPEED = 0\.05;/);
   assert.match(sources["booth-scene"], /const SPEED_FAR = 0\.2;/);
   assert.match(boothHero, /onFrame: paint/);
+  // LED cabinets light with their slice of the picture as they lock in.
+  assert.match(timeline, /ledTiles: \[0\.664, 0\.716\]/);
+  assert.match(sources.identity, /float since = uP - vTile\.z;/);
   // One calm crane move: no idle sway, a measurable path.
   assert.doesNotMatch(sources.camera, /Math\.sin\(time/);
   assert.match(sources.camera, /export function pathStats/);

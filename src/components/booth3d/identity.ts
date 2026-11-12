@@ -1,6 +1,8 @@
-// Chapter 7: brand and media. LED cabinets (7 x 5 of 500 mm, dark with their
-// rear frames and handles showing) fly in and lock row by row, then boot
-// cleanly: one white flash, colour bars for a moment, then slow brand content.
+// Chapter 7: brand and media. LED cabinets (7 x 5 of 500 mm, rear frames and
+// handles showing) fly in and lock row by row from the bottom. Each one lights
+// the moment it locks: a very short white test flash, then its own slice of the
+// brand picture at about 85%, so the image assembles like a mosaic. After the
+// last cabinet the whole wall comes alive (animated content) with a short ramp.
 // A large backlit fabric lightbox hangs on the upper back wall, the 3D Aratta mark mounts on standoffs on the
 // tower with a halo, the wordmarks follow, and the hanging sign fabric wraps
 // its ring. The tower's backlit fabric face is installed with the cladding.
@@ -132,7 +134,7 @@ export function buildIdentity(ctx: Ctx) {
   tileGeo.setAttribute("aTile", tileAttr);
   const screenMat = track(
     new THREE.ShaderMaterial({
-      uniforms: { uMap: { value: content.texture }, uBoot: { value: 0 }, uGrid: { value: new THREE.Vector2(cols, rows) } },
+      uniforms: { uMap: { value: content.texture }, uBoot: { value: 0 }, uP: { value: 0 }, uGrid: { value: new THREE.Vector2(cols, rows) } },
       vertexShader: /* glsl */ `
         attribute vec3 aTile;
         varying vec2 vUv;
@@ -149,20 +151,10 @@ export function buildIdentity(ctx: Ctx) {
       fragmentShader: /* glsl */ `
         uniform sampler2D uMap;
         uniform float uBoot;
+        uniform float uP;
         uniform vec2 uGrid;
         varying vec2 vUv;
         varying vec3 vTile;
-        vec3 bars(float x) {
-          float i = floor(clamp(x, 0.0, 0.999) * 7.0);
-          vec3 c = vec3(0.75);
-          if (i == 1.0) c = vec3(0.75, 0.75, 0.0);
-          else if (i == 2.0) c = vec3(0.0, 0.75, 0.75);
-          else if (i == 3.0) c = vec3(0.0, 0.75, 0.0);
-          else if (i == 4.0) c = vec3(0.75, 0.0, 0.75);
-          else if (i == 5.0) c = vec3(0.75, 0.0, 0.0);
-          else if (i == 6.0) c = vec3(0.0, 0.0, 0.75);
-          return c;
-        }
         void main() {
           vec2 suv = (vTile.xy + vUv) / uGrid;
           vec3 c = texture2D(uMap, suv).rgb;
@@ -177,12 +169,15 @@ export function buildIdentity(ctx: Ctx) {
           // Cabinet seams.
           vec2 e = min(vUv, 1.0 - vUv);
           float seam = smoothstep(0.0, 0.01 + fwidth(vUv.x) * 1.5, min(e.x, e.y));
-          // Boot: dark glass, one white flash, colour bars, then the content fades up.
+          // Each cabinet lights as it locks (vTile.z = its lock progress): a very short
+          // white test flash, then its slice of the picture at ~85%. After the last one
+          // the whole wall ramps to full brightness with a gentle swell.
+          float since = uP - vTile.z;
+          float flash = smoothstep(0.0, 0.0006, since) * (1.0 - smoothstep(0.0012, 0.003, since));
+          float slice = smoothstep(0.0012, 0.004, since);
           float b = uBoot;
-          float flash = smoothstep(0.0, 0.05, b) * (1.0 - smoothstep(0.08, 0.18, b));
-          float barsOn = smoothstep(0.14, 0.2, b) * (1.0 - smoothstep(0.4, 0.5, b));
-          float content = smoothstep(0.44, 0.8, b);
-          vec3 col = vec3(0.016, 0.017, 0.018) + vec3(1.5) * flash + bars(suv.x) * barsOn + c * 1.3 * content;
+          float level = slice * (0.85 + 0.15 * smoothstep(0.0, 1.0, b) + 0.12 * sin(3.14159 * b));
+          vec3 col = vec3(0.016, 0.017, 0.018) + vec3(1.4) * flash + c * 1.3 * level;
           col *= pixel * mix(0.6, 1.0, seam);
           gl_FragColor = vec4(col, 1.0);
           #include <colorspace_fragment>
@@ -205,22 +200,28 @@ export function buildIdentity(ctx: Ctx) {
     rear.push(new THREE.BoxGeometry(0.014, 0.014, 0.04).translate(x, 0.17, -0.08), new THREE.BoxGeometry(0.014, 0.014, 0.04).translate(x, 0.07, -0.08));
   }
   const rearPool = parts.pool(track(merge(rear)), mats.alu, root, { cast: false });
-  // Row by row from the bottom, left to right, as a rigger locks them.
+  // Row by row from the bottom, left to right, as a rigger locks them; the last one
+  // locks a moment before the window ends so its slice is up before the wall boots.
   order.sort((a, b) => a[1] * 10 + a[0] - (b[1] * 10 + b[0]));
+  const fly = 0.01;
+  const colStep = 0.0012;
+  const rowStep = (lt1 - lt0 - fly - 0.004 - (cols - 1) * colStep) / (rows - 1);
   order.forEach(([c, r]) => {
-    const s = lt0 + r * ((lt1 - lt0 - 0.01) / rows) + c * 0.0009;
+    const s = lt0 + r * rowStep + c * colStep;
     const x = LED.x0 + tile * (c + 0.5);
     const y = LED.bottom + tile * (r + 0.5);
     const motion = { from: [0.15, -0.25, 1.3] as [number, number, number], rot: [0.25, -0.5, 0] as [number, number, number] };
-    const index = tilePool.add({ p: [x, y, ledZ] }, [s, s + 0.007], { ...motion, glint: c === cols - 1 ? [x + tile / 2, y + tile / 2, ledZ + 0.04] : undefined });
-    rearPool.add({ p: [x, y, ledZ] }, [s, s + 0.007], motion);
-    tileAttr.setXYZ(index, c, r, 0);
+    const index = tilePool.add({ p: [x, y, ledZ] }, [s, s + fly], { ...motion, glint: c === cols - 1 ? [x + tile / 2, y + tile / 2, ledZ + 0.04] : undefined });
+    rearPool.add({ p: [x, y, ledZ] }, [s, s + fly], motion);
+    tileAttr.setXYZ(index, c, r, s + fly);
   });
 
   const copy = fa
     ? { brand: "اَرَتَ", line: "نمایشگاه‌های تخصصی صنعت و معدن", sub: "کرمان · ایران", tag: "مس · فولاد · سنگ آهن" }
     : { brand: "Aratta Expo", line: "Industry & mining exhibitions", sub: "Kerman · Iran", tag: "Copper · Steel · Iron ore" };
   let lastDraw = -1;
+  // The animated content starts from the still frame the cabinets showed while mounting.
+  let bootAt = -1;
   const drawContent = (time: number) => {
     const c = content.ctx;
     const w = content.canvas.width;
@@ -374,10 +375,17 @@ export function buildIdentity(ctx: Ctx) {
 
     const boot = window01(p, T.ledBoot[0], T.ledBoot[1]);
     screenMat.uniforms.uBoot.value = boot;
+    screenMat.uniforms.uP.value = p;
     bannerMat.emissiveIntensity = 0.12 + lb * 1.05;
-    if (boot > 0.4 && time - lastDraw > 1 / 15) {
-      lastDraw = time;
-      drawContent(time);
+    if (boot > 0) {
+      if (bootAt < 0) bootAt = time;
+      if (time - lastDraw > 1 / 15) {
+        lastDraw = time;
+        drawContent(time - bootAt);
+      }
+    } else if (bootAt >= 0) {
+      bootAt = -1;
+      drawContent(0);
     }
 
     const wrap = easeInOutCubic(window01(p, T.sign[0], T.sign[1]));

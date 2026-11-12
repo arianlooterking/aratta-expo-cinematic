@@ -34,29 +34,29 @@ export const BOOTH_TIMELINE = {
   stair: [0.414, 0.432],
   towerFrames: [0.388, 0.438],
   // 5 Walls, timber and glass
-  frames: [0.444, 0.478],
-  cladding: [0.47, 0.502],
-  slats: [0.494, 0.52],
-  glass: [0.5, 0.52],
-  doors: [0.515, 0.524],
+  frames: [0.444, 0.476],
+  cladding: [0.472, 0.504],
+  slats: [0.5, 0.526],
+  glass: [0.512, 0.534],
+  doors: [0.53, 0.544],
   // 6 Power and light: the board goes live, a pulse runs the cable routes and
   // each fixture fires when it arrives (cove strips, lightboxes, then the
   // truss spots one by one as the pulse runs round the truss).
-  power: [0.553, 0.562],
-  pulse: [0.561, 0.574],
-  ledLines: [0.572, 0.594],
-  lightboxes: [0.59, 0.606],
-  feeder: [0.604, 0.614],
-  spots: [0.614, 0.652],
+  power: [0.553, 0.565],
+  pulse: [0.564, 0.58],
+  ledLines: [0.578, 0.602],
+  lightboxes: [0.6, 0.616],
+  feeder: [0.614, 0.624],
+  spots: [0.622, 0.654],
   // The work floods are struck once the stand's own power is on.
-  floodsOut: [0.568, 0.58],
+  floodsOut: [0.574, 0.588],
   // Build-phase props (flight cases, panel pallet, ladder, drum) leave before the brand.
-  siteOut: [0.645, 0.66],
-  // 7 Brand and media
-  ledTiles: [0.664, 0.704],
-  ledBoot: [0.704, 0.722],
-  mark: [0.714, 0.742],
-  sign: [0.736, 0.766],
+  siteOut: [0.648, 0.662],
+  // 7 Brand and media: the LED cabinets get a long window so each one is seen lighting up.
+  ledTiles: [0.664, 0.716],
+  ledBoot: [0.716, 0.73],
+  mark: [0.728, 0.75],
+  sign: [0.746, 0.769],
   // 8 Hosting
   counter: [0.774, 0.798],
   vitrines: [0.79, 0.82],
