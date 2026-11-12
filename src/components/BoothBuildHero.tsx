@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { SiteContent } from "@/data/aratta-content";
-import type { BoothScene } from "@/components/booth3d/booth-scene";
+import type { BoothQuality, BoothScene } from "@/components/booth3d/booth-scene";
 import { CHAPTER_STARTS, chapterAt } from "@/components/booth3d/timeline";
 
 type BoothBuildHeroProps = {
@@ -18,7 +18,8 @@ const faDigits = (value: string) => value.replace(/\d/g, (d) => "۰۱۲۳۴۵۶�
 
 /**
  * Landing hero: a real 3D exhibition booth is built piece by piece while the
- * visitor scrolls (hall → plan → floor → structure → walls → identity → furniture).
+ * visitor scrolls, in the real build order: plot and plan, rigging, raised floor,
+ * structure, walls and glass, power and light, brand and media, hosting.
  * GSAP ScrollTrigger owns the scroll; the scene eases toward it for a smooth glide.
  */
 export function BoothBuildHero({ content }: BoothBuildHeroProps) {
@@ -53,6 +54,9 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     let progress = 0;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const compact = window.matchMedia("(max-width: 767px), (pointer: coarse) and (max-width: 1100px)").matches;
+    // ?booth=high|low pins a rendering tier (for reviews and captures); default is automatic.
+    const requested = new URLSearchParams(window.location.search).get("booth");
+    const quality: BoothQuality = requested === "high" || requested === "low" ? requested : "auto";
 
     const paint = (p: number) => {
       for (const bar of barRefs.current) if (bar) bar.style.transform = `scaleX(${Math.max(0.02, p)})`;
@@ -102,6 +106,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
           createBoothScene(canvas, {
             lang: content.lang,
             compact,
+            quality,
             fontFamily: getComputedStyle(document.body).fontFamily || "sans-serif",
             onFrame: paint,
           }),
@@ -148,7 +153,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
   const stage = inChapter ? stages[chapter] : null;
 
   return (
-    <section id="home" ref={rootRef} className="booth3d relative h-[720svh] bg-[#06080a]" aria-label={content.hero.title}>
+    <section id="home" ref={rootRef} className="booth3d relative h-[840svh] bg-[#06080a]" aria-label={content.hero.title}>
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#06080a]">
         <canvas ref={canvasRef} className="booth3d__canvas absolute inset-0 h-full w-full" aria-hidden="true" />
         {fallback ? (
@@ -211,7 +216,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
               <div className="h-px overflow-hidden bg-white/14">
                 <span ref={(el) => void (barRefs.current[0] = el)} className="booth3d__bar block h-full bg-gradient-to-r from-[var(--gold)] to-[#f2d28c]" />
               </div>
-              <ol className="mt-3 grid grid-cols-7 gap-2">
+              <ol className="mt-3 grid grid-cols-8 gap-2">
                 {stages.map((item, index) => (
                   <li key={item.label} className={`booth3d__step text-[0.7rem] font-bold ${index === chapter ? "is-current" : index < chapter || finale ? "is-done" : ""}`}>
                     <span className="font-latin me-1.5">{number(index + 1)}</span>

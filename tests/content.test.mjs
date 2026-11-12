@@ -89,13 +89,24 @@ test("language routes own the document language and direction", () => {
 test("hero stage captions use polished bilingual production copy", () => {
   assert.match(content, /نمایشگاه‌های صنعت و معدن/);
   assert.match(content, /Industry & mining exhibitions/);
-  assert.match(content, /سالن خالی، نقطهٔ آغاز/);
-  assert.match(content, /نقشه، پیش از ساخت/);
-  assert.match(content, /آمادهٔ مذاکره/);
-  assert.match(content, /An empty hall, a starting point/);
-  assert.match(content, /Ready for business/);
+  assert.match(content, /یک زمین خالی، یک نقشهٔ دقیق/);
+  assert.match(content, /اول، آنچه از سقف می‌آویزد/);
+  assert.match(content, /آمادهٔ میزبانی و مذاکره/);
+  assert.match(content, /An empty plot and an exact plan/);
+  assert.match(content, /First, everything that hangs/);
+  assert.match(content, /Ready to host and to negotiate/);
   assert.match(content, /scrollHint/);
   assert.match(content, /finale:/);
+});
+
+test("hero build chapters stay in Persian and English parity, in the real build order", () => {
+  const blocks = [...content.matchAll(/stages: \[([\s\S]*?)\n    \],/g)].map((m) => [...m[1].matchAll(/label: "([^"]+)"/g)].map((l) => l[1]));
+  assert.equal(blocks.length, 2);
+  const [fa, en] = blocks;
+  assert.equal(fa.length, 8);
+  assert.equal(en.length, 8);
+  assert.deepEqual(en, ["Plot", "Rigging", "Floor", "Structure", "Walls", "Light", "Brand", "Hosting"]);
+  assert.deepEqual(fa, ["زمین", "آویز", "کف", "سازه", "دیوار", "نور", "هویت", "میزبانی"]);
 });
 
 test("link previews use localized professional metadata and booth image", () => {
@@ -150,24 +161,41 @@ test("official language-specific brand assets are wired into chrome and map", ()
 });
 
 test("landing hero builds a real 3D booth while the visitor scrolls", async () => {
-  const scene = await readFile(new URL("../src/components/booth3d/booth-scene.ts", import.meta.url), "utf8");
-  const timeline = await readFile(new URL("../src/components/booth3d/timeline.ts", import.meta.url), "utf8");
-  // Seven chapters, one timeline shared by the scene and the copy.
-  assert.match(timeline, /CHAPTER_STARTS = \[0, 0\.13, 0\.26, 0\.39, 0\.52, 0\.65, 0\.78\]/);
-  for (const part of ["footprint", "blueprint", "platform", "columns", "walls", "glass", "mark", "sign", "screen", "furniture", "lights"]) {
-    assert.match(timeline, new RegExp(`${part}: \\[`));
+  const dir = new URL("../src/components/booth3d/", import.meta.url);
+  const modules = ["booth-scene", "core", "materials", "hall", "rigging", "floor", "structure", "walls", "light", "identity", "furniture", "camera"];
+  const sources = Object.fromEntries(await Promise.all(modules.map(async (name) => [name, await readFile(new URL(`${name}.ts`, dir), "utf8")])));
+  const scene = Object.values(sources).join("\n");
+  const timeline = await readFile(new URL("timeline.ts", dir), "utf8");
+  // Eight chapters in the real build order, one timeline shared by the scene and the copy.
+  assert.match(timeline, /CHAPTER_STARTS = \[0, 0\.11, 0\.22, 0\.33, 0\.44, 0\.55, 0\.66, 0\.77\]/);
+  assert.match(timeline, /FINALE_AT = 0\.9/);
+  for (const part of ["tape", "plan", "truss", "fixtures", "chains", "rigRise", "pedestals", "panels", "finish", "columns", "deck", "balustrade", "deckLift", "stair", "towerFrames", "frames", "cladding", "slats", "glass", "power", "ledLines", "lightboxes", "spots", "ledTiles", "mark", "sign", "counter", "vitrines", "plants"]) {
+    assert.match(timeline, new RegExp(`\\b${part}: \\[`));
   }
-  assert.match(scene, /from "three"/);
+  // Rigging comes before the floor, the deck is lifted after its balustrade is fitted.
+  const start = (name) => Number(timeline.match(new RegExp(`\\b${name}: \\[([0-9.]+)`))[1]);
+  assert.ok(start("rigRise") < start("pedestals"));
+  assert.ok(start("balustrade") < start("deckLift"));
+  assert.ok(start("frames") < start("power") && start("spots") < start("ledTiles") && start("ledTiles") < start("counter"));
+  assert.match(sources["booth-scene"], /from "three"/);
   assert.match(scene, /MARK_BLOCKS/);
   assert.match(scene, /اَرَتَ/);
-  assert.match(scene, /setPixelRatio\(Math\.min/);
-  assert.match(scene, /shadowMap\.enabled = !compact/);
+  assert.match(scene, /InstancedMesh/);
+  assert.match(scene, /RoundedBoxGeometry/);
+  assert.match(sources["booth-scene"], /setPixelRatio\(Math\.min/);
+  assert.match(sources["booth-scene"], /shadowMap\.enabled = !compact/);
+  assert.match(sources["booth-scene"], /UnrealBloomPass/);
+  assert.match(sources["booth-scene"], /PMREMGenerator/);
+  assert.match(sources["booth-scene"], /setTarget\(progress, immediate\)/);
+  assert.match(sources["booth-scene"], /setActive\(value\)/);
+  assert.match(sources.materials, /transmission|MeshPhysicalMaterial/);
   // The 3D code loads on demand, and the hero keeps a still image when WebGL is missing.
   assert.match(boothHero, /import\("@\/components\/booth3d\/booth-scene"\)/);
   assert.match(boothHero, /hero-v6\/desktop\/stage-06\.webp/);
   assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
-  assert.match(boothHero, /h-\[720svh\]/);
+  assert.match(boothHero, /h-\[840svh\]/);
+  assert.match(boothHero, /grid-cols-8/);
   assert.match(boothHero, /data-mobile-hero-card/);
   assert.match(boothHero, /data-hero-loader/);
   assert.match(boothHero, /prefers-reduced-motion: reduce/);

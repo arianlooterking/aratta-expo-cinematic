@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { ArrowDown, BadgeCheck, Check, CircuitBoard, DraftingCompass, Lightbulb, ScanLine } from "lucide-react";
+import { ArrowDown, BadgeCheck, Building2, DraftingCompass, Grid3x3, Lightbulb, Link2, PanelsTopLeft, ScanLine } from "lucide-react";
 import type { SiteContent } from "@/data/aratta-content";
 import { boothStageFrames } from "@/lib/booth-scenes";
 
@@ -10,7 +10,8 @@ type BuildStageShowcaseProps = {
   content: SiteContent;
 };
 
-const stageIcons = [DraftingCompass, CircuitBoard, Lightbulb, ScanLine, BadgeCheck, Check];
+// One icon per build chapter: plot, rigging, floor, structure, walls, light, brand, hosting.
+const stageIcons = [DraftingCompass, Link2, Grid3x3, Building2, PanelsTopLeft, Lightbulb, ScanLine, BadgeCheck];
 
 export function BuildStageShowcase({ content }: BuildStageShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -131,7 +132,7 @@ export function BuildStageShowcase({ content }: BuildStageShowcaseProps) {
             </div>
           </div>
 
-          <div className="relative z-10 mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+          <div className="relative z-10 mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {stages.map((stage, index) => {
               const Icon = stageIcons[index] ?? DraftingCompass;
               const isActive = index === activeIndex;

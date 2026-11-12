@@ -458,15 +458,15 @@ dt {
 }
 
 .booth3d__side-scrim {
-  background: linear-gradient(to left, rgba(3, 5, 6, 0.78) 0%, rgba(3, 5, 6, 0.42) 32%, transparent 55%);
+  background: linear-gradient(to left, rgba(4, 6, 8, 0.86) 0%, rgba(4, 6, 8, 0.72) 24%, rgba(4, 6, 8, 0.4) 40%, rgba(4, 6, 8, 0.12) 52%, transparent 62%);
 }
 
 [dir="ltr"].booth3d__side-scrim {
-  background: linear-gradient(to right, rgba(3, 5, 6, 0.78) 0%, rgba(3, 5, 6, 0.42) 32%, transparent 55%);
+  background: linear-gradient(to right, rgba(4, 6, 8, 0.86) 0%, rgba(4, 6, 8, 0.72) 24%, rgba(4, 6, 8, 0.4) 40%, rgba(4, 6, 8, 0.12) 52%, transparent 62%);
 }
 
 .booth3d__low-scrim {
-  background: linear-gradient(180deg, transparent 45%, rgba(3, 5, 6, 0.72) 78%, rgba(3, 5, 6, 0.9) 100%);
+  background: linear-gradient(180deg, transparent 48%, rgba(4, 6, 8, 0.55) 66%, rgba(4, 6, 8, 0.82) 82%, rgba(4, 6, 8, 0.92) 100%);
 }
 
 .booth3d__side-scrim.is-on,
@@ -594,6 +594,11 @@ html[lang="fa"] .booth3d__chapter-title {
   opacity: 1;
   pointer-events: auto;
   transform: none;
+}
+
+/* The closing headline is a little smaller than a chapter title so the finished stand keeps the frame. */
+.booth3d__finale .booth3d__chapter-title {
+  font-size: clamp(1.8rem, 2.9vw, 2.8rem);
 }
 
 .booth3d__cta {
