@@ -89,12 +89,12 @@ test("language routes own the document language and direction", () => {
 test("hero stage captions use polished bilingual production copy", () => {
   assert.match(content, /نمایشگاه‌های صنعت و معدن/);
   assert.match(content, /Industry & mining exhibitions/);
-  assert.match(content, /یک زمین خالی، یک نقشهٔ دقیق/);
-  assert.match(content, /اول، آنچه از سقف می‌آویزد/);
-  assert.match(content, /آمادهٔ میزبانی و مذاکره/);
-  assert.match(content, /An empty plot and an exact plan/);
-  assert.match(content, /First, everything that hangs/);
-  assert.match(content, /Ready to host and to negotiate/);
+  assert.match(content, /همه‌چیز از نقشه شروع می‌شود/);
+  assert.match(content, /اول، سازهٔ سقفی/);
+  assert.match(content, /آمادهٔ میزبانی/);
+  assert.match(content, /It starts with a plan/);
+  assert.match(content, /Overhead goes first/);
+  assert.match(content, /Ready to host/);
   assert.match(content, /scrollHint/);
   assert.match(content, /finale:/);
 });
