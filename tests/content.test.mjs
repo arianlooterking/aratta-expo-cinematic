@@ -90,13 +90,13 @@ test("language routes own the document language and direction", () => {
 test("hero stage captions use polished bilingual production copy", () => {
   assert.match(content, /نمایشگاه‌های صنعت و معدن/);
   assert.match(content, /Industry & mining exhibitions/);
-  assert.match(content, /آغاز از صحنه خالص/);
-  assert.match(content, /نقشه فنی و مسیر حرکت/);
-  assert.match(content, /فضای آماده مذاکره/);
-  assert.match(content, /From blank hall to intent/);
-  assert.match(content, /Ready for business conversations/);
-  assert.doesNotMatch(content, /سالن خام و نور محیط/);
-  assert.doesNotMatch(content, /Clean hall and ambient light/);
+  assert.match(content, /سالن خالی، نقطهٔ آغاز/);
+  assert.match(content, /نقشه، پیش از ساخت/);
+  assert.match(content, /آمادهٔ مذاکره/);
+  assert.match(content, /An empty hall, a starting point/);
+  assert.match(content, /Ready for business/);
+  assert.match(content, /scrollHint/);
+  assert.match(content, /finale:/);
 });
 
 test("link previews use localized professional metadata and booth image", () => {
@@ -150,55 +150,34 @@ test("official language-specific brand assets are wired into chrome and map", ()
   assert.match(mapPanel, /src=\{brand\.pin\}/);
 });
 
-test("landing hero uses a pinned HQ stage scroll sequence", () => {
-  for (const file of [
-    "desktop/stage-01.webp",
-    "desktop/stage-02.webp",
-    "desktop/stage-03.webp",
-    "desktop/stage-04.webp",
-    "desktop/stage-05.webp",
-    "desktop/stage-06.webp",
-  ]) {
-    assert.match(boothScenes, new RegExp(file));
+test("landing hero builds a real 3D booth while the visitor scrolls", async () => {
+  const scene = await readFile(new URL("../src/components/booth3d/booth-scene.ts", import.meta.url), "utf8");
+  const timeline = await readFile(new URL("../src/components/booth3d/timeline.ts", import.meta.url), "utf8");
+  // Seven chapters, one timeline shared by the scene and the copy.
+  assert.match(timeline, /CHAPTER_STARTS = \[0, 0\.13, 0\.26, 0\.39, 0\.52, 0\.65, 0\.78\]/);
+  for (const part of ["footprint", "blueprint", "platform", "columns", "walls", "glass", "mark", "sign", "screen", "furniture", "lights"]) {
+    assert.match(timeline, new RegExp(`${part}: \\[`));
   }
-  for (const file of [
-    "mobile/stage-01.webp",
-    "mobile/stage-02.webp",
-    "mobile/stage-03.webp",
-    "mobile/stage-04.webp",
-    "mobile/stage-05.webp",
-    "mobile/stage-06.webp",
-  ]) {
-    assert.match(boothScenes, new RegExp(file));
-  }
-  // About one screen of scroll per stage: six stages on phones, a little less on desktop.
-  assert.match(boothHero, /h-\[600svh\]/);
-  assert.match(boothHero, /md:h-\[540svh\]/);
-  assert.match(boothHero, /md:hidden/);
-  assert.match(boothHero, /mobileBoothStageFrames/);
-  assert.match(boothHero, /mobileCtas/);
-  assert.match(boothHero, /data-mobile-hero-card/);
-  assert.match(boothHero, /grid-cols-2/);
-  assert.match(boothHero, /min-h-11/);
-  assert.match(boothHero, /text-\[clamp\(0\.92rem,4\.55vw,1\.08rem\)\]/);
-  assert.match(boothHero, /hero-copy-scrim pointer-events-none absolute inset-0/);
-  assert.match(boothHero, /transition: "opacity 360ms ease-out"/);
-  assert.doesNotMatch(boothHero, /saturate\(/);
-  assert.doesNotMatch(boothHero, /scale\(\$\{scale/);
+  assert.match(scene, /from "three"/);
+  assert.match(scene, /MARK_BLOCKS/);
+  assert.match(scene, /اَرَتَ/);
+  assert.match(scene, /setPixelRatio\(Math\.min/);
+  assert.match(scene, /shadowMap\.enabled = !compact/);
+  // The 3D code loads on demand, and the hero keeps a still image when WebGL is missing.
+  assert.match(boothHero, /import\("@\/components\/booth3d\/booth-scene"\)/);
+  assert.match(boothHero, /hero-v6\/desktop\/stage-06\.webp/);
+  assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
+  assert.match(boothHero, /h-\[720svh\]/);
+  assert.match(boothHero, /data-mobile-hero-card/);
   assert.match(boothHero, /data-hero-loader/);
   assert.match(boothHero, /prefers-reduced-motion: reduce/);
   assert.match(boothHero, /hero-stage-copy/);
-  assert.doesNotMatch(boothHero, /hero-brand-lockup--late/);
-  assert.doesNotMatch(boothHero, /aratta-logo-en-horizontal/);
+  assert.match(boothHero, /className="sr-only"/);
   assert.match(globalStyles, /@keyframes hero-loader-scan/);
   assert.match(globalStyles, /@keyframes hero-stage-copy-in/);
-  assert.match(globalStyles, /@media \(max-width: 767px\)/);
+  assert.match(globalStyles, /\.booth3d__chapter/);
   assert.match(globalStyles, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(boothHero, /opacity/);
-  assert.doesNotMatch(boothHero, /process-row-inner/);
-  assert.doesNotMatch(boothHero, /process-bubble-row/);
-  assert.doesNotMatch(boothHero, /dashboard-card/);
 });
 
 test("hero sequence ships responsive 4K assets and keeps generated masters outside public", async () => {
@@ -255,7 +234,6 @@ test("hero sequence ships responsive 4K assets and keeps generated masters outsi
     { limitInputPixels: false },
   ).metadata();
 
-  assert.equal((boothScenes.match(/hero-v6\//g) ?? []).length, 12);
   assert.match(boothHero, /unoptimized/);
   assert.match(animatedTabs, /unoptimized/);
   assert.match(aboutExperience, /unoptimized/);

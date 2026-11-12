@@ -56,6 +56,8 @@ export type SiteContent = {
     primary: string;
     secondary: string;
     stages: Array<{ label: string; title: string; body: string }>;
+    finale: { kicker: string; title: string; body: string };
+    scrollHint: string;
     metrics: Array<{ value: string; label: string }>;
   };
   exhibitions: {
@@ -269,36 +271,47 @@ const fa: SiteContent = {
     secondary: "مشاهده نمایشگاه‌ها",
     stages: [
       {
-        label: "مرحله ۰۱",
-        title: "آغاز از صحنه خالص",
-        body: "نور محیط، خطوط کف و جایگاه اولیه، سالن را به نقطه شروع یک تجربه نمایشگاهی دقیق تبدیل می‌کند.",
+        label: "سالن",
+        title: "سالن خالی، نقطهٔ آغاز",
+        body: "هر غرفهٔ ماندگار از یک زمین خالی و یک اندازه‌گیری دقیق شروع می‌شود؛ جایی که مساحت، دید و مسیر بازدیدکننده سنجیده می‌شود.",
       },
       {
-        label: "مرحله ۰۲",
-        title: "نقشه فنی و مسیر حرکت",
-        body: "شبکه نور، مسیر بازدیدکننده و محدوده‌های اجرایی، جانمایی غرفه را به یک نقشه قابل اجرا تبدیل می‌کنند.",
+        label: "نقشه",
+        title: "نقشه، پیش از ساخت",
+        body: "پیش از ورود اولین قطعه، جانمایی، دسترسی‌ها و مسیر حرکت بازدیدکننده روی نقشه قطعی می‌شود تا روز اجرا جای حدس باقی نماند.",
       },
       {
-        label: "مرحله ۰۳",
-        title: "ورود اجرا و متریال",
-        body: "تیم نصب، تجهیزات، پنل‌ها و زیرساخت‌ها وارد سالن می‌شوند تا طرح از تصویر به ساخت نزدیک شود.",
+        label: "کف",
+        title: "کف‌سازی و زیرساخت",
+        body: "سکو، برق و کابل‌کشی طبق برنامهٔ روزهای غرفه‌سازی آماده می‌شود؛ پایه‌ای هم‌تراز برای هر چیزی که روی آن بالا می‌رود.",
       },
       {
-        label: "مرحله ۰۴",
-        title: "شکل‌گیری معماری غرفه",
-        body: "ستون‌ها، شیشه، قاب‌های فلزی و نورهای خطی، حجم اصلی غرفه را با هویت صنعتی می‌سازند.",
+        label: "سازه",
+        title: "سازه و معماری",
+        body: "ستون‌ها، قاب فلزی و سقف معلق، حجم غرفه را شکل می‌دهند؛ استوار، ایمن و هماهنگ با ضوابط سالن.",
       },
       {
-        label: "مرحله ۰۵",
-        title: "هویت برند و روایت صنعتی",
-        body: "تابلوهای دو زبانه، نمایشگرهای معدن و فولاد و مسیر خدمات، پیام اَرَتَ را در صحنه فعال می‌کنند.",
+        label: "دیوار",
+        title: "دیوار، شیشه و نور",
+        body: "دیوارهای پنلی، اتاق جلسهٔ شیشه‌ای و نورهای خطی، فضایی آرام و حرفه‌ای برای گفت‌وگو می‌سازند.",
       },
       {
-        label: "مرحله ۰۶",
-        title: "فضای آماده مذاکره",
-        body: "پذیرش، جلسه، فرم‌های رسمی و مسیر تماس، تجربه نهایی را برای مشارکت‌کننده و بازدیدکننده کامل می‌کنند.",
+        label: "هویت",
+        title: "هویت برند",
+        body: "نشان، تابلوی سردر و نمایشگر، داستان برند را به فارسی و انگلیسی و از آن سوی سالن روایت می‌کنند.",
+      },
+      {
+        label: "مذاکره",
+        title: "آمادهٔ مذاکره",
+        body: "پیشخوان پذیرش، میز جلسه و مبلمان در جای خود؛ غرفه آماده است تا بازدیدکننده به مشتری تبدیل شود.",
       },
     ],
+    finale: {
+      kicker: "غرفهٔ شما",
+      title: "در نمایشگاه بعدی، جای شما این‌جاست",
+      body: "از درخواست غرفه تا تحویل تجهیزات در روز افتتاح، کارشناسان اَرَتَ کنار شما هستند.",
+    },
+    scrollHint: "برای ساخت غرفه اسکرول کنید",
     metrics: [
       { value: "۱۰۰+", label: "غرفه در SIMEX 2020" },
       { value: "۸۰", label: "شرکت در SICE 2023" },
@@ -615,36 +628,47 @@ const en: SiteContent = {
     secondary: "View Exhibitions",
     stages: [
       {
-        label: "Stage 01",
-        title: "From blank hall to intent",
-        body: "Ambient light, floor lines, and the first footprint turn the empty venue into a precise starting point.",
+        label: "Hall",
+        title: "An empty hall, a starting point",
+        body: "Every lasting booth begins with bare floor and a precise measurement: the area, the sightlines and the path a visitor will take.",
       },
       {
-        label: "Stage 02",
-        title: "Technical plan and visitor flow",
-        body: "Grid lines, circulation paths, and operating zones translate the booth concept into an executable plan.",
+        label: "Plan",
+        title: "Planned before it is built",
+        body: "Before the first panel arrives, layout, access and visitor flow are fixed on the plan, so build day leaves nothing to guesswork.",
       },
       {
-        label: "Stage 03",
-        title: "Execution team and materials",
-        body: "Install crews, equipment, panels, and infrastructure enter the hall as the design moves from image to build.",
+        label: "Floor",
+        title: "Flooring and services",
+        body: "Platform, power and cabling are prepared on the build-day schedule: a level base for everything that rises above it.",
       },
       {
-        label: "Stage 04",
-        title: "Architecture takes shape",
-        body: "Columns, glass, metal frames, and linear lighting define the booth volume with industrial clarity.",
+        label: "Structure",
+        title: "Structure and architecture",
+        body: "Columns, a steel frame and a suspended ceiling define the volume: sturdy, safe and in line with venue rules.",
       },
       {
-        label: "Stage 05",
-        title: "Brand identity and industry story",
-        body: "Bilingual signage, mining and steel media, and service pathways bring Aratta's message into the space.",
+        label: "Walls",
+        title: "Walls, glass and light",
+        body: "Panel walls, a glass meeting room and linear lighting create a calm, professional space for conversation.",
       },
       {
-        label: "Stage 06",
-        title: "Ready for business conversations",
-        body: "Reception, meetings, official forms, and contact paths complete the experience for participants and visitors.",
+        label: "Identity",
+        title: "Brand identity",
+        body: "The mark, the header sign and the screen tell the brand's story in Persian and English, readable from across the hall.",
+      },
+      {
+        label: "Business",
+        title: "Ready for business",
+        body: "Reception counter, meeting table and furniture in place. The booth is ready to turn visitors into clients.",
       },
     ],
+    finale: {
+      kicker: "Your booth",
+      title: "At the next exhibition, this space is yours",
+      body: "From the booth request to equipment delivered on opening day, Aratta's team works alongside you.",
+    },
+    scrollHint: "Scroll to build the booth",
     metrics: [
       { value: "100+", label: "booths at SIMEX 2020" },
       { value: "80", label: "companies at SICE 2023" },
