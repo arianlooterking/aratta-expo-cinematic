@@ -6,7 +6,8 @@
 // its ring. The tower's backlit fabric face is installed with the cladding.
 
 import * as THREE from "three";
-import { canvasTexture, drawMark, merge, MARK_BLOCKS, type Ctx } from "./core";
+import { canvasTexture, drawLogo, merge, type Ctx } from "./core";
+import { LOGO_BAND, LOGO_COLORS, LOGO_HEIGHT, LOGO_LETTERING, LOGO_RECTS } from "./brand-logo";
 import { FLOOR_TOP } from "./floor";
 import { SIGN } from "./rigging";
 import { DECK, TOWER } from "./structure";
@@ -55,57 +56,59 @@ export function buildIdentity(ctx: Ctx) {
   root.add(face);
   parts.object(face, [T.cladding[1] - 0.01, T.cladding[1]], { from: [0, 0.6, 0], scaleFrom: [1, 0.02, 1], ease: easeInOutCubic });
 
-  // ---- the 3D mark on standoffs, with a halo on the fabric behind it.
-  const markSize = 2.0;
-  const markTop = FLOOR_TOP + 5.55;
-  const markLeft = tx - markSize / 2 - 0.05;
-  const standZ = faceZ + 0.06;
+  // ---- the official logo as a true relief: black back plate, dark satin-metal
+  // blocks standing a little lower than the brushed-brass gold, the vertical
+  // ARATTA as a raised dark layer, the Persian name backlit on the gold band.
+  const LW = 2.4;
+  const LH = LW * LOGO_HEIGHT;
+  const margin = 0.1;
+  const logoY = TOWER.top - 0.25 - margin - LH / 2;
+  const plateZ = faceZ + 0.025;
+  const plateFront = plateZ + 0.025;
   const [m0, m1] = T.mark;
-  const standoffPool = parts.pool(track(new THREE.CylinderGeometry(0.012, 0.012, 0.06, 8).rotateX(Math.PI / 2)), mats.galv, root, { cast: false });
-  const markMats = mats.brass;
-  MARK_BLOCKS.forEach(([bx, by, bw, bh], i) => {
-    const w = (bw / 1000) * markSize;
-    const h = (bh / 1000) * markSize;
-    const x = markLeft + (bx / 1000) * markSize + w / 2;
-    const y = markTop - (by / 1000) * markSize - h / 2;
-    const s = m0 + i * ((m1 - m0 - 0.012) / 4);
-    for (const [ox, oy] of [
-      [-w / 2 + 0.06, -h / 2 + 0.06],
-      [w / 2 - 0.06, h / 2 - 0.06],
-    ])
-      standoffPool.add({ p: [x + ox, y + oy, faceZ + 0.03] }, [s - 0.004, s], { scaleFrom: [1, 1, 0.01] });
-    parts.compound([[ctx.rbox(w, h, 0.07, 0.008), markMats]], root, { p: [x, y, standZ + 0.035] }, [s, s + 0.012], { from: [0, -0.2, 1.3], rot: [0, 0.35, 0] });
-    // A small glint only: the mark is seen close up, where a big one would flare.
-    ctx.sparkles.glint([x + w / 2 - 0.02, y + h / 2 - 0.02, standZ + 0.075], s + 0.012, 0.07);
+  const plateWin: [number, number] = [m0, m0 + 0.008];
+  parts.compound([[ctx.rbox(LW + margin * 2, LH + margin * 2, 0.05, 0.01), mats.black]], root, { p: [tx, logoY, plateZ] }, plateWin, { from: [0, -0.3, 0.9] });
+  const logoDark = track(new THREE.MeshStandardMaterial({ color: LOGO_COLORS.dark, metalness: 0.55, roughness: 0.36 }));
+  const shapes = [...LOGO_RECTS.filter((r) => r.kind === "dark"), ...LOGO_RECTS.filter((r) => r.kind === "gold"), LOGO_BAND];
+  shapes.forEach((r, i) => {
+    const depth = r.kind === "gold" ? 0.05 : 0.03;
+    const w = r.w * LW;
+    const h = r.h * LW;
+    const x = tx + r.x * LW;
+    const y = logoY + r.y * LW;
+    const s = m0 + 0.006 + i * ((m1 - m0 - 0.02) / shapes.length);
+    parts.compound([[ctx.rbox(w, h, depth, 0.006), r.kind === "gold" ? mats.brass : logoDark]], root, { p: [x, y, plateFront + depth / 2] }, [s, s + 0.01], { from: [0, -0.15, 0.9], rot: [0, 0.25, 0] });
+    if (r.kind === "gold") ctx.sparkles.glint([x + w / 2 - 0.02, y + h / 2 - 0.02, plateFront + depth + 0.005], s + 0.01, 0.07);
   });
+  // Lettering from the official masks (white on transparent), tinted.
+  const loader = new THREE.TextureLoader();
+  const mask = (src: string) => {
+    const t = track(loader.load(src));
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  };
+  const bandTextMat = track(new THREE.MeshBasicMaterial({ map: mask(LOGO_LETTERING.bandText.src), color: new THREE.Color(1.35, 1.32, 1.28), transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
+  const bandText = new THREE.Mesh(track(new THREE.PlaneGeometry(LOGO_LETTERING.bandText.w * LW, LOGO_LETTERING.bandText.h * LW)), bandTextMat);
+  bandText.position.set(tx + LOGO_LETTERING.bandText.x * LW, logoY + LOGO_LETTERING.bandText.y * LW, plateFront + 0.052);
+  const wordMat = track(new THREE.MeshStandardMaterial({ map: mask(LOGO_LETTERING.wordmark.src), color: LOGO_COLORS.dark, metalness: 0.55, roughness: 0.36, transparent: true, alphaTest: 0.4 }));
+  const wordmark = ctx.mesh(track(new THREE.PlaneGeometry(LOGO_LETTERING.wordmark.w * LW, LOGO_LETTERING.wordmark.h * LW)), wordMat, false);
+  wordmark.position.set(tx + LOGO_LETTERING.wordmark.x * LW, logoY + LOGO_LETTERING.wordmark.y * LW, plateFront + 0.012);
+  root.add(bandText, wordmark);
+  parts.object(wordmark, [m0 + 0.008, m0 + 0.016], { from: [0, 0, 0.4] });
+  // Soft halo behind the plate, and a grazing wash from a slim LED profile above it.
   const haloTex = canvasTexture(256, 256, (c) => {
-    c.filter = "blur(18px)";
-    drawMark(c, 40, 40, 176, "#ffffff");
+    c.filter = "blur(22px)";
+    c.fillStyle = "#ffffff";
+    c.fillRect(48, 48, 160, 160);
     c.filter = "none";
   }, true);
   track(haloTex.texture);
-  decals.kind("halo", haloTex.texture, new THREE.Color(1.6, 1.15, 0.65), true);
-  decals.add("halo", markLeft + markSize / 2, markTop - markSize / 2, faceZ + 0.004, markSize * 1.08, markSize * 1.08, (p) => window01(p, m1 - 0.004, m1 + 0.014) * 0.38, 0, new THREE.Euler(Math.PI / 2, 0, 0));
-
-  // Wordmarks: face-lit letters on the tower, Persian above English.
-  const words = canvasTexture(1024, 384, (c, w) => {
-    c.clearRect(0, 0, w, 384);
-    c.fillStyle = "#f6efe2";
-    c.textAlign = "center";
-    c.textBaseline = "middle";
-    c.direction = "rtl";
-    c.font = font(800, 150);
-    c.fillText("اَرَتَ", w / 2, 132);
-    c.direction = "ltr";
-    c.font = font(700, 64);
-    c.letterSpacing = "22px";
-    c.fillText("ARATTA EXPO", w / 2 + 11, 300);
-  });
-  track(words.texture);
-  const wordsMat = track(new THREE.MeshBasicMaterial({ map: words.texture, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, color: new THREE.Color(1.25, 1.2, 1.1) }));
-  const wordsMesh = new THREE.Mesh(track(new THREE.PlaneGeometry(2.4, 0.9)), wordsMat);
-  wordsMesh.position.set(tx, FLOOR_TOP + 2.75, faceZ + 0.03);
-  root.add(wordsMesh);
+  decals.kind("halo", haloTex.texture, new THREE.Color(1.6, 1.2, 0.75), true);
+  decals.add("halo", tx, logoY, faceZ + 0.004, (LW + margin * 2) * 1.5, (LH + margin * 2) * 1.5, (p) => window01(p, m1 - 0.004, m1 + 0.014) * 0.5, 0, new THREE.Euler(Math.PI / 2, 0, 0));
+  ctx.bars(mats.black, root).add({ p: [tx, logoY + LH / 2 + margin + 0.06, plateFront + 0.1], s: [LW + 0.1, 0.03, 0.06] }, plateWin, { from: [0, 0.4, 0] });
+  ctx.bars(mats.lamp, root, { cast: false, receive: false }).add({ p: [tx, logoY + LH / 2 + margin + 0.044, plateFront + 0.1], s: [LW + 0.06, 0.004, 0.04] }, plateWin, {});
+  decals.add("ledglow", tx, logoY + LH * 0.2, plateFront + 0.054, LW + 0.1, LH * 0.75, (p) => window01(p, m1, m1 + 0.016) * 0.32, 0, new THREE.Euler(Math.PI / 2, 0, 0));
 
   // ---- LED wall: 7 x 5 cabinets with a visible pixel grid, black surround, plinth.
   const { cols, rows, tile } = LED;
@@ -247,19 +250,17 @@ export function buildIdentity(ctx: Ctx) {
     sg.addColorStop(1, "rgba(255,200,120,0)");
     c.fillStyle = sg;
     c.fillRect(0, 0, w, h);
-    drawMark(c, w / 2 - 60 * s, 40 * s, 120 * s, "#e0b75a");
+    // The official logo carries the name, so the content shows it with one line under it.
+    drawLogo(c, w / 2 - 92 * s, 52 * s, 184 * s, { plate: true });
     c.fillStyle = "#f5efe3";
     c.direction = fa ? "rtl" : "ltr";
     c.textAlign = "center";
     c.textBaseline = "alphabetic";
-    c.font = font(800, 64 * s);
-    c.fillText(copy.brand, w / 2, 234 * s);
-    c.font = font(600, 32 * s);
-    c.fillStyle = "rgba(245,239,227,0.86)";
-    c.fillText(copy.line, w / 2, 284 * s);
+    c.font = font(700, 34 * s);
+    c.fillText(copy.line, w / 2, 300 * s);
     c.font = font(700, 24 * s);
     c.fillStyle = "#e0b75a";
-    c.fillText(`${copy.sub}   ·   ${copy.tag}`, w / 2, 326 * s);
+    c.fillText(`${copy.sub}   ·   ${copy.tag}`, w / 2, 344 * s);
     content.texture.needsUpdate = true;
   };
   drawContent(0);
@@ -276,20 +277,20 @@ export function buildIdentity(ctx: Ctx) {
     for (let r = 0; r < reps; r += 1) {
       const x0 = (w / reps) * r;
       const cw = w / reps;
-      drawMark(c, x0 + cw * 0.08, 40 * k, 180 * k, "#e0b75a");
+      drawLogo(c, x0 + cw * 0.05, 40 * k, 190 * k, { plate: true });
       c.fillStyle = "#f6efe2";
       c.textBaseline = "middle";
       c.textAlign = "center";
       c.direction = "rtl";
-      c.font = font(800, 120 * k);
-      c.fillText("اَرَتَ", x0 + cw * 0.36, 134 * k);
+      c.font = font(700, 70 * k);
+      c.fillText("نمایشگاه‌های تخصصی صنعت و معدن", x0 + cw * 0.42, 134 * k);
       c.fillStyle = "#d3a84b";
-      c.fillRect(x0 + cw * 0.5, 70 * k, 4 * k, 120 * k);
+      c.fillRect(x0 + cw * 0.64, 80 * k, 4 * k, 100 * k);
       c.fillStyle = "#f6efe2";
       c.direction = "ltr";
-      c.font = font(700, 86 * k);
-      c.letterSpacing = `${16 * k}px`;
-      c.fillText("ARATTA EXPO", x0 + cw * 0.74, 138 * k);
+      c.font = font(700, 54 * k);
+      c.letterSpacing = `${8 * k}px`;
+      c.fillText("INDUSTRY · MINING", x0 + cw * 0.82, 136 * k);
       c.letterSpacing = "0px";
     }
   });
@@ -337,18 +338,20 @@ export function buildIdentity(ctx: Ctx) {
       c.stroke();
     }
     const tx0 = fa ? w * 0.93 : w * 0.07;
-    drawMark(c, fa ? tx0 - 150 * k : tx0, h * 0.16, 150 * k, "#e0b75a");
+    const logoW = (h * 0.68) / LOGO_HEIGHT;
+    drawLogo(c, fa ? tx0 - logoW : tx0, h * 0.16, logoW, { plate: true });
     c.fillStyle = "#f6efe2";
     c.direction = fa ? "rtl" : "ltr";
     c.textAlign = fa ? "right" : "left";
     c.textBaseline = "alphabetic";
     c.font = font(800, 118 * k);
-    c.fillText(fa ? "از معدن تا بازار" : "From mine to market", fa ? tx0 - 190 * k : tx0 + 190 * k, h * 0.16 + 104 * k);
+    c.fillText(fa ? "از معدن تا بازار" : "From mine to market", fa ? tx0 - logoW - 70 * k : tx0 + logoW + 70 * k, h * 0.5);
     c.font = font(600, 50 * k);
     c.fillStyle = "rgba(246,239,226,0.85)";
-    c.fillText(copy.line, tx0, h * 0.78);
+    const tx1 = fa ? tx0 - logoW - 70 * k : tx0 + logoW + 70 * k;
+    c.fillText(copy.line, tx1, h * 0.74);
     c.fillStyle = "#e0b75a";
-    c.fillRect(fa ? tx0 - 520 * k : tx0, h * 0.86, 520 * k, 4 * k);
+    c.fillRect(fa ? tx1 - 520 * k : tx1, h * 0.82, 520 * k, 4 * k);
   });
   track(banner.texture);
   const bannerMat = track(new THREE.MeshStandardMaterial({ map: banner.texture, emissiveMap: banner.texture, emissive: new THREE.Color(1, 0.97, 0.92), emissiveIntensity: 0.12, roughness: 0.95, metalness: 0 }));
@@ -365,10 +368,9 @@ export function buildIdentity(ctx: Ctx) {
   ctx.anims.push((p, time) => {
     const lb = lightboxLevel(p);
     faceMat.emissiveIntensity = lb * 1.15;
-    const wordsOn = easeOutCubic(window01(p, m1 - 0.002, m1 + 0.014));
-    wordsMat.opacity = wordsOn;
-    wordsMesh.visible = wordsOn > 0.001;
-    wordsMesh.position.y = FLOOR_TOP + 2.75 - (1 - wordsOn) * 0.25;
+    const textOn = easeOutCubic(window01(p, m1 - 0.004, m1 + 0.012));
+    bandTextMat.opacity = textOn * (0.9 + 0.1 * lb);
+    bandText.visible = textOn > 0.001;
 
     const boot = window01(p, T.ledBoot[0], T.ledBoot[1]);
     screenMat.uniforms.uBoot.value = boot;

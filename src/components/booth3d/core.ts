@@ -8,6 +8,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { pulse, settle, window01 } from "./timeline";
 import type { Materials } from "./materials";
+import { LOGO_ARTWORK, LOGO_BAND, LOGO_COLORS, LOGO_HEIGHT, LOGO_RECTS } from "./brand-logo";
 
 export type V3 = [number, number, number];
 export type Win = readonly [number, number];
@@ -592,19 +593,50 @@ export function rng(seed = 1) {
   };
 }
 
-/** The Aratta mark on a 1000-unit square (same geometry as the official logo). */
-export const MARK_BLOCKS: Array<[number, number, number, number]> = [
-  // x, y (top), w, h on a 1000 grid
-  [593, 131, 190, 735], // tall bar
-  [218, 720, 565, 146], // base bar
-  [218, 345, 170, 168], // upper square
-  [218, 533, 170, 169], // lower square
-];
+// ---- the official logo, drawn flat (counter front, LED content, totem, lightbox, sign).
 
-export function drawMark(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
-  ctx.fillStyle = color;
-  for (const [bx, by, bw, bh] of MARK_BLOCKS) {
-    ctx.fillRect(x + (bx / 1000) * size, y + (by / 1000) * size, (bw / 1000) * size, (bh / 1000) * size);
+const logoImages: { tight?: HTMLImageElement } = {};
+
+/** Load the official artwork once; resolves when it arrives, fails or times out. */
+export function preloadLogo(timeout = 2500) {
+  if (logoImages.tight) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    const img = new Image();
+    const done = () => resolve();
+    img.onload = () => {
+      logoImages.tight = img;
+      done();
+    };
+    img.onerror = done;
+    setTimeout(done, timeout);
+    img.src = LOGO_ARTWORK.tight;
+  });
+}
+
+/**
+ * Draw the official logo with its top-left corner at (x, y) and width w (height
+ * w * LOGO_HEIGHT). The artwork is used once loaded; until then (or if it fails)
+ * the same measured shapes are drawn without the lettering. `plate` puts it on
+ * the black field with a small margin, as in the artwork, so the dark blocks
+ * never vanish on a dark ground.
+ */
+export function drawLogo(c: CanvasRenderingContext2D, x: number, y: number, w: number, opts: { plate?: boolean } = {}) {
+  const h = w * LOGO_HEIGHT;
+  if (opts.plate) {
+    const m = w * 0.07;
+    c.fillStyle = LOGO_COLORS.ground;
+    c.beginPath();
+    c.roundRect(x - m, y - m, w + m * 2, h + m * 2, m * 0.35);
+    c.fill();
+  }
+  const img = logoImages.tight;
+  if (img) {
+    c.drawImage(img, x, y, w, h);
+    return;
+  }
+  for (const r of [...LOGO_RECTS, LOGO_BAND]) {
+    c.fillStyle = r.kind === "gold" ? LOGO_COLORS.gold : LOGO_COLORS.dark;
+    c.fillRect(x + (r.x - r.w / 2 + 0.5) * w, y + (LOGO_HEIGHT / 2 - r.y - r.h / 2) * w, r.w * w, r.h * w);
   }
 }
 

@@ -404,8 +404,29 @@ dt {
   animation: hero-loader-scan 1.25s ease-in-out infinite;
 }
 
+/* Chapter copy: every chapter shares one grid cell and cross-fades (~500 ms, a small rise),
+   so the block never changes size. hero-stage-copy-in remains for one-off entrances. */
+.booth3d__stack {
+  display: grid;
+}
+
+.booth3d__stack > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
 .hero-stage-copy {
-  animation: hero-stage-copy-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 8px, 0);
+  transition: opacity 420ms cubic-bezier(0.4, 0, 0.2, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 520ms;
+}
+
+.hero-stage-copy.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) 90ms, transform 600ms cubic-bezier(0.22, 1, 0.36, 1) 90ms, visibility 0s;
 }
 
 @keyframes hero-loader-rise {
@@ -598,7 +619,18 @@ html[lang="fa"] .booth3d__chapter-title {
 
 /* The closing headline is a little smaller than a chapter title so the finished stand keeps the frame. */
 .booth3d__finale .booth3d__chapter-title {
-  font-size: clamp(1.8rem, 2.9vw, 2.8rem);
+  font-size: clamp(1.7rem, 2.5vw, 2.4rem);
+}
+
+/* Wide screens: the closing copy stays compact (one-line title) so the elevation gets the height. */
+@media (min-width: 768px) {
+  .booth3d__finale {
+    bottom: clamp(4.25rem, 8svh, 5.5rem);
+  }
+
+  .booth3d__finale .booth3d__chapter-title {
+    max-width: none;
+  }
 }
 
 .booth3d__cta {
@@ -631,6 +663,50 @@ html[lang="fa"] .booth3d__chapter-title {
 
 .booth3d__cta--gold:hover {
   background: linear-gradient(135deg, #f0cd80, #c89a42);
+}
+
+.booth3d__card-wrap {
+  bottom: calc(0.6rem + env(safe-area-inset-bottom));
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+}
+
+/* Phone actions: two equal 44 px buttons whose labels never wrap at 360 px. */
+.booth3d__card .booth3d__cta {
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  white-space: nowrap;
+}
+
+.booth3d__card-title {
+  font-size: clamp(1.3rem, 6vw, 1.5rem);
+}
+
+.booth3d__card-copy {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms ease;
+}
+
+.booth3d__card-copy.is-folded {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.booth3d__card-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The closing frame: a soft vignette that deepens the hall around the lit stand. */
+.booth3d__vignette {
+  opacity: 0;
+  background: radial-gradient(120% 85% at 50% 40%, transparent 52%, rgba(4, 7, 12, 0.55) 100%);
+  transition: opacity 1200ms ease;
+}
+
+.booth3d__vignette.is-on {
+  opacity: 1;
 }
 
 .booth3d__card {
@@ -668,7 +744,7 @@ html[lang="fa"] .booth3d__chapter-title {
   }
 
   .booth3d__finale {
-    bottom: calc(10.5rem + env(safe-area-inset-bottom));
+    bottom: calc(7.4rem + env(safe-area-inset-bottom));
   }
 
   .booth3d__finale .booth3d__chapter-title {

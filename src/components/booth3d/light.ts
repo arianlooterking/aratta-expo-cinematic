@@ -24,12 +24,21 @@ import {
   spotLevel,
   trussPulse,
   window01,
+  FINALE_AT,
 } from "./timeline";
+
+/** 0 until the closing frame, 1 once the stand rests at its best. */
+export const finaleLight = (p: number) => {
+  const t = window01(p, FINALE_AT - 0.03, FINALE_AT + 0.05);
+  return t * t * (3 - 2 * t);
+};
 
 const WARM = new THREE.Color("#ffd2a1"); // ~3000 K
 const WORK = new THREE.Color("#e8eff5"); // hall work light, ~5000 K
 const AIR_BUILD = new THREE.Color("#3d444b");
 const AIR_SHOW = new THREE.Color("#161c23");
+// The closing frame: the hall falls to a deep blue-grey (never black) around the lit stand.
+const AIR_FINALE = new THREE.Color("#0e141c");
 const SKY_BUILD = new THREE.Color("#dfe6ec");
 const SKY_SHOW = new THREE.Color("#8ea2b6");
 
@@ -93,7 +102,9 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
   fillUp.position.set(-3.5, 5.2, -2.8);
   const fillFront = new THREE.PointLight(WARM, 0, 13, 1.4);
   // Low and to the left: from here its highlight never lands on the brass mark.
-  fillFront.position.set(-2.0, 3.2, 4.5);
+  // High enough that its reflection in the balustrade glass stays above the glass when
+  // the closing elevation looks straight in.
+  fillFront.position.set(-2.0, 6.4, 4.8);
   scene.add(fillLow, fillUp, fillFront);
 
   // ---- spot order: where each fixture sits on the pulse's run round the truss.
@@ -267,12 +278,16 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
     beams.setMatrixAt(i, m);
     // Lens glow, and a pool on the floor (or deck) under what the beam lights.
     // Pools never sit at counter or plinth height: seen edge-on they read as streaks.
-    sparkles.add([apex.x, apex.y, apex.z], 0.26, new THREE.Color(1.5, 1.15, 0.75), (p) => spotLevel(p, i, n) * 0.85);
+    sparkles.add([apex.x, apex.y, apex.z], 0.26, new THREE.Color(1.5, 1.15, 0.75), (p) => spotLevel(p, i, n) * (0.85 + 0.15 * finaleLight(p)));
+    // A wide soft halo on each lens: the glow a bloom pass would give, without the composer.
+    sparkles.add([apex.x, apex.y - 0.04, apex.z], ctx.rich ? 0.7 : 0.95, new THREE.Color(1.0, 0.72, 0.42), (p) => spotLevel(p, i, n) * finaleLight(p) * (ctx.rich ? 0.28 : 0.5));
     const onDeck = f.target.x > DECK.x0 && f.target.x < DECK.x1 && f.target.z > DECK.z0 && f.target.z < DECK.z1 && f.target.y > DECK.top;
     const onWall = f.target.z < -3.7 && !onDeck;
     if (!onWall) {
       const py = onDeck ? DECK.top + 0.004 : FLOOR_TOP + 0.0042;
-      decals.add("pool", f.target.x, py, f.target.z, r * 2.2, r * 2.2, (p) => spotLevel(p, i, n) * 0.42);
+      decals.add("pool", f.target.x, py, f.target.z, r * 2.2, r * 2.2, (p) => spotLevel(p, i, n) * (0.42 + finaleLight(p) * (ctx.rich ? 0.2 : 0.34)));
+      // A wider, fainter warm wash around the pool.
+      decals.add("pool", f.target.x, py + 0.0004, f.target.z, r * 4, r * 4, (p) => spotLevel(p, i, n) * finaleLight(p) * (ctx.rich ? 0.12 : 0.2));
     }
     const fire = T.spots[0] + SPOT_ORDER[i] * (T.spots[1] - T.spots[0] - 0.004);
     ctx.sparkles.glint([apex.x, apex.y, apex.z], fire + 0.003, 0.6);
@@ -284,21 +299,30 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
   const lampColor = new THREE.Color();
   const air = scene.background as THREE.Color;
   const fog = scene.fog as THREE.FogExp2;
-  ctx.anims.push((p) => {
+  const fogDensity = fog.density;
+  const lensLit = new THREE.Color(0.5, 0.4, 0.28);
+  const baseStrength = beamMat.uniforms.uStrength.value as number;
+  ctx.anims.push((p, time) => {
     const show = showLight(p);
-    const hall = hallLight(p);
+    const fin = finaleLight(p);
+    // Slow breathing of the show light in the resting frame (about a 10 s cycle).
+    const breath = 1 + fin * 0.07 * Math.sin(time * 0.62);
+    const hall = hallLight(p) * (1 - 0.48 * fin);
     const fl = floodLevel(p);
     // Work light (cool, generous) hands over to warm show light; the hall dims to a third.
     keyColor.copy(WORK).lerp(WARM, show);
     key.color.copy(keyColor);
     key.intensity = 0.9 + 1.5 * hall;
-    hemi.color.copy(SKY_SHOW).lerp(SKY_BUILD, (hall - 0.32) / 0.68);
+    hemi.color.copy(SKY_SHOW).lerp(SKY_BUILD, Math.max(0, (hall - 0.32) / 0.68));
     hemi.intensity = 0.42 + 1.1 * hall;
     rim.intensity = 0.45 + show * 0.15;
     flood.intensity = fl * 1.3;
     scene.environmentIntensity = 0.32 + 0.6 * hall;
-    air.copy(AIR_SHOW).lerp(AIR_BUILD, (hall - 0.32) / 0.68);
+    air.copy(AIR_SHOW).lerp(AIR_BUILD, Math.max(0, (hall - 0.32) / 0.68)).lerp(AIR_FINALE, fin);
     fog.color.copy(air);
+    // The closing elevation is shot from further out: thin the haze so the stand stays crisp.
+    fog.density = fogDensity * (1 - 0.4 * fin);
+    beamMat.uniforms.uStrength.value = baseStrength * (1 + 0.55 * fin) * breath;
 
     const led = mats.led.uniforms;
     led.uSweep.value = ledSweep(p);
@@ -307,11 +331,11 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
     const downlights = window01(p, T.ledLines[0] + 0.006, T.ledLines[1]);
     lampColor.setRGB(1.6, 1.25, 0.85).multiplyScalar(downlights);
     mats.lamp.color.copy(lampColor);
-    mats.lens.color.setRGB(0.05, 0.045, 0.04).lerp(new THREE.Color(0.5, 0.4, 0.28), window01(p, T.spots[1], T.spots[1] + 0.01));
+    mats.lens.color.setRGB(0.05, 0.045, 0.04).lerp(lensLit, window01(p, T.spots[1], T.spots[1] + 0.01));
     mats.tealGlow.color.setRGB(0.1, 0.55, 0.42).multiplyScalar(lb);
     fillLow.intensity = downlights * 7;
     fillUp.intensity = downlights * 5;
-    fillFront.intensity = lb * 12;
+    fillFront.intensity = lb * 12 * (1 + 0.25 * fin) * breath;
 
     const array = level.array as Float32Array;
     let dirty = false;
@@ -326,7 +350,7 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
     }
     if (dirty) level.needsUpdate = true;
     beams.visible = lit > 0;
-    for (const spot of realSpots) spot.light.intensity = spotLevel(p, spot.index, n) * 45;
+    for (const spot of realSpots) spot.light.intensity = spotLevel(p, spot.index, n) * 45 * (1 + 0.3 * fin) * breath;
   });
 
   return {

@@ -178,7 +178,8 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.ok(start("balustrade") < start("deckLift"));
   assert.ok(start("frames") < start("power") && start("spots") < start("ledTiles") && start("ledTiles") < start("counter"));
   assert.match(sources["booth-scene"], /from "three"/);
-  assert.match(scene, /MARK_BLOCKS/);
+  assert.match(scene, /LOGO_RECTS/);
+  assert.match(scene, /drawLogo/);
   assert.match(scene, /اَرَتَ/);
   assert.match(scene, /InstancedMesh/);
   assert.match(scene, /RoundedBoxGeometry/);
@@ -282,7 +283,7 @@ test("both languages use the supplied official Aratta logo system", async () => 
   assert.deepEqual([tab.width, tab.height], [512, 512]);
   assert.equal((brandAssets.match(/brand-v2\/aratta-tab\.png/g) ?? []).length, 12);
   assert.match(siteChrome, />\s*Aratta Expo\s*</);
-  assert.match(boothHero, /brand-v2\/aratta-official-mark\.png/);
+  assert.match(boothHero, /brand-v3\/aratta-logo-official-tight\.png/);
   assert.doesNotMatch(boothHero, /brand-v2\/aratta-logo-en-horizontal\.png/);
 });
 

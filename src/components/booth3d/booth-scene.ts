@@ -11,7 +11,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { canvasTexture, createCtx, MARK_BLOCKS } from "./core";
+import { canvasTexture, createCtx, preloadLogo } from "./core";
 import { createMaterials } from "./materials";
 import { buildHall } from "./hall";
 import { buildRigging } from "./rigging";
@@ -22,7 +22,7 @@ import { buildLight } from "./light";
 import { buildIdentity } from "./identity";
 import { buildFurniture } from "./furniture";
 import { buildSite } from "./site";
-import { createCameraRig } from "./camera";
+import { createCameraRig, type CameraPose } from "./camera";
 import { clamp01 } from "./timeline";
 
 export type BoothQuality = "auto" | "high" | "low";
@@ -32,6 +32,8 @@ export type BoothSceneOptions = {
   compact: boolean; // phones: lighter renderer, portrait framing
   fontFamily: string;
   onFrame?: (progress: number) => void;
+  /** The free band for the closing elevation (fractions of the canvas height, 0 = top). */
+  safeBand?: () => { top: number; bottom: number } | null;
   /** "auto" picks from `compact` and a short frame-time probe. */
   quality?: BoothQuality;
 };
@@ -49,8 +51,6 @@ export type BoothTier = "high" | "mid" | "low";
 
 // Hall air: lit grey-blue while the stand is built, dimmed (never black) for the show.
 const HALL = new THREE.Color("#3a4148");
-// Keep the brand geometry referenced here too: the mark is the same in every module.
-void MARK_BLOCKS;
 
 /** A grey hall with bright roof strips and a lit floor, for image-based lighting. */
 function hallEnvironment() {
@@ -77,11 +77,14 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   const fa = lang === "fa";
   const quality = options.quality ?? "auto";
   const font = (weight: number, px: number) => `${weight} ${px}px ${options.fontFamily}`;
+  // Fonts and the official logo artwork are drawn into canvas textures: wait for them (briefly).
+  const logo = preloadLogo(2500);
   try {
     await Promise.race([document.fonts.load(font(800, 64), fa ? "اَرَتَ" : "Aratta"), new Promise((resolve) => setTimeout(resolve, 1500))]);
   } catch {
     // fonts API missing: canvas falls back to system fonts
   }
+  await logo;
 
   // Desktop builds the rich stand (bigger maps, more leaves, real shadows);
   // phones build the light one. The runtime tier can then only step down.
@@ -259,6 +262,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   let lastShadowAt = -1;
   let pointerAt = -1e9;
   let frozen = false;
+  // Wheel and trackpad steps get a ~140 ms glide; touch already has momentum, so a lighter one.
+  const tau = window.matchMedia("(pointer: coarse)").matches ? 0.085 : 0.14;
   // Frame-time probe: render every frame for a short window and step down if slow.
   let probeFrames = 0;
   let probeTime = 0;
@@ -280,14 +285,17 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       composer.setSize(size.x, size.y);
     }
     ctx.sparkles.material.uniforms.uScale.value = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    const band = options.safeBand?.();
+    if (band) rig.setSafeBand(band.top, band.bottom);
   };
 
+  let frameDt = 1 / 60;
   const draw = (p: number, time: number) => {
     for (const anim of ctx.anims) anim(p, time);
     ctx.parts.update(p);
     ctx.decals.update(p);
     ctx.sparkles.update(p, time);
-    rig.apply(p, time, width, height, pointer);
+    rig.apply(p, time, frameDt, width, height, pointer);
     if (renderer.shadowMap.enabled && p !== lastShadowAt) {
       renderer.shadowMap.needsUpdate = true;
       lastShadowAt = p;
@@ -302,9 +310,11 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     const rawDt = now - last;
     last = now;
     elapsed += dt;
+    frameDt = dt;
     const before = current;
-    current += (target - current) * (1 - Math.exp(-dt * 5.5));
-    if (Math.abs(target - current) < 0.00005) current = target;
+    // One damping stage, frame-rate independent (ScrollTrigger hands over raw progress).
+    current += (target - current) * (1 - Math.exp(-dt / tau));
+    if (Math.abs(target - current) < 0.00002) current = target;
     const moving = before !== current || now - pointerAt < 1500;
     const probe = probing();
     // Settled frames still animate the LED wall and the sign, at a gentler rate.
@@ -339,7 +349,33 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
 
   resize();
   draw(0, 0);
-  renderer.compile(scene, camera);
+  // Compile every program and upload every texture before the loader hides, so no part
+  // or light pops in later: hidden objects are made visible for the compile only.
+  const hidden: THREE.Object3D[] = [];
+  scene.traverse((o) => {
+    if (!o.visible) {
+      hidden.push(o);
+      o.visible = true;
+    }
+  });
+  const textures = new Set<THREE.Texture>();
+  scene.traverse((o) => {
+    const m = (o as THREE.Mesh).material;
+    if (!m) return;
+    for (const mm of Array.isArray(m) ? m : [m]) {
+      for (const value of Object.values(mm)) if (value instanceof THREE.Texture) textures.add(value);
+      const uniforms = (mm as THREE.ShaderMaterial).uniforms;
+      if (uniforms) for (const u of Object.values(uniforms)) if (u.value instanceof THREE.Texture) textures.add(u.value);
+    }
+  });
+  for (const t of textures) renderer.initTexture(t);
+  try {
+    await Promise.race([renderer.compileAsync(scene, camera), new Promise((resolve) => setTimeout(resolve, 4000))]);
+  } catch {
+    renderer.compile(scene, camera);
+  }
+  for (const o of hidden) o.visible = false;
+  draw(0, 0);
   frame = requestAnimationFrame(loop);
 
   if (new URLSearchParams(window.location.search).has("booth-debug")) {
@@ -351,6 +387,74 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       },
       freeze(value: boolean) {
         frozen = value;
+      },
+      /** Hall or neighbour meshes between the camera and a grid over the stand's box. */
+      occlusion(p: number) {
+        draw(clamp01(p), elapsed);
+        camera.updateMatrixWorld(true);
+        const targets: THREE.Object3D[] = [];
+        for (const child of scene.children) if (child !== root && !(child instanceof THREE.Light) && child.visible) targets.push(child);
+        const ray = new THREE.Raycaster();
+        const point = new THREE.Vector3();
+        const dir = new THREE.Vector3();
+        const hits: Array<{ point: number[]; object: string; distance: number }> = [];
+        let rays = 0;
+        for (let ix = 0; ix <= 8; ix += 1)
+          for (let iy = 0; iy <= 6; iy += 1)
+            for (let iz = 0; iz <= 4; iz += 1) {
+              point.set(-6 + ix * 1.5, 0.15 + iy * 1.15, -4.5 + iz * 2.25);
+              dir.copy(point).sub(camera.position);
+              const far = dir.length();
+              ray.set(camera.position, dir.normalize());
+              ray.far = far - 0.05;
+              rays += 1;
+              const hit = ray.intersectObjects(targets, true)[0];
+              if (hit) hits.push({ point: point.toArray(), object: hit.object.name || hit.object.type, distance: Math.round(hit.distance * 100) / 100 });
+            }
+        return { p, rays, hits: hits.length, sample: hits.slice(0, 6), camera: camera.position.toArray().map((v) => Math.round(v * 100) / 100) };
+      },
+      /** Largest per-step change of the scroll path (no sway), sampled every 0.001. */
+      pathJumps(step = 0.001) {
+        const a: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
+        const b: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
+        rig.at(0, width, height, a);
+        const worst = { pos: 0, tgt: 0, off: 0, posAt: 0, tgtAt: 0, offAt: 0 };
+        const steps: number[] = [];
+        let accel = 0;
+        let accelAt = 0;
+        let prev = -1;
+        for (let i = 1; i * step <= 1 + 1e-9; i += 1) {
+          const p = i * step;
+          rig.at(p, width, height, b);
+          const dp = b.pos.distanceTo(a.pos);
+          const dt = b.tgt.distanceTo(a.tgt);
+          const doff = Math.hypot(b.offX - a.offX, b.offY - a.offY) / height;
+          steps.push(dp);
+          if (prev >= 0 && Math.abs(dp - prev) > accel) {
+            accel = Math.abs(dp - prev);
+            accelAt = p;
+          }
+          prev = dp;
+          if (dp > worst.pos) [worst.pos, worst.posAt] = [dp, p];
+          if (dt > worst.tgt) [worst.tgt, worst.tgtAt] = [dt, p];
+          if (doff > worst.off) [worst.off, worst.offAt] = [doff, p];
+          a.pos.copy(b.pos);
+          a.tgt.copy(b.tgt);
+          a.offX = b.offX;
+          a.offY = b.offY;
+        }
+        const profile: number[] = [];
+        const bin = Math.round(0.01 / step);
+        for (let i = 0; i < steps.length; i += bin) profile.push(Math.round(Math.max(...steps.slice(i, i + bin)) * 1000) / 1000);
+        const sorted = [...steps].sort((x, y) => x - y);
+        const r = (v: number) => Math.round(v * 10000) / 10000;
+        return {
+          maxPos: r(worst.pos), maxPosAt: r(worst.posAt), medianPos: r(sorted[Math.floor(sorted.length / 2)]),
+          maxTgt: r(worst.tgt), maxTgtAt: r(worst.tgtAt),
+          maxOffset: r(worst.off), maxOffsetAt: r(worst.offAt),
+          maxStepChange: r(accel), maxStepChangeAt: r(accelAt),
+          profile,
+        };
       },
       measure(p: number) {
         current = target = clamp01(p);

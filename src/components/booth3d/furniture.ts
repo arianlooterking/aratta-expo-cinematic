@@ -5,7 +5,7 @@
 // instanced leaves, a brochure rack and a touchscreen totem.
 
 import * as THREE from "three";
-import { canvasTexture, drawMark, merge, rng, type Ctx, type Motion, type V3, type Win } from "./core";
+import { canvasTexture, drawLogo, merge, rng, type Ctx, type Motion, type V3, type Win } from "./core";
 import { FLOOR_TOP } from "./floor";
 import { DECK } from "./structure";
 import { BOOTH_TIMELINE as T, lightboxLevel, window01 } from "./timeline";
@@ -44,7 +44,7 @@ export function buildFurniture(ctx: Ctx) {
     g.addColorStop(1, "#e8dbc2");
     c.fillStyle = g;
     c.fillRect(0, 0, w, h);
-    drawMark(c, w / 2 - 110, h / 2 - 120, 220, "#9c7631");
+    drawLogo(c, w / 2 - 118, h / 2 - 118, 236);
     c.fillStyle = "rgba(156,118,49,0.8)";
     c.fillRect(w * 0.06, h - 18, w * 0.88, 3);
   });
@@ -164,12 +164,9 @@ export function buildFurniture(ctx: Ctx) {
     g.addColorStop(1, "#16100a");
     c.fillStyle = g;
     c.fillRect(0, 0, w, h);
-    drawMark(c, w / 2 - 40, 50, 80, "#e0b75a");
-    c.fillStyle = "#f5efe3";
+    drawLogo(c, w / 2 - 70, 44, 140, { plate: true });
     c.textAlign = "center";
     c.direction = fa ? "rtl" : "ltr";
-    c.font = font(800, 30);
-    c.fillText(fa ? "اَرَتَ" : "Aratta Expo", w / 2, 180);
     const items = fa ? ["محصولات", "پروژه‌ها", "تماس"] : ["Products", "Projects", "Contact"];
     items.forEach((t, i) => {
       c.fillStyle = i === 0 ? "rgba(211,168,75,0.92)" : "rgba(255,255,255,0.1)";
@@ -461,12 +458,7 @@ export function buildFurniture(ctx: Ctx) {
   const cover = canvasTexture(256, 360, (c, w, h) => {
     c.fillStyle = "#1e2022";
     c.fillRect(0, 0, w, h);
-    drawMark(c, w / 2 - 45, 60, 90, "#d3a84b");
-    c.fillStyle = "#f1eadc";
-    c.textAlign = "center";
-    c.direction = fa ? "rtl" : "ltr";
-    c.font = font(800, 30);
-    c.fillText(fa ? "اَرَتَ" : "ARATTA", w / 2, 210);
+    drawLogo(c, w / 2 - 70, 70, 140, { plate: true });
     c.fillStyle = "rgba(211,168,75,0.9)";
     c.fillRect(40, h - 70, w - 80, 4);
   });
