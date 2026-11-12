@@ -21,6 +21,7 @@ import { Button, Card, Empty, Field, Segmented, Select, Sheet, Skeleton } from "
 import { useBoardDrag } from "../useBoardDrag";
 import { ActivityForm } from "./ActivityForm";
 import { LostSheet } from "./CompanyDetail";
+import { CompanyFormBody } from "./CompanyForm";
 import { StaffAvatar } from "../people";
 import { PageHeader, STAGES } from "./shared";
 
@@ -407,53 +408,83 @@ function NewDeal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const fa = lang === "fa";
   const [company, setCompany] = useState<Company | null>(null);
   const [stage, setStage] = useState<DealStage>("lead");
+  const [newCompany, setNewCompany] = useState<string | null>(null);
   const existing = company ? x.deals.find((d) => d.company_id === company.id) : null;
   return (
-    <Sheet open={open} onClose={onClose} closeLabel={fa ? "بستن" : "Close"} title={fa ? "پرونده فروش جدید" : "New deal"}>
-      <form
-        className="grid gap-4"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!company || !x.exhibition || existing) return;
-          const res = await store.insert("deals", { id: newId(), exhibition_id: x.exhibition.id, company_id: company.id, stage, owner_id: user.id, source: "pipeline" });
-          if (res.ok) {
-            toast(fa ? "پرونده باز شد" : "Deal opened");
-            setCompany(null);
-            onClose();
-          }
-        }}
-      >
-        <Field label={fa ? "شرکت" : "Company"}>
-          <PickerField
-            value={company}
-            items={x.companies}
-            getKey={(c) => c.id}
-            getLabel={(c) => pick(lang, c.name_fa, c.name_en)}
-            getHint={(c) => (x.deals.some((d) => d.company_id === c.id) ? (fa ? "پرونده دارد" : "has a deal") : c.city)}
-            onChange={setCompany}
-            placeholder={fa ? "انتخاب شرکت" : "Choose a company"}
-            emptyText={fa ? "شرکتی پیدا نشد. از «ثبت سریع» شرکت جدید بسازید." : "No company found. Add it from Quick add."}
-          />
-        </Field>
-        {existing ? <p className="rounded-xl bg-p-warn-soft px-3 py-2 text-xs text-p-warn">{fa ? `این شرکت در مرحله «${dealStageLabel[existing.stage].fa}» پرونده دارد.` : `This company already has a deal (${dealStageLabel[existing.stage].en}).`}</p> : null}
-        <Field label={fa ? "مرحله" : "Stage"}>
-          <Select value={stage} onChange={(e) => setStage(e.target.value as DealStage)}>
-            {STAGES.filter((s) => s !== "lost").map((s) => (
-              <option key={s} value={s}>
-                {dealStageLabel[s][lang]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <div className="flex justify-end gap-2">
-          <Button tone="ghost" onClick={onClose}>
-            {fa ? "انصراف" : "Cancel"}
-          </Button>
-          <Button tone="primary" type="submit" disabled={!company || Boolean(existing)}>
-            {fa ? "باز کردن پرونده" : "Open deal"}
-          </Button>
-        </div>
-      </form>
+    <Sheet
+      open={open}
+      onClose={() => {
+        setNewCompany(null);
+        onClose();
+      }}
+      closeLabel={fa ? "بستن" : "Close"}
+      title={newCompany !== null ? (fa ? "شرکت جدید" : "New company") : fa ? "پرونده فروش جدید" : "New deal"}
+      wide={newCompany !== null}
+    >
+      {newCompany !== null ? (
+        <CompanyFormBody
+          company={null}
+          initialName={newCompany}
+          onClose={() => setNewCompany(null)}
+          onSaved={(c) => {
+            setCompany(c);
+            setNewCompany(null);
+          }}
+        />
+      ) : (
+        <form
+          className="grid gap-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!company || !x.exhibition || existing) return;
+            const res = await store.insert("deals", { id: newId(), exhibition_id: x.exhibition.id, company_id: company.id, stage, owner_id: user.id, source: "pipeline" });
+            if (res.ok) {
+              toast(fa ? "پرونده باز شد" : "Deal opened");
+              setCompany(null);
+              onClose();
+            }
+          }}
+        >
+          <Field label={fa ? "شرکت" : "Company"}>
+            <PickerField
+              value={company}
+              items={x.companies}
+              getKey={(c) => c.id}
+              getLabel={(c) => pick(lang, c.name_fa, c.name_en)}
+              getHint={(c) => (x.deals.some((d) => d.company_id === c.id) ? (fa ? "پرونده دارد" : "has a deal") : c.city)}
+              onChange={setCompany}
+              placeholder={fa ? "انتخاب شرکت یا نوشتن نام شرکت جدید" : "Choose a company or type a new name"}
+              emptyText={fa ? "شرکتی پیدا نشد" : "No company found"}
+              createLabel={(q) => (fa ? `+ ساخت شرکت جدید «${q}»` : `+ Create new company “${q}”`)}
+              onCreate={(q) => setNewCompany(q)}
+            />
+          </Field>
+          {company ? null : (
+            <button type="button" onClick={() => setNewCompany("")} className="-mt-2 inline-flex items-center gap-1 justify-self-start text-sm font-medium text-p-brand hover:underline">
+              <Plus className="size-4" />
+              {fa ? "شرکت در فهرست نیست؟ ساخت شرکت جدید" : "Not in the list? Create a new company"}
+            </button>
+          )}
+          {existing ? <p className="rounded-xl bg-p-warn-soft px-3 py-2 text-xs text-p-warn">{fa ? `این شرکت در مرحله «${dealStageLabel[existing.stage].fa}» پرونده دارد.` : `This company already has a deal (${dealStageLabel[existing.stage].en}).`}</p> : null}
+          <Field label={fa ? "مرحله" : "Stage"}>
+            <Select value={stage} onChange={(e) => setStage(e.target.value as DealStage)}>
+              {STAGES.filter((s) => s !== "lost").map((s) => (
+                <option key={s} value={s}>
+                  {dealStageLabel[s][lang]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <div className="flex justify-end gap-2">
+            <Button tone="ghost" onClick={onClose}>
+              {fa ? "انصراف" : "Cancel"}
+            </Button>
+            <Button tone="primary" type="submit" disabled={!company || Boolean(existing)}>
+              {fa ? "باز کردن پرونده" : "Open deal"}
+            </Button>
+          </div>
+        </form>
+      )}
     </Sheet>
   );
 }
