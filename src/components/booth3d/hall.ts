@@ -30,7 +30,10 @@ export function buildHall(ctx: Ctx) {
     scene.add(mesh);
   };
   const aisleW = 4;
-  carpetStrip(0, PLOT.z1 + 0.9 + aisleW / 2, 80, aisleW); // front aisle (leaves 0.9 m for the ramp and tape)
+  // The front aisle is the hall's main aisle and runs deeper, so its near edge
+  // stays below the closing frame instead of cutting across the closing copy.
+  const mainAisleW = 9.5;
+  carpetStrip(0, PLOT.z1 + 0.9 + mainAisleW / 2, 80, mainAisleW); // front aisle (leaves 0.9 m for the ramp and tape)
   carpetStrip(PLOT.x0 - 1.6 - aisleW / 2, -2, aisleW, 40);
   carpetStrip(PLOT.x1 + 1.6 + aisleW / 2, -2, aisleW, 40);
   const aisleTex = mats.aisle.map as THREE.Texture;
