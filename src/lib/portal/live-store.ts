@@ -15,6 +15,9 @@ function friendly(message: string | undefined) {
   if (/Only an owner/i.test(message)) return "owner-only";
   if (/At least one active owner/i.test(message)) return "last-owner";
   if (/email of a signed-in colleague/i.test(message)) return "email-locked";
+  if (/Password must be 8 to 72/i.test(message)) return "password-length";
+  if (/Restore access before setting a password/i.test(message)) return "password-suspended";
+  if (/Only admins and owners set sign-in passwords/i.test(message)) return "not-permitted";
   if (/row-level security|permission denied|violates row/i.test(message)) return "not-permitted";
   if (/duplicate key|unique/i.test(message)) return "duplicate";
   if (/Failed to fetch|NetworkError|fetch failed/i.test(message)) return "offline";
@@ -203,6 +206,20 @@ export class LiveStore extends PortalStore {
     const row = data as unknown as Row<"staff_members">;
     this.applyLocal("staff_members", { type: "upsert", row: row as unknown as AnyRow, full: true });
     return { ok: true, row };
+  }
+
+  async setStaffPassword(staffId: string, password: string) {
+    const { error } = await this.sb.rpc("staff_set_password", { p_staff: staffId, p_password: password });
+    if (error) {
+      const message = friendly(error.message);
+      this.notify({ kind: "error", message });
+      return { ok: false as const, error: message };
+    }
+    // The account is created on the server, which also activates an invite;
+    // fetch the row so the screen shows it without waiting for the live update.
+    const { data } = await this.from("staff_members").select("*").eq("id", staffId).maybeSingle();
+    if (data) this.applyLocal("staff_members", { type: "upsert", row: data as unknown as AnyRow, full: true });
+    return { ok: true as const };
   }
 
   async history(query: HistoryQuery) {

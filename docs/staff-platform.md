@@ -8,7 +8,7 @@ equipment hand-over, contractor permits, guest travel and team tasks.
 | --- | --- |
 | Database schema, permissions, live updates, storage | `supabase/migrations/*.sql` |
 | Permission and workflow tests (plain Postgres) | `supabase/tests/`, `npm run test:db` |
-| Sign-in (Google, Apple) | `/[lang]/staff/sign-in`, `/auth/callback`, `src/proxy.ts` |
+| Sign-in (email and password; Google and Apple optional) | `/[lang]/staff/sign-in`, `/[lang]/staff/password`, `/auth/callback`, `src/proxy.ts` |
 | Team and staff: people, profiles, teams, roles, history | `/[lang]/staff/team`, `/[lang]/staff/team/[id]` |
 | Exhibition settings (dates, venue, rates, VAT, status) | `/[lang]/staff/settings` |
 | Typed client, session, live hooks | `src/lib/supabase/*`, `src/lib/platform/*` |
@@ -63,6 +63,32 @@ requires an invited, active account.
 - **Audit log.** Every insert, update and delete records who changed what.
   Managers read it on the Team → History tab, on each profile and in settings.
 
+## Signing in
+
+Staff sign in with their email and a password. Nothing is emailed, so this
+needs no email service and no Google or Apple setup.
+
+- An owner or admin adds a colleague in **Team and staff → Invite colleague**.
+  The form includes a **starting password** (generated, editable). After
+  saving, the portal shows the sign-in link, the email and the password with
+  one button to copy all three; the admin passes them on by any channel.
+- The colleague signs in and is taken straight to **Choose your own
+  password**. The portal stays closed until they do, so the starting password
+  is only ever used once.
+- Anyone changes their password later from the account menu → **Change
+  password**. A forgotten password is replaced by an owner or admin from the
+  colleague's page → **New password** (same rules as changing access: not for
+  yourself, and only an owner for another owner).
+- In the database this is `staff_set_password` (admins), `password_change_pending`
+  (the first-sign-in step) and `staff_account_set_password` (not callable
+  through the API; used for the first owner), all in
+  `supabase/migrations/20261112120000_password_sign_in.sql`.
+
+Google and Apple buttons appear on the sign-in screen only when
+`NEXT_PUBLIC_SIGN_IN_PROVIDERS` lists them (`google`, `apple` or both), after
+the provider is set up in Supabase (steps 3 and 4 below). An account that
+first used Google can be given a password later and keeps both.
+
 ## Roles
 
 | Role | Can |
@@ -81,21 +107,24 @@ the last active owner can't be removed.
 1. **Create the Supabase project** and apply the migrations in order. With the
    Supabase CLI: `supabase link` then `supabase db push`. You can also paste
    each file into the SQL editor.
-2. **Add the first owner.** In the SQL editor:
+2. **Add the first owner.** In the SQL editor, with your own email and a
+   starting password of at least 8 characters:
    `insert into public.staff_members (email, role, departments) values ('you@example.com', 'owner', '{executive}');`
-   After that, owners and admins invite everyone else from **Team and staff**.
-   The portal does not send email: after saving an invite it offers a ready
-   email draft and the sign-in link to send yourself.
-3. **Turn on Google sign-in.** In Google Cloud, create an OAuth client of type
+   `select public.staff_account_set_password('you@example.com', 'a-starting-password');`
+   Sign in with those and choose your own password. After that, owners and
+   admins add everyone else from **Team and staff** (see "Signing in" above).
+3. **Optional: turn on Google sign-in.** In Google Cloud, create an OAuth client of type
    "Web application", add `https://<project>.supabase.co/auth/v1/callback` as an
    authorised redirect URI, then paste the client ID and secret into Supabase
    → Authentication → Providers → Google.
-4. **Turn on Apple sign-in.** In Apple Developer, create a Services ID with
+4. **Optional: turn on Apple sign-in.** In Apple Developer, create a Services ID with
    Sign in with Apple, use the same Supabase callback URL, create a key, and
    enter the Services ID, Team ID, Key ID and key in Supabase → Providers →
    Apple. Staff should choose "Share My Email" so the address matches their
-   invite. Otherwise invite the private relay address instead.
-5. **URL configuration.** In Supabase → Authentication → URL Configuration, set
+   invite. Otherwise invite the private relay address instead. Then set
+   `NEXT_PUBLIC_SIGN_IN_PROVIDERS` (for example `google,apple`) so the buttons
+   show.
+5. **URL configuration** (only needed for Google and Apple). In Supabase → Authentication → URL Configuration, set
    the Site URL to the production domain and add
    `https://<domain>/auth/callback` (plus `http://localhost:3000/auth/callback`
    for development) to the redirect allow-list. For the iOS / Android apps also

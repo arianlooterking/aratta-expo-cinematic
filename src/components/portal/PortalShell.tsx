@@ -16,6 +16,7 @@ import {
   Landmark,
   LayoutDashboard,
   ListTodo,
+  KeyRound,
   LogOut,
   MessagesSquare,
   Map as MapIcon,
@@ -554,6 +555,12 @@ function UserMenu({ otherLangPath }: { otherLangPath: string }) {
             {t(lang, "resetDemo")}
           </MenuItem>
         ) : (
+          <Link href={`/${lang}/staff/password`} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm hover:bg-p-sunken">
+            <KeyRound className="size-4" />
+            {lang === "fa" ? "تغییر گذرواژه" : "Change password"}
+          </Link>
+        )}
+        {mode === "demo" ? null : (
           <form action="/auth/sign-out" method="post">
             <input type="hidden" name="lang" value={lang} />
             <button type="submit" className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm text-p-danger hover:bg-p-danger-soft">

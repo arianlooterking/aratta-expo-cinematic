@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { SignInPanel } from "@/components/platform/SignInPanel";
 import { isLang } from "@/lib/lang";
 import { getStaffSession, safeNextPath } from "@/lib/platform/session";
+import { signInProviders } from "@/lib/platform/sign-in";
 
 type SignInPageProps = {
   params: Promise<{ lang: string }>;
@@ -28,6 +29,7 @@ export default async function SignInPage({ params, searchParams }: SignInPagePro
       lang={lang}
       next={destination}
       error={session.state === "unconfigured" ? "unconfigured" : (error ?? null)}
+      providers={signInProviders(process.env.NEXT_PUBLIC_SIGN_IN_PROVIDERS)}
       pending={
         session.state === "pending"
           ? { email: session.email, suspended: session.status === "suspended" }

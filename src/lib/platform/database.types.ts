@@ -1744,6 +1744,8 @@ export type Database = {
       register_push_device: { Args: { p_token: string; p_platform: string; p_app_version?: string }; Returns: undefined };
       unregister_push_device: { Args: { p_token: string }; Returns: undefined };
       set_my_avatar: { Args: { p_avatar: string | null }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
+      staff_set_password: { Args: { p_staff: string; p_password: string }; Returns: undefined };
+      password_change_pending: { Args: Record<PropertyKey, never>; Returns: boolean };
       update_my_profile: { Args: { p_display_name?: string; p_job_title?: string; p_phone?: string; p_locale?: string; p_bio?: string; p_skills?: string[] }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
     };
     Enums: {

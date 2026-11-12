@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Check,
   Copy,
+  KeyRound,
   Languages,
   ListTodo,
   Mail,
@@ -38,6 +39,7 @@ import { Button, Card, Empty, Field, Input, Select, Sheet, Skeleton, Textarea } 
 import { History } from "./History";
 import { ChipToggles } from "./InviteSheet";
 import { RolePill, StatusPill, TeamChip, inviteMailto, signInUrl } from "./shared";
+import { PasswordSheet } from "./StartingPassword";
 
 export function StaffProfile({ id }: { id: string }) {
   const { lang, user, can, toast } = usePortal();
@@ -51,6 +53,7 @@ export function StaffProfile({ id }: { id: string }) {
   const [editing, setEditing] = useState(false);
   const [picture, setPicture] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [password, setPassword] = useState(false);
   const Back = fa ? ArrowRight : ArrowLeft;
 
   if (!person) {
@@ -146,13 +149,18 @@ export function StaffProfile({ id }: { id: string }) {
         <Card className="flex flex-col gap-3 border-p-warn/40 bg-p-warn-soft/40 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-p-ink-2">
             {fa
-              ? `هنوز وارد نشده. باید با حساب Google یا Apple ایمیل ${person.email} وارد شود.`
-              : `Not signed in yet. They need to sign in with the Google or Apple account for ${person.email}.`}
+              ? `هنوز وارد نشده. یک گذرواژه شروع برایش بگذارید و مشخصات ورود را بفرستید؛ با ${person.email} وارد می شود.`
+              : `Not signed in yet. Give them a starting password and send the sign-in details. They sign in as ${person.email}.`}
           </p>
           <div className="flex flex-wrap gap-2">
-            <a href={inviteMailto(lang, person.email, person.display_name, user.name)} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-p-brand px-2.5 text-[13px] font-medium text-p-brand-ink">
+            {access ? (
+              <Button size="sm" tone="primary" icon={<KeyRound className="size-3.5" />} onClick={() => setPassword(true)}>
+                {fa ? "گذرواژه شروع" : "Set starting password"}
+              </Button>
+            ) : null}
+            <a href={inviteMailto(lang, person.email, person.display_name, user.name)} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-p-line bg-p-surface px-2.5 text-[13px] font-medium text-p-ink-2 hover:border-p-line-strong">
               <Mail className="size-3.5" />
-              {fa ? "ایمیل دعوت دوباره" : "Email the invite again"}
+              {fa ? "ایمیل دعوت" : "Email the invite"}
             </a>
             <Button
               size="sm"
@@ -229,6 +237,25 @@ export function StaffProfile({ id }: { id: string }) {
 
         <div className="space-y-5">
           <AccessCard person={person} allowed={access} isMe={isMe} />
+          {access && person.status !== "suspended" ? (
+            <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+              <div className="min-w-0">
+                <h2 className="text-[15px] font-semibold">{fa ? "ورود به سامانه" : "Sign-in"}</h2>
+                <p className="mt-0.5 text-[13px] text-p-ink-3">
+                  {person.user_id
+                    ? fa
+                      ? "با ایمیل و گذرواژه خودش وارد می شود. اگر فراموش کرد، گذرواژه تازه ای برایش بگذارید."
+                      : "Signs in with their email and own password. If they forget it, give them a new one."
+                    : fa
+                      ? "هنوز حساب ورود ندارد. با یک گذرواژه شروع فعال می شود."
+                      : "No sign-in account yet. A starting password switches it on."}
+                </p>
+              </div>
+              <Button icon={<KeyRound className="size-4" />} onClick={() => setPassword(true)}>
+                {person.user_id ? (fa ? "گذرواژه تازه" : "New password") : fa ? "گذرواژه شروع" : "Set starting password"}
+              </Button>
+            </Card>
+          ) : null}
           <TeamsCard person={person} teams={teams} />
           {can.manage ? (
             <div>
@@ -250,6 +277,7 @@ export function StaffProfile({ id }: { id: string }) {
 
       <ProfileSheet open={editing} onClose={() => setEditing(false)} person={person} adminEdit={hasAdmin(user.role)} />
       {isMe ? <AvatarChooser open={picture} onClose={() => setPicture(false)} /> : null}
+      {access ? <PasswordSheet open={password} onClose={() => setPassword(false)} person={person} /> : null}
     </div>
   );
 }

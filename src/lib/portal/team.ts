@@ -232,3 +232,36 @@ export function normalizePhone(raw: string): string {
 }
 
 export const TEAM_COLORS = ["#0e5d4c", "#2364a8", "#b07a1e", "#6a43b8", "#c0362c", "#0f6b78", "#b23a6b", "#4d7c0f", "#2f3e46", "#c46a2c"];
+
+/* ------------------------------------------------------------ Passwords */
+
+// No look-alikes (0/o, 1/l/i), so a password read out over the phone or
+// typed from a message arrives intact.
+const PASSWORD_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789";
+
+/** A starting password an admin hands to a colleague, like "kq7m-x3pd-9wtr". */
+export function newStartingPassword(random: (count: number) => Uint8Array = (n) => crypto.getRandomValues(new Uint8Array(n))): string {
+  const out: string[] = [];
+  // Reject bytes past the last full multiple of the alphabet so every letter is equally likely.
+  const limit = 256 - (256 % PASSWORD_ALPHABET.length);
+  while (out.length < 12) {
+    for (const byte of random(24)) {
+      if (byte < limit && out.length < 12) out.push(PASSWORD_ALPHABET[byte % PASSWORD_ALPHABET.length]);
+    }
+  }
+  return `${out.slice(0, 4).join("")}-${out.slice(4, 8).join("")}-${out.slice(8, 12).join("")}`;
+}
+
+/** Why a password can't be used, or null when it is fine. Mirrors staff_account_set_password. */
+export function passwordProblem(password: string): "short" | "long" | null {
+  if (password.length < 8) return "short";
+  if (new TextEncoder().encode(password).length > 72) return "long";
+  return null;
+}
+
+/** What the admin sends a colleague: where to sign in and with what. */
+export function signInDetails(lang: Lang, link: string, email: string, password: string) {
+  return lang === "fa"
+    ? `سامانه کارکنان اَرَتَ\nنشانی ورود: ${link}\nایمیل: ${email}\nگذرواژه شروع: ${password}\nبعد از اولین ورود، گذرواژه خودتان را انتخاب می کنید.`
+    : `Aratta staff portal\nSign in: ${link}\nEmail: ${email}\nStarting password: ${password}\nAfter your first sign-in you choose your own password.`;
+}

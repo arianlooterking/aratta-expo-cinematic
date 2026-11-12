@@ -50,6 +50,8 @@ const staffNotices: Record<string, Record<Lang, string>> = {
   "owner-only": { fa: "فقط مالک می تواند دسترسی مالک را بدهد یا تغییر دهد", en: "Only an owner can grant or change owner access" },
   "last-owner": { fa: "دست کم یک مالک فعال لازم است", en: "At least one active owner is required" },
   "email-locked": { fa: "ایمیل همکاری که وارد شده قابل تغییر نیست", en: "A signed-in colleague's email can't be changed" },
+  "password-length": { fa: "گذرواژه باید دست کم ۸ نویسه باشد", en: "The password needs at least 8 characters" },
+  "password-suspended": { fa: "اول دسترسی این همکار را دوباره فعال کنید", en: "Restore this colleague's access first" },
 };
 
 type Toast = { id: number; tone: "error" | "info"; text: string };

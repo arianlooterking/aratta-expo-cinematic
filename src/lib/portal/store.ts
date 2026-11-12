@@ -135,6 +135,8 @@ export abstract class PortalStore {
   abstract setMyAvatar(staffId: string, avatar: string | null): Promise<MutationResult<Row<"staff_members">>>;
   /** The signed-in person's own profile details (anyone can edit their own). */
   abstract updateMyProfile(staffId: string, patch: MyProfilePatch): Promise<MutationResult<Row<"staff_members">>>;
+  /** Give a colleague a starting password (or reset it). Admins and owners; never for yourself. */
+  abstract setStaffPassword(staffId: string, password: string): Promise<{ ok: true } | { ok: false; error: string }>;
   /** Recent changes from the history, newest first. Managers and above. */
   abstract history(query: HistoryQuery): Promise<{ ok: true; entries: AuditEntry[] } | { ok: false; error: string }>;
   /** Upload a file and return a path the store can turn into a URL. */

@@ -29,6 +29,8 @@ export default async function PortalLayout({
   // sample data. Once connected, only active staff members get in.
   const session = await getStaffSession();
   if (session.state === "signed-out" || session.state === "pending") redirect(`/${lang}/staff/sign-in`);
+  // A starting password from an admin is replaced before anything else.
+  if (session.state === "active" && session.mustChangePassword) redirect(`/${lang}/staff/password`);
 
   const user: PortalUser =
     session.state === "active"

@@ -34,7 +34,7 @@ The Exhibition Hall Operations Command Center is available at **/fa/staff** and 
 
 ### Platform foundation (Supabase)
 
-The shared backend lives in `supabase/migrations`: exhibitions, halls, booths, companies, deals, invoices and payments, equipment orders, build permits, guest travel, tasks, notifications and an audit log, all protected by row level security with owner/admin/manager/member/viewer roles. Staff sign in with Google or Apple at `/fa/staff/sign-in`; only invited emails get in, and admins manage access at `/fa/staff/team`. Setup, roles and the Excel workbook importer are documented in **docs/staff-platform.md**.
+The shared backend lives in `supabase/migrations`: exhibitions, halls, booths, companies, deals, invoices and payments, equipment orders, build permits, guest travel, tasks, notifications and an audit log, all protected by row level security with owner/admin/manager/member/viewer roles. Staff sign in with their email and a password at `/fa/staff/sign-in` (Google and Apple can be switched on as well); only invited emails get in, and admins manage access and hand out starting passwords at `/fa/staff/team`. Setup, roles and the Excel workbook importer are documented in **docs/staff-platform.md**.
 
 Without `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, the portal still runs as the local, browser-only demo. The hall canvas and workspaces still save to the browser until they are moved onto the shared database in the next steps.
 
