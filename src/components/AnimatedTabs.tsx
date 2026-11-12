@@ -15,6 +15,7 @@ import { useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
 import { cn } from "@/lib/cn";
 import { boothStageFrames } from "@/lib/booth-scenes";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 
 const serviceMeta = [
   {
@@ -89,7 +90,8 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
     content.lang === "fa" ? faDigits(index + 1) : String(index + 1).padStart(2, "0");
 
   return (
-    <section id="forms" className="relative overflow-hidden section-pad">
+    <section id="forms" className="relative isolate overflow-hidden section-pad">
+      <BuildBackdrop motif="walls" lang={content.lang} className="end-[-15%] top-2 w-[115vw] lg:end-[calc(50%-min(590px,47%)-4rem)] lg:top-[-3.5rem] lg:w-[30rem]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/22 to-transparent" />
       <div className="section-shell">
         <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
@@ -124,7 +126,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
             <div className="absolute inset-0 bg-[linear-gradient(270deg,rgba(1,8,10,0.94)_0%,rgba(1,8,10,0.8)_45%,rgba(1,8,10,0.5)_100%)] ltr:bg-[linear-gradient(90deg,rgba(1,8,10,0.94)_0%,rgba(1,8,10,0.8)_45%,rgba(1,8,10,0.5)_100%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_12%,rgba(0,0,0,0.2)_30%,rgba(0,0,0,0.84)_54%,rgba(0,0,0,0.9)_100%)]" />
 
-            <div className="relative z-10 flex min-h-[500px] max-w-2xl lg:min-h-[600px] flex-col justify-between p-6 sm:p-8 lg:p-10">
+            <div className="relative z-10 flex min-h-[500px] max-w-2xl lg:min-h-[600px] flex-col justify-between p-5 sm:p-8 lg:p-10">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="inline-flex items-center gap-2 rounded-full border border-cyan-100/22 bg-cyan-100/8 px-4 py-2 text-xs font-black text-[var(--cyan)]">
@@ -195,7 +197,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                   type="button"
                   onClick={() => setActive(index)}
                   className={cn(
-                    "group relative overflow-hidden rounded-[1.5rem] border p-5 text-start transition duration-300",
+                    "group relative overflow-hidden rounded-[1.5rem] border p-4 text-start transition duration-300 sm:p-5",
                     isActive
                       ? "border-cyan-200/45 bg-cyan-200/12 shadow-[0_22px_80px_rgba(62,231,255,0.12)]"
                       : "border-white/10 bg-white/[0.035] hover:border-white/24 hover:bg-white/[0.06]",
@@ -208,10 +210,10 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                       isActive ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  <div className="relative flex items-start gap-4">
+                  <div className="relative flex items-start gap-3 sm:gap-4">
                     <span
                       className={cn(
-                        "grid h-[3.25rem] w-[3.25rem] shrink-0 place-items-center rounded-[1.1rem] border transition",
+                        "grid h-11 w-11 shrink-0 place-items-center rounded-[0.95rem] border transition sm:h-[3.25rem] sm:w-[3.25rem] sm:rounded-[1.1rem]",
                         isActive
                           ? "border-cyan-100/32 bg-cyan-100/12 text-[var(--cyan)]"
                           : "border-white/12 bg-black/28 text-[var(--gold)]",

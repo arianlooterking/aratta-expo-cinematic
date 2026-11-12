@@ -247,7 +247,7 @@ function PageHeader({
   page: PageSlug;
 }) {
   return (
-    <div className="industrial-card relative isolate min-h-[320px] overflow-hidden rounded-[2.2rem] p-6 lg:p-8">
+    <div className="industrial-card relative isolate min-h-[280px] overflow-hidden rounded-[2rem] p-5 sm:min-h-[320px] sm:rounded-[2.2rem] sm:p-6 lg:p-8">
       <Image
         src={getBoothFrameForPage(page)}
         alt=""
@@ -260,7 +260,7 @@ function PageHeader({
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,5,8,0.92)_0%,rgba(2,5,8,0.72)_44%,rgba(2,5,8,0.2)_100%)] rtl:bg-[linear-gradient(270deg,rgba(2,5,8,0.92)_0%,rgba(2,5,8,0.72)_44%,rgba(2,5,8,0.2)_100%)]" />
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(2,5,8,0.08),rgba(2,5,8,0.72))]" />
 
-      <div className="relative grid min-h-[260px] gap-6 lg:grid-cols-[0.78fr_1fr] lg:items-end">
+      <div className="relative grid min-h-[240px] content-end gap-5 sm:min-h-[260px] sm:gap-6 lg:grid-cols-[0.78fr_1fr] lg:items-end">
         <div className="max-w-[44rem]">
           <nav aria-label={lang === "fa" ? "مسیر صفحه" : "Breadcrumb"}>
             <ol className="flex flex-wrap items-center gap-2 text-xs font-bold text-white/60">
@@ -275,7 +275,7 @@ function PageHeader({
           </nav>
           <h1 className="page-display-title mt-4 font-black text-white">{title}</h1>
         </div>
-        <p className="glass site-copy rounded-[1.6rem] p-6 text-base font-semibold text-white/76 sm:text-lg">
+        <p className="glass site-copy rounded-[1.4rem] p-4 text-[0.95rem] font-semibold text-white/76 sm:rounded-[1.6rem] sm:p-6 sm:text-lg">
           {body}
         </p>
       </div>
@@ -531,7 +531,7 @@ function AboutPage({ content }: { content: Content }) {
   return (
     <div className="space-y-8">
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <div className="flex items-center gap-3 text-[var(--cyan)]">
             <Building2 size={22} />
             <span className="text-xs font-black">
@@ -597,7 +597,7 @@ function AboutPage({ content }: { content: Content }) {
         })}
       </section>
 
-      <section className="industrial-card rounded-[2rem] p-6 sm:p-7">
+      <section className="industrial-card rounded-[2rem] p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <CalendarClock className="text-[var(--gold)]" size={22} />
@@ -662,7 +662,7 @@ function ExhibitionsPage({ content, calendar }: { content: Content; calendar: Ca
               </p>
             </div>
           </div>
-          <div className="p-7">
+          <div className="p-5 sm:p-7">
             <div className="text-xs font-black text-[var(--cyan)]">
               {fa ? "آرشیو نمایشگاه معدن کرمان" : "Kerman mining exhibition archive"}
             </div>
@@ -740,7 +740,7 @@ function ExhibitionsPage({ content, calendar }: { content: Content; calendar: Ca
         ))}
       </section>
 
-      <section className="industrial-card rounded-[2rem] p-7">
+      <section className="industrial-card rounded-[2rem] p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="section-kicker">{fa ? "آرشیو رویدادها" : "Event archive"}</div>
@@ -790,7 +790,7 @@ function RegistrationPage({ content, eventNames }: { content: Content; eventName
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <div className="flex items-center gap-3 text-[var(--gold)]">
             <ClipboardCheck size={23} />
             <span className="text-xs font-black">{fa ? "مراحل ثبت‌نام" : "How registration works"}</span>
@@ -808,7 +808,7 @@ function RegistrationPage({ content, eventNames }: { content: Content; eventName
             ))}
           </ol>
         </div>
-        <div className="glass rounded-[2rem] p-7">
+        <div className="glass rounded-[2rem] p-5 sm:p-7">
           <h2 className="text-2xl font-black text-white">{fa ? "پیام آزاد به دفتر" : "A free-form message"}</h2>
           <p className="mt-3 leading-8 text-white/60">
             {fa
@@ -821,7 +821,7 @@ function RegistrationPage({ content, eventNames }: { content: Content; eventName
         </div>
       </section>
 
-      <section className="industrial-card rounded-[2rem] p-6 sm:p-8">
+      <section className="industrial-card rounded-[2rem] p-5 sm:p-8">
         <ExhibitorJourney lang={content.lang} />
       </section>
 
@@ -897,7 +897,7 @@ function DownloadsPage({
   return (
     <div className="space-y-7">
       {!compact ? (
-        <section className="glass relative isolate overflow-hidden rounded-[2rem] p-7">
+        <section className="glass relative isolate overflow-hidden rounded-[2rem] p-5 sm:p-7">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_15%_12%,rgba(125,220,232,0.16),transparent_22rem),radial-gradient(circle_at_86%_18%,rgba(214,174,101,0.16),transparent_20rem)]" />
           <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
             <div>
@@ -976,7 +976,7 @@ function DownloadsPage({
 
       {mode === "participants" ? (
         <>
-          <section className="industrial-card rounded-[2rem] p-6 sm:p-7">
+          <section className="industrial-card rounded-[2rem] p-5 sm:p-7">
             <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
               <div>
                 <div className="section-kicker">{fa ? "فهرست رسمی" : "Official list"}</div>
@@ -1009,7 +1009,7 @@ function DownloadsPage({
               ) : null}
             </div>
           </section>
-          <section className="industrial-card rounded-[2rem] p-6 sm:p-7">
+          <section className="industrial-card rounded-[2rem] p-5 sm:p-7">
             <PartnersSection lang={content.lang} compact />
           </section>
         </>
@@ -1118,7 +1118,7 @@ function NewsPage({ content }: { content: Content }) {
             <p className="site-copy mt-4 max-w-2xl text-white/70">{data.newsArchive[0].body}</p>
           </div>
         </article>
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <Newspaper className="text-[var(--gold)]" size={30} />
           <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "خبرها به عنوان آرشیو رسمی" : "News as an official archive"}
@@ -1167,7 +1167,7 @@ function RelatedNewsPage({ content }: { content: Content }) {
   return (
     <div className="space-y-7">
       <section className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <div className="section-kicker">{content.news.relatedKicker}</div>
           <h2 className="card-display-title mt-4 font-black text-white">{content.news.relatedTitle}</h2>
           <p className="site-copy mt-5 text-white/64">{content.news.relatedBody}</p>
@@ -1231,7 +1231,7 @@ function RelatedNewsPage({ content }: { content: Content }) {
         ))}
       </section>
 
-      <section className="glass rounded-[2rem] p-6 sm:p-7">
+      <section className="glass rounded-[2rem] p-5 sm:p-7">
         <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
             <div className="section-kicker">{fa ? "آرشیو رسمی" : "Official archive"}</div>
@@ -1255,7 +1255,7 @@ function GalleryPage({ content }: { content: Content }) {
   return (
     <div className="space-y-8">
       <section className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <BookOpen className="text-[var(--gold)]" size={30} />
           <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "آرشیو تصویری رویدادهای اَرَتَ" : "Aratta event photo archive"}
@@ -1320,7 +1320,7 @@ function ContactPage({ content }: { content: Content }) {
   return (
     <div className="space-y-7">
       <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <ContactLine icon={<MapPin size={21} />} label={content.contact.addressLabel}>
             {content.contact.address}
           </ContactLine>
@@ -1349,7 +1349,7 @@ function ContactPage({ content }: { content: Content }) {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="industrial-card rounded-[2rem] p-7">
+        <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <Sparkles className="text-[var(--cyan)]" size={30} />
           <h2 className="card-display-title mt-5 font-black text-white">
             {fa ? "درخواست سریع همکاری یا غرفه" : "Quick participation or booth request"}
@@ -1360,7 +1360,7 @@ function ContactPage({ content }: { content: Content }) {
               : "The form prepares an email draft for your review; nothing is sent until you approve and send it yourself."}
           </p>
         </div>
-        <div className="glass rounded-[2rem] p-7">
+        <div className="glass rounded-[2rem] p-5 sm:p-7">
           <InquiryForm content={content} />
         </div>
       </section>
@@ -1393,7 +1393,7 @@ function SearchPage({ content }: { content: Content }) {
   const links = content.nav.filter((item) => item.id !== "home");
   return (
     <div className="space-y-7">
-      <section className="industrial-card rounded-[2rem] p-6">
+      <section className="industrial-card rounded-[2rem] p-5 sm:p-6">
         <form action={`/${content.lang}/archive`} role="search" className="flex flex-col gap-3 sm:flex-row"><label className="grid min-w-0 flex-1 gap-2"><span className="text-sm text-white/75">{fa?'جستجو در خبرها و نمایشگاه‌ها':'Search news and exhibitions'}</span><input name="q" className="min-h-12 rounded-2xl border border-white/20 bg-black/30 px-5 text-white" placeholder={fa?'نام شرکت، رویداد یا موضوع…':'Company, event or topic…'}/></label><button type="submit" className="inline-flex min-h-12 items-center justify-center gap-2 self-end rounded-2xl bg-[var(--gold)] px-6 text-black"><Search size={20}/>{fa?'جستجو':'Search'}</button></form>
         <h2 className="mt-8 font-bold">{fa?'دسترسی سریع به بخش‌های سایت':'Quick access to site sections'}</h2>
         <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">

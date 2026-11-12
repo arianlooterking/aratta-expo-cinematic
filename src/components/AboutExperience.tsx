@@ -57,7 +57,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
 
   return (
     <section id="about" className="relative isolate overflow-hidden section-pad">
-      <BuildBackdrop motif="logo" lang={lang} className="end-[-22%] top-[-1rem] w-[min(460px,88vw)] lg:max-[1599px]:hidden min-[1600px]:end-[calc(50%-590px-25.5rem)] min-[1600px]:top-auto min-[1600px]:bottom-8 min-[1600px]:w-[24rem]" />
+      <BuildBackdrop motif="logo" lang={lang} className="end-[-6%] top-[-0.5rem] w-[min(420px,68vw)] lg:end-[calc(50%-min(590px,47%)-19rem)] lg:top-auto lg:bottom-8 lg:w-[22rem] min-[1600px]:end-[calc(50%-590px-25.5rem)] min-[1600px]:w-[24rem]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
       <div className="section-shell grid gap-6 lg:grid-cols-[1fr_1.05fr] lg:items-stretch">
         <motion.div

@@ -120,7 +120,7 @@ function UpcomingCardView({ item, fa }: { item: UpcomingCard; fa: boolean }) {
           <CalendarClock size={16} className="shrink-0" />
           {item.dateText ?? (fa ? "تاریخ دوره بعد: اعلام نشده" : "Next edition: not announced")}
         </p>
-        <h3 className="mt-3 text-xl font-black leading-8 text-white">{item.name}</h3>
+        <h3 className="mt-3 text-lg font-black leading-8 sm:text-xl text-white">{item.name}</h3>
         {item.summary ? <p className="mt-2 text-sm leading-7 text-white/62">{item.summary}</p> : null}
         <p className="mt-3 flex items-center gap-2 text-sm text-white/60">
           <MapPin size={15} className="shrink-0 text-[var(--gold)]" />
