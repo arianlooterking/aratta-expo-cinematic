@@ -8,7 +8,7 @@ import * as THREE from "three";
 import { canvasTexture, toFa, type Ctx } from "./core";
 import { BOOTH_TIMELINE as T, clamp01, easeOutCubic, window01 } from "./timeline";
 import { AISLE, TEAL } from "./materials";
-import { onTheme } from "./theme";
+import { onTheme, themeLevel } from "./theme";
 import { hallPoolKind } from "./hall-architecture";
 import { SURROUNDINGS as S } from "./surroundings-timeline";
 
@@ -70,9 +70,10 @@ export function buildHall(ctx: Ctx) {
   // ---- the empty plot waits in a pool of light until the raised floor covers it.
   hallPoolKind(ctx);
   const plotPool = (p: number) => 1 - window01(p, S.plotPool[0], S.plotPool[1]);
-  const k = ctx.rich ? 1 : 0.7;
-  decals.add("hallpool", 0, 0.0045, 0, 17, 13.5, (p) => plotPool(p) * 0.36 * k);
-  decals.add("hallpool", 0, 0.005, 0.4, 30, 24, (p) => plotPool(p) * 0.14 * k);
+  // Softer on phones (no tone-mapped bloom pass) and by day, so the copy over it stays legible.
+  const k = () => (ctx.rich ? 1 : 0.45) * (1 - 0.45 * themeLevel(ctx));
+  decals.add("hallpool", 0, 0.0045, 0, 17, 13.5, (p) => plotPool(p) * 0.36 * k());
+  decals.add("hallpool", 0, 0.005, 0.4, 30, 24, (p) => plotPool(p) * 0.14 * k());
 
   buildPlot(ctx);
 }

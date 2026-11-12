@@ -10,7 +10,7 @@ import { canvasTexture, rng } from "./core";
 export const BRASS = "#d3a84b";
 export const TEAL = "#63c9a4";
 /** Aisle carpet colour per scene theme (the pile texture is neutral). */
-export const AISLE = { dark: "#26343b", light: "#9e1b24" } as const;
+export const AISLE = { dark: "#26343b", light: "#8e1820" } as const;
 
 type Track = <T extends { dispose(): void }>(item: T) => T;
 
