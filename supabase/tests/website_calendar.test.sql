@@ -52,4 +52,38 @@ begin
 end $$;
 
 reset role;
+
+-- The view reads with its owner's rights, so a signed-in account that could
+-- write to it would get past the rules on the exhibitions table.
+set local role authenticated;
+
+do $$
+begin
+  begin
+    update public.website_exhibitions set name_fa = 'x' where slug = 'listed-show';
+  exception when insufficient_privilege then
+    begin
+      delete from public.website_exhibitions where slug = 'listed-show';
+    exception when insufficient_privilege then
+      begin
+        insert into public.website_exhibitions (slug, name_fa) values ('y', 'y');
+      exception when insufficient_privilege then
+        return;
+      end;
+      raise exception 'a signed-in account must not add through the view';
+    end;
+    raise exception 'a signed-in account must not delete through the view';
+  end;
+  raise exception 'a signed-in account must not change exhibitions through the view';
+end $$;
+
+reset role;
+
+do $$
+begin
+  if not exists (select 1 from public.exhibitions where slug = 'listed-show' and name_fa = 'نمایشگاه منتشرشده') then
+    raise exception 'the listed exhibition was changed through the view';
+  end if;
+end $$;
+
 rollback;

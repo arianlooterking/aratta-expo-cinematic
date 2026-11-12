@@ -113,6 +113,10 @@ the last active owner can't be removed.
    `select public.staff_account_set_password('you@example.com', 'a-starting-password');`
    Sign in with those and choose your own password. After that, owners and
    admins add everyone else from **Team and staff** (see "Signing in" above).
+   Optional: in Supabase → Authentication → Sign In / Providers, turn off
+   **Allow new users to sign up**. Staff accounts are only ever created from
+   Team and staff, so nothing else needs it. An outside sign-up has no staff
+   record and sees nothing either way.
 3. **Optional: turn on Google sign-in.** In Google Cloud, create an OAuth client of type
    "Web application", add `https://<project>.supabase.co/auth/v1/callback` as an
    authorised redirect URI, then paste the client ID and secret into Supabase
@@ -133,6 +137,22 @@ the last active owner can't be removed.
    `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in Vercel (see `.env.example`).
    Add `ANTHROPIC_API_KEY` to let the new-exhibition form read halls out of an
    uploaded venue map.
+
+### Notes on the hosted database
+
+- A hosted Supabase project gives signed-in accounts every privilege on new
+  tables and views in `public`. Row level security covers the tables. A view
+  that reads with its owner's rights (only `website_exhibitions`, the public
+  calendar) must have those privileges taken back, which
+  `20261112130000_tighten_default_grants.sql` does. `scripts/db-test.sh` sets
+  the same defaults locally, so a new view or table that forgets this fails
+  the tests.
+- On the live project the old four-argument `update_my_profile` was renamed to
+  `update_my_profile_legacy` and closed to every API role instead of being
+  dropped, because Supabase asks the project owner to confirm a drop. A fresh
+  install drops it. To remove it from the live database, run
+  `drop function public.update_my_profile_legacy(text, text, text, text);`
+  in the SQL editor.
 
 ## New exhibitions: Persian dates, venue map and halls
 

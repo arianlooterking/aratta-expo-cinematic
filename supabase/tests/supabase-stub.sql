@@ -8,6 +8,12 @@ begin
 end;
 $$;
 
+-- Like a hosted project: signed-in accounts get every privilege on new tables,
+-- views and functions in the public schema unless a migration takes it back.
+alter default privileges in schema public grant all on tables to authenticated, service_role;
+alter default privileges in schema public grant all on functions to authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+
 create schema auth;
 create table auth.users (
   id uuid primary key default gen_random_uuid(),
