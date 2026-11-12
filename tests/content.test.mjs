@@ -190,6 +190,9 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.match(sources["booth-scene"], /setTarget\(progress, immediate\)/);
   assert.match(sources["booth-scene"], /setActive\(value\)/);
   assert.match(sources.materials, /transmission|MeshPhysicalMaterial/);
+  // The production minifier breaks a destructuring assignment onto existing fields
+  // ("[a.x, a.y] = [1, 2]") and the whole 3D chunk then fails to load. Assign plainly.
+  assert.doesNotMatch(scene, /^\s*(?:if \(.*\)\s*)?\[[\w.,\s]+\]\s*=\s*\[/m);
   // The 3D code loads on demand, and the hero keeps a still image when WebGL is missing.
   assert.match(boothHero, /import\("@\/components\/booth3d\/booth-scene"\)/);
   assert.match(boothHero, /hero-v6\/desktop\/stage-06\.webp/);

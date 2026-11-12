@@ -435,9 +435,20 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
             accelAt = p;
           }
           prev = dp;
-          if (dp > worst.pos) [worst.pos, worst.posAt] = [dp, p];
-          if (dt > worst.tgt) [worst.tgt, worst.tgtAt] = [dt, p];
-          if (doff > worst.off) [worst.off, worst.offAt] = [doff, p];
+          // Plain assignments: the production minifier turns a destructuring
+          // assignment onto these fields into invalid code and the chunk fails to load.
+          if (dp > worst.pos) {
+            worst.pos = dp;
+            worst.posAt = p;
+          }
+          if (dt > worst.tgt) {
+            worst.tgt = dt;
+            worst.tgtAt = p;
+          }
+          if (doff > worst.off) {
+            worst.off = doff;
+            worst.offAt = p;
+          }
           a.pos.copy(b.pos);
           a.tgt.copy(b.tgt);
           a.offX = b.offX;
