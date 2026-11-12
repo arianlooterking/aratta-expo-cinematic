@@ -337,7 +337,7 @@ function getPageData(content: Content) {
           [
             "صفحه رسمی سیرجان، پارک گهر را به عنوان محل برگزاری معرفی می‌کند.",
             "حامیان اجرایی و صنعتی شامل مجموعه‌های مرتبط با گل گهر، صنایع معدنی و فولادی منطقه ذکر شده‌اند.",
-            "شماره‌های پیگیری منتشرشده برای این رویداد شامل ۰۹۱۳۰۶۲۵۹۸۳، ۰۹۰۵۴۰۵۳۳۹۱، ۰۳۴۹۱۰۱۵۹۱۰ و ۰۲۱۹۱۳۰۵۹۱۰ است.",
+            "شماره‌های پیگیری منتشرشده برای این رویداد شامل ۰۹۱۳۰۶۲۵۹۸۳، ۰۹۰۵۴۰۵۳۳۹۱ و ۰۲۱۹۱۳۰۵۹۱۰ است.",
           ],
         ]
       : [
@@ -354,7 +354,7 @@ function getPageData(content: Content) {
           [
             "The official Sirjan page names Gohar Park as the venue.",
             "The page references regional mining and steel supporters around Gol Gohar and Sirjan industrial operators.",
-            "Published follow-up numbers include 09130625983, 09054053391, 03491015910, and 02191305910.",
+            "Published follow-up numbers include 09130625983, 09054053391, and 02191305910.",
           ],
         ];
 
