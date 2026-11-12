@@ -20,7 +20,8 @@ const faDigits = (value: string) => value.replace(/\d/g, (d) => "۰۱۲۳۴۵۶�
  * Landing hero: a real 3D exhibition booth is built piece by piece while the
  * visitor scrolls, in the real build order: plot and plan, rigging, raised floor,
  * structure, walls and glass, power and light, brand and media, hosting.
- * GSAP ScrollTrigger owns the scroll; the scene eases toward it for a smooth glide.
+ * GSAP ScrollTrigger owns the scroll; the scene follows it in slow motion (speed
+ * limited), and the copy, rail and phone card follow the progress the scene shows.
  */
 export function BoothBuildHero({ content }: BoothBuildHeroProps) {
   const rootRef = useRef<HTMLElement | null>(null);
@@ -165,7 +166,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
   const finale = chapter >= total;
 
   return (
-    <section id="home" ref={rootRef} className="booth3d relative h-[840svh] bg-[#06080a]" aria-label={content.hero.title}>
+    <section id="home" ref={rootRef} className="booth3d relative h-[1000svh] bg-[#06080a]" aria-label={content.hero.title}>
       <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#06080a]">
         <canvas ref={canvasRef} className="booth3d__canvas absolute inset-0 h-full w-full" aria-hidden="true" />
         {fallback ? (

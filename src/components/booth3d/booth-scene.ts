@@ -256,14 +256,22 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   let disposed = false;
   let target = 0;
   let current = 0;
+  let velocity = 0;
   let last = performance.now();
   let elapsed = 0;
   let lastRender = 0;
   let lastShadowAt = -1;
   let pointerAt = -1e9;
   let frozen = false;
-  // Wheel and trackpad steps get a ~140 ms glide; touch already has momentum, so a lighter one.
-  const tau = window.matchMedia("(pointer: coarse)").matches ? 0.085 : 0.14;
+  // Slow-motion playback: the build follows the scroll, but never faster than SPEED
+  // progress per second (a chapter takes at least ~2.2 s), rising smoothly to SPEED_FAR only
+  // when the visitor is far ahead, so a fast flick never rushes the build. The velocity
+  // itself is smoothed, so starts and stops have no jerk; slow scrolling follows 1:1.
+  const SPEED = 0.05;
+  const SPEED_FAR = 0.2;
+  const FAR_GAP: [number, number] = [0.18, 0.32];
+  const VELOCITY_TAU = 0.22; // s: how smoothly the speed itself changes
+  const FOLLOW = 4 * VELOCITY_TAU; // s: gap closing time; 4x the velocity lag is critically damped (no overshoot)
   // Frame-time probe: render every frame for a short window and step down if slow.
   let probeFrames = 0;
   let probeTime = 0;
@@ -312,9 +320,19 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     elapsed += dt;
     frameDt = dt;
     const before = current;
-    // One damping stage, frame-rate independent (ScrollTrigger hands over raw progress).
-    current += (target - current) * (1 - Math.exp(-dt / tau));
-    if (Math.abs(target - current) < 0.00002) current = target;
+    // Speed-limited follower, frame-rate independent (ScrollTrigger hands over raw progress).
+    const gap = target - current;
+    const far = Math.abs(gap);
+    const ramp = Math.min(1, Math.max(0, (far - FAR_GAP[0]) / (FAR_GAP[1] - FAR_GAP[0])));
+    const limit = SPEED + (SPEED_FAR - SPEED) * ramp * ramp * (3 - 2 * ramp);
+    const wanted = Math.max(-limit, Math.min(limit, gap / FOLLOW));
+    velocity += (wanted - velocity) * (1 - Math.exp(-dt / VELOCITY_TAU));
+    current += velocity * dt;
+    // Never pass the target; settle exactly on it once the remaining motion is invisible.
+    if ((gap > 0 && current > target) || (gap < 0 && current < target) || (far < 0.00002 && Math.abs(velocity) < 0.0005)) {
+      current = target;
+      velocity = 0;
+    }
     const moving = before !== current || now - pointerAt < 1500;
     const probe = probing();
     // Settled frames still animate the LED wall and the sign, at a gentler rate.
@@ -472,7 +490,9 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
         };
       },
       measure(p: number) {
-        current = target = clamp01(p);
+        target = clamp01(p);
+        current = target;
+        velocity = 0;
         renderer.info.autoReset = false;
         renderer.info.reset();
         const t0 = performance.now();
@@ -489,13 +509,21 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   return {
     setTarget(progress, immediate) {
       target = clamp01(progress);
-      if (immediate) current = target;
+      if (immediate) {
+        current = target;
+        velocity = 0;
+      }
     },
     setPointer(x, y) {
       pointer.set(x, y);
       pointerAt = performance.now();
     },
     setActive(value) {
+      // Coming back into view (from above or below): show where the visitor is, at rest.
+      if (value && !active) {
+        current = target;
+        velocity = 0;
+      }
       active = value;
       last = performance.now();
     },

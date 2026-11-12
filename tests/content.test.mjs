@@ -198,7 +198,11 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.match(boothHero, /hero-v6\/desktop\/stage-06\.webp/);
   assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
-  assert.match(boothHero, /h-\[840svh\]/);
+  assert.match(boothHero, /h-\[1000svh\]/);
+  // Slow-motion playback: the shown progress is speed limited and the copy follows it.
+  assert.match(sources["booth-scene"], /const SPEED = 0\.05;/);
+  assert.match(sources["booth-scene"], /const SPEED_FAR = 0\.2;/);
+  assert.match(boothHero, /onFrame: paint/);
   // One calm crane move: no idle sway, a measurable path.
   assert.doesNotMatch(sources.camera, /Math\.sin\(time/);
   assert.match(sources.camera, /export function pathStats/);
