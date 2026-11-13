@@ -209,7 +209,16 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   // The LED wall plays a calm brand reel drawn once into textures, with text from the site content.
   const reel = await readFile(new URL("reel.ts", dir), "utf8");
   assert.match(reel, /export function buildReel/);
-  assert.match(reel, /export const REEL = \{ slides: 4, hold: 7, fade: 1\.8 \}/);
+  assert.match(reel, /export const REEL_LOOP = 30;/);
+  assert.match(reel, /export function shortName/);
+  // Photos of Aratta's own exhibitions, downscaled copies, loaded after the first frame.
+  for (const name of ["mining-machinery", "steel-copper-energy", "mineral-production"]) {
+    for (const size of [1024, 640]) {
+      const photo = await stat(new URL(`../public/booth-reel/${name}-${size}.jpg`, import.meta.url));
+      assert.ok(photo.size < 125_000, `${name}-${size}.jpg is ${photo.size} bytes`);
+    }
+  }
+  assert.match(sources["booth-scene"], /loadReel/);
   assert.match(sources.identity, /buildReel\(ctx/);
   assert.match(boothHero, /import type \{ SiteContent \} from "@\/data\/aratta-content"/);
   assert.match(boothHero, /events: contentRef\.current\.exhibitions\.items\.map\(\(item\) => item\.title\)/);

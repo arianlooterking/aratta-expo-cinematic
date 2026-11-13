@@ -438,8 +438,8 @@ export function buildFurniture(ctx: Ctx) {
   };
   const L = rich ? 130 : 70;
   plant(-5.5, FLOOR_TOP, 4.0, 1.7, 0.26, 0.55, L, 101, 0);
-  plant(2.55, FLOOR_TOP, 3.9, 1.3, 0.22, 0.48, Math.round(L * 0.8), 202, 1);
-  plant(2.15, FLOOR_TOP, -3.45, 1.9, 0.16, 0.6, Math.round(L * 0.8), 303, 2);
+  plant(2.55, FLOOR_TOP, 3.9, 0.95, 0.22, 0.48, Math.round(L * 0.8), 202, 1); // kept low: it stands in front of the LED wall from the finale camera
+  plant(1.7, FLOOR_TOP, -3.45, 1.9, 0.16, 0.6, Math.round(L * 0.8), 303, 2);
   plant(-5.55, DECK.top, -4.05, 1.3, 0.22, 0.45, Math.round(L * 0.7), 404, 3);
   plant(-1.4, DECK.top, -2.85, 1.0, 0.18, 0.4, Math.round(L * 0.55), 505, 4);
   plant(-5.6, FLOOR_TOP, -4.1, 1.1, 0.18, 0.42, Math.round(L * 0.5), 606, 5);

@@ -1,11 +1,15 @@
-// The LED wall's brand reel: four calm slides with slow cross-fades, drawn once
-// into one atlas texture at load (plus a small line-order map for the plan
-// slide) and animated only in the shader: a slow 2-3% zoom on every slide, a
-// soft gold light sweep, drifting survey contours and a hall plan that draws
-// itself line by line. Nothing is redrawn or uploaded per frame; the frame loop
-// only sets the reel time. All text comes from the site content
-// (src/data/aratta-content.ts), handed over by the hero.
+// The LED wall's event film: a 30 s loop that plays like a real video wall.
+// A logo sting, three photos of Aratta's own exhibitions with a slow pan and
+// zoom (each with the exhibition's short name in large type over a soft dark
+// gradient), then the hero title. Slides cross-fade slowly at steady
+// brightness. The type and gradients are drawn once into one atlas at load;
+// the photos (downscaled copies in public/booth-reel/) load after the first
+// frame and replace a warm graphic ground until they arrive. Everything that
+// moves is done in the shader; nothing is redrawn or uploaded per frame.
+// All text comes from the site content (src/data/aratta-content.ts), handed
+// over by the hero; exhibition names are shortened here, in code.
 
+import * as THREE from "three";
 import { canvasTexture, drawLogo, type Ctx } from "./core";
 import { LOGO_HEIGHT } from "./brand-logo";
 
@@ -13,22 +17,33 @@ import { LOGO_HEIGHT } from "./brand-logo";
 export type ReelText = {
   /** content.exhibitions.title */
   heading: string;
-  /** content.exhibitions.items[].title */
+  /** content.exhibitions.items[].title, in order */
   events: string[];
-  /** content.services.items[0].title */
-  caption: string;
   /** content.hero.title */
   title: string;
   /** content.hero.subtitle */
   line: string;
 };
 
-/** Seconds each slide holds (cross-fade included) and the cross-fade itself. */
-export const REEL = { slides: 4, hold: 7, fade: 1.8 } as const;
-/** One loop of the reel, in seconds (4 x 7 = 28 s). */
-export const REEL_LOOP = REEL.slides * REEL.hold;
+/** Photos of the three exhibitions, in the order of content.exhibitions.items (their own covers). */
+export const REEL_PHOTOS = ["mining-machinery", "steel-copper-energy", "mineral-production"] as const;
 
-type Fill = (c: CanvasRenderingContext2D, w: number, h: number) => void;
+/** Slide start times (s): logo sting, three photos, the hero title; the loop is 30 s. */
+export const REEL_STARTS = [0, 3.5, 10.5, 17.5, 24.5] as const;
+export const REEL_LOOP = 30;
+export const REEL_FADE = 1.5;
+
+/**
+ * The shortest name an exhibition has: only long titles exist in the content,
+ * so take its first clause (up to the first comma or colon), adding the next
+ * clause while it is still too short to name the event.
+ */
+export function shortName(title: string) {
+  const parts = title.split(/\s*[,،:]\s*/);
+  let name = parts[0];
+  for (let i = 1; i < parts.length && name.length < 18; i += 1) name += (/[،]/.test(title) ? "، " : ", ") + parts[i];
+  return name;
+}
 
 /** Break text into lines that fit `max` pixels with the current font. */
 function wrap(c: CanvasRenderingContext2D, text: string, max: number) {
@@ -46,163 +61,126 @@ function wrap(c: CanvasRenderingContext2D, text: string, max: number) {
   return lines;
 }
 
-/** The plan: a hall outline, aisles and a grid of stands, one of them ours (gold). */
-function planLines(w: number, h: number) {
-  const lines: Array<{ a: [number, number]; b: [number, number]; ours?: boolean }> = [];
-  const rect = (x0: number, y0: number, x1: number, y1: number, ours = false) => {
-    lines.push({ a: [x0, y0], b: [x1, y0], ours }, { a: [x1, y0], b: [x1, y1], ours }, { a: [x1, y1], b: [x0, y1], ours }, { a: [x0, y1], b: [x0, y0], ours });
-  };
-  const L = w * 0.1;
-  const R = w * 0.9;
-  const T = h * 0.12;
-  const B = h * 0.72;
-  rect(L, T, R, B);
-  const cols = 5;
-  const rows = 2;
-  const gx = (R - L) * 0.06;
-  const gy = (B - T) * 0.16;
-  const bw = (R - L - gx * (cols + 1)) / cols;
-  const bh = (B - T - gy * (rows + 1)) / rows;
-  for (let r = 0; r < rows; r += 1)
-    for (let k = 0; k < cols; k += 1) {
-      const x0 = L + gx + k * (bw + gx);
-      const y0 = T + gy + r * (bh + gy);
-      rect(x0, y0, x0 + bw, y0 + bh, r === 1 && k === 2);
-    }
-  return lines;
-}
-
 export function buildReel(ctx: Ctx, text: ReelText | undefined) {
   const { rich, font, fa, track } = ctx;
-  // Phones: the same reel at about half the resolution (atlas 1024 wide).
+  // One atlas of 2 x 3 slots at the wall's 7:5; 1024 wide on phones.
   const W = rich ? 840 : 512;
   const H = Math.round(W / 1.4);
-  const k = W / 840;
   const dir: CanvasDirection = fa ? "rtl" : "ltr";
-  const ground = (c: CanvasRenderingContext2D, x: number, y: number, top: string, bottom: string) => {
-    const g = c.createLinearGradient(x, y, x + W, y + H);
-    g.addColorStop(0, top);
-    g.addColorStop(1, bottom);
+  type Fill = (c: CanvasRenderingContext2D) => void;
+  /** Near black with a warm glow, so the dark slides sit close to the photos' brightness. */
+  const ground = (c: CanvasRenderingContext2D, glow = 0.32) => {
+    c.fillStyle = "#0b0a09";
+    c.fillRect(0, 0, W, H);
+    const g = c.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, W * 0.7);
+    g.addColorStop(0, `rgba(196,150,78,${glow})`);
+    g.addColorStop(1, "rgba(196,150,78,0)");
     c.fillStyle = g;
-    c.fillRect(x, y, W, H);
+    c.fillRect(0, 0, W, H);
   };
-  const centred = (c: CanvasRenderingContext2D, lines: string[], x: number, y: number, step: number) => {
-    lines.forEach((l, i) => c.fillText(l, x, y + i * step));
-  };
+  const lines = (c: CanvasRenderingContext2D, list: string[], y: number, step: number) => list.forEach((l, i) => c.fillText(l, W / 2, y + i * step));
 
-  // (a) the official logo on a dark ground; the gold sweep is the shader's.
-  const logoSlide: Fill = (c) => {
-    ground(c, 0, 0, "#0d1714", "#070c0a");
-    const lw = H * 0.56 / LOGO_HEIGHT;
-    drawLogo(c, W / 2 - lw / 2, H / 2 - (lw * LOGO_HEIGHT) / 2, lw, { plate: true });
+  // 0 logo sting: the logo large, no plate (the official transparent artwork).
+  const logo: Fill = (c) => {
+    ground(c, 0.4);
+    const lh = H * 0.68;
+    const lw = lh / LOGO_HEIGHT;
+    drawLogo(c, W / 2 - lw / 2, H / 2 - lh / 2, lw);
   };
-  // (b) Aratta's own exhibitions, by name; contours drift behind them in the shader.
-  const eventsSlide: Fill = (c) => {
-    ground(c, 0, 0, "#0b2a21", "#06150f");
+  // 1 the hero title, large, with the subtitle under a gold rule.
+  const title: Fill = (c) => {
+    ground(c, 0.36);
     c.direction = dir;
     c.textAlign = "center";
     c.textBaseline = "alphabetic";
+    c.fillStyle = "#fbf5ea";
+    c.font = font(800, H * 0.13);
+    const t = wrap(c, text?.title ?? "", W * 0.86).slice(0, 2);
+    const y0 = H * 0.5 - (t.length - 1) * H * 0.08;
+    lines(c, t, y0, H * 0.16);
+    const yr = y0 + (t.length - 1) * H * 0.16 + H * 0.08;
     c.fillStyle = "#e0b75a";
-    c.font = font(800, 30 * k);
-    c.fillText(text?.heading ?? "", W / 2, 70 * k);
-    c.fillStyle = "rgba(224,183,90,0.7)";
-    c.fillRect(W / 2 - 60 * k, 88 * k, 120 * k, 2 * k);
-    c.fillStyle = "#f5efe3";
-    c.font = font(700, 21 * k);
-    let y = 136 * k;
-    for (const event of (text?.events ?? []).slice(0, 3)) {
-      const lines = wrap(c, event, W * 0.8).slice(0, 2);
-      centred(c, lines, W / 2, y, 30 * k);
-      y += lines.length * 30 * k + 34 * k;
-    }
+    c.fillRect(W / 2 - W * 0.08, yr, W * 0.16, H * 0.007);
+    c.font = font(600, H * 0.058);
+    lines(c, wrap(c, text?.line ?? "", W * 0.8).slice(0, 2), yr + H * 0.1, H * 0.08);
   };
-  // (c) a hall plan (lines come from the order map), with a real caption under it.
-  const planSlide: Fill = (c) => {
-    ground(c, 0, 0, "#0e1a17", "#08100d");
-    c.strokeStyle = "rgba(224,183,90,0.07)";
-    c.lineWidth = 1;
-    for (let x = 0; x <= W; x += 28 * k) {
-      c.beginPath();
-      c.moveTo(x, 0);
-      c.lineTo(x, H);
-      c.stroke();
-    }
-    for (let y = 0; y <= H; y += 28 * k) {
-      c.beginPath();
-      c.moveTo(0, y);
-      c.lineTo(W, y);
-      c.stroke();
-    }
-    c.direction = dir;
-    c.textAlign = "center";
-    c.fillStyle = "#f5efe3";
-    c.font = font(700, 30 * k);
-    c.fillText(text?.caption ?? "", W / 2, H * 0.86);
-  };
-  // (d) a short line of the site's own copy.
-  const copySlide: Fill = (c) => {
-    ground(c, 0, 0, "#0b2a21", "#07130f");
-    const lw = 120 * k;
-    drawLogo(c, W / 2 - lw / 2, 46 * k, lw, { plate: true });
+  // 2-4 photo captions: transparent, a soft dark gradient at the bottom, the short name large.
+  const caption = (i: number): Fill => (c) => {
+    c.clearRect(0, 0, W, H);
+    const g = c.createLinearGradient(0, H * 0.38, 0, H);
+    g.addColorStop(0, "rgba(6,5,4,0)");
+    g.addColorStop(0.55, "rgba(6,5,4,0.62)");
+    g.addColorStop(1, "rgba(6,5,4,0.86)");
+    c.fillStyle = g;
+    c.fillRect(0, 0, W, H);
     c.direction = dir;
     c.textAlign = "center";
     c.textBaseline = "alphabetic";
-    c.fillStyle = "#f5efe3";
-    c.font = font(800, 40 * k);
-    const title = wrap(c, text?.title ?? "", W * 0.84).slice(0, 2);
-    const top = 46 * k + lw * LOGO_HEIGHT + 82 * k;
-    centred(c, title, W / 2, top, 52 * k);
+    c.font = font(800, H * 0.115);
+    const name = wrap(c, shortName(text?.events[i] ?? ""), W * 0.88).slice(0, 2);
+    const yb = H * 0.82 - (name.length - 1) * H * 0.135;
     c.fillStyle = "#e0b75a";
-    c.font = font(600, 22 * k);
-    centred(c, wrap(c, text?.line ?? "", W * 0.78).slice(0, 2), W / 2, top + title.length * 52 * k + 14 * k, 34 * k);
+    c.fillRect(W / 2 - W * 0.05, yb - H * 0.17, W * 0.1, H * 0.008);
+    c.fillStyle = "#fbf5ea";
+    lines(c, name, yb, H * 0.135);
+  };
+  // 5 the ground a photo slide shows until its photo arrives: warm contours on near black.
+  const waiting: Fill = (c) => {
+    ground(c, 0.3);
+    c.lineWidth = Math.max(1, W / 420);
+    for (let i = 0; i < 18; i += 1) {
+      c.strokeStyle = `rgba(224,183,90,${0.16 + (i % 4) * 0.06})`;
+      c.beginPath();
+      for (let x = 0; x <= W; x += 8) {
+        const y = H * 0.22 + i * H * 0.04 + Math.sin(x / (W * 0.15) + i * 0.5) * H * 0.03;
+        if (x === 0) c.moveTo(x, y);
+        else c.lineTo(x, y);
+      }
+      c.stroke();
+    }
   };
 
-  // One atlas, 2 x 2 slots, drawn once.
-  const fills = [logoSlide, eventsSlide, planSlide, copySlide];
-  const atlas = canvasTexture(W * 2, H * 2, (c) => {
+  const fills = [logo, title, caption(0), caption(1), caption(2), waiting];
+  const atlas = canvasTexture(W * 2, H * 3, (c) => {
     fills.forEach((fill, i) => {
       c.save();
       c.translate((i % 2) * W, Math.floor(i / 2) * H);
       c.beginPath();
       c.rect(0, 0, W, H);
       c.clip();
-      fill(c, W, H);
+      fill(c);
       c.restore();
     });
   });
   track(atlas.texture);
   atlas.texture.anisotropy = 4;
 
-  // Line-order map for the plan: r = when the pixel draws (0..1, premultiplied by g),
-  // g = coverage, b = our stand (gold). Each line is a gradient, so it draws along itself.
-  const PW = rich ? 512 : 256;
-  const PH = Math.round(PW / 1.4);
-  const lines = planLines(PW, PH);
-  const plan = canvasTexture(PW, PH, (c) => {
-    c.fillStyle = "#000";
-    c.fillRect(0, 0, PW, PH);
-    c.lineCap = "round";
-    lines.forEach((l, i) => {
-      const g = c.createLinearGradient(l.a[0], l.a[1], l.b[0], l.b[1]);
-      const blue = l.ours ? 255 : 0;
-      g.addColorStop(0, `rgb(${Math.round((i / lines.length) * 255)},255,${blue})`);
-      g.addColorStop(1, `rgb(${Math.round(((i + 1) / lines.length) * 255)},255,${blue})`);
-      c.strokeStyle = g;
-      c.lineWidth = (l.ours ? 3.2 : 2.2) * (PW / 512);
-      c.beginPath();
-      c.moveTo(l.a[0], l.a[1]);
-      c.lineTo(l.b[0], l.b[1]);
-      c.stroke();
-    });
-  }, true);
-  track(plan.texture);
-
   const uniforms = {
     uReel: { value: atlas.texture },
-    uPlan: { value: plan.texture },
+    uPhoto0: { value: null as THREE.Texture | null },
+    uPhoto1: { value: null as THREE.Texture | null },
+    uPhoto2: { value: null as THREE.Texture | null },
+    uPhotoOn: { value: new THREE.Vector3(0, 0, 0) },
     uTime: { value: 0 },
   };
-  return { uniforms, atlas: atlas.texture };
+  // Photos at 1024 px on desktop, 640 on phones, after the first frame (the hero start is not slowed).
+  let asked = false;
+  const loadPhotos = () => {
+    if (asked) return;
+    asked = true;
+    const loader = new THREE.TextureLoader();
+    const slots = [uniforms.uPhoto0, uniforms.uPhoto1, uniforms.uPhoto2];
+    REEL_PHOTOS.forEach((name, i) => {
+      loader.load(`/booth-reel/${name}-${rich ? 1024 : 640}.jpg`, (t) => {
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 4;
+        track(t);
+        slots[i].value = t;
+        uniforms.uPhotoOn.value.setComponent(i, 1);
+      });
+    });
+  };
+  return { uniforms, loadPhotos };
 }
 
 /**
@@ -211,52 +189,57 @@ export function buildReel(ctx: Ctx, text: ReelText | undefined) {
  */
 export const REEL_GLSL = /* glsl */ `
   uniform sampler2D uReel;
-  uniform sampler2D uPlan;
-  const float HOLD = ${REEL.hold.toFixed(1)};
-  const float FADE = ${REEL.fade.toFixed(1)};
-  const float SLIDES = ${REEL.slides.toFixed(1)};
-  float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
-  vec3 reelSlide(float k, vec2 uv, float s) {
-    // Slow push-in of about 2.5% over the slide's life.
-    float life = clamp(s / (HOLD + FADE), 0.0, 1.0);
-    vec2 q = 0.5 + (uv - 0.5) * (1.0 - 0.025 * life);
-    if (k > 2.5) q.x += 0.006 * sin(s * 0.35);
-    q = clamp(q, 0.004, 0.996);
-    float col = mod(k, 2.0);
-    float row = floor(k / 2.0);
-    // Slot (col, row) from the canvas's top-left; textures are flipped, so row 0 is the top half.
-    vec3 c = texture2D(uReel, vec2((col + q.x) * 0.5, (1.0 - row + q.y) * 0.5)).rgb;
-    vec3 gold = vec3(0.88, 0.7, 0.34);
-    if (k < 0.5 || k > 2.5) {
-      // A soft, slow gold light sweep across the bright parts.
+  uniform sampler2D uPhoto0;
+  uniform sampler2D uPhoto1;
+  uniform sampler2D uPhoto2;
+  uniform vec3 uPhotoOn;
+  const float FADE = ${REEL_FADE.toFixed(2)};
+  const float LOOP = ${REEL_LOOP.toFixed(2)};
+  float reelStart(float k) {
+    return k < 0.5 ? ${REEL_STARTS[0].toFixed(2)} : k < 1.5 ? ${REEL_STARTS[1].toFixed(2)} : k < 2.5 ? ${REEL_STARTS[2].toFixed(2)} : k < 3.5 ? ${REEL_STARTS[3].toFixed(2)} : k < 4.5 ? ${REEL_STARTS[4].toFixed(2)} : LOOP;
+  }
+  vec4 atlasAt(float slot, vec2 q) {
+    float col = mod(slot, 2.0);
+    float row = floor(slot / 2.0);
+    q = clamp(q, 0.003, 0.997);
+    // Slot (col, row) from the canvas's top-left; textures are flipped, so row 0 is the top third.
+    return texture2D(uReel, vec2((col + q.x) * 0.5, (3.0 - row - 1.0 + q.y) / 3.0));
+  }
+  vec3 reelSlide(float k, vec2 uv, float s, float life) {
+    vec3 gold = vec3(1.0, 0.8, 0.45);
+    if (k < 0.5 || k > 3.5) {
+      // Logo sting and title: a slow 2.5% push-in and one soft gold light sweep.
+      vec2 q = 0.5 + (uv - 0.5) * (1.0 - 0.025 * life);
+      vec3 c = atlasAt(k < 0.5 ? 0.0 : 1.0, q).rgb;
       float x0 = -0.35 + 1.7 * life;
-      float band = exp(-pow(q.x + (q.y - 0.5) * 0.45 - x0, 2.0) / 0.012);
-      c += gold * band * 0.45 * smoothstep(0.12, 0.5, luma(c));
-    } else if (k < 1.5) {
-      // Survey contours drifting slowly behind the names.
-      float d = sin((q.y * 9.0 + 0.35 * sin(q.x * 4.0 + s * 0.11) + s * 0.03) * 6.2832);
-      c += gold * smoothstep(0.93, 1.0, d) * 0.1 * (1.0 - smoothstep(0.05, 0.16, luma(c)));
-    } else {
-      // The plan draws itself line by line, each line along its length.
-      vec4 m = texture2D(uPlan, q);
-      float order = m.r / max(m.g, 0.004);
-      float reveal = clamp((s - 0.6) / 5.2, 0.0, 1.0) * 1.02;
-      float on = m.g * smoothstep(order, order + 0.012, reveal);
-      float head = m.g * (1.0 - smoothstep(0.0, 0.02, abs(reveal - order))) * step(reveal, 1.0);
-      vec3 line = mix(vec3(0.78, 0.74, 0.64), gold * 1.25, m.b / max(m.g, 0.004));
-      c = mix(c, line, on * 0.9) + gold * head * 0.5;
+      float band = exp(-pow(q.x + (q.y - 0.5) * 0.45 - x0, 2.0) / 0.014);
+      return c + gold * band * 0.35 * smoothstep(0.1, 0.45, dot(c, vec3(0.333)));
     }
-    return c;
+    // Photos: slow pan and zoom (about 3.5% over the slide), the caption held still over it.
+    float i = k - 1.0;
+    float dirx = i < 0.5 ? 1.0 : i < 1.5 ? -1.0 : 1.0;
+    vec2 q = 0.5 + (uv - 0.5) * (1.0 - 0.035 * life) + vec2(0.012 * dirx, 0.006) * (life - 0.5);
+    float on = i < 0.5 ? uPhotoOn.x : i < 1.5 ? uPhotoOn.y : uPhotoOn.z;
+    vec3 photo = i < 0.5 ? texture2D(uPhoto0, q).rgb : i < 1.5 ? texture2D(uPhoto1, q).rgb : texture2D(uPhoto2, q).rgb;
+    vec3 c = mix(atlasAt(5.0, q).rgb, photo, on);
+    vec4 cap = atlasAt(2.0 + i, uv);
+    return mix(c, cap.rgb, cap.a);
   }
   vec3 reel(vec2 uv, float time) {
-    float t = mod(time, HOLD * SLIDES);
-    float k = floor(t / HOLD);
-    float s = t - k * HOLD;
+    float t = mod(time, LOOP);
+    float k = t < reelStart(1.0) ? 0.0 : t < reelStart(2.0) ? 1.0 : t < reelStart(3.0) ? 2.0 : t < reelStart(4.0) ? 3.0 : 4.0;
+    float a = reelStart(k);
+    float b = reelStart(k + 1.0);
     // Each slide is on from FADE before its slot (cross-fading in) to the end of its slot.
-    vec3 now = reelSlide(k, uv, s + FADE);
-    float w = smoothstep(HOLD - FADE, HOLD, s);
+    float s = t - a + FADE;
+    vec3 now = reelSlide(k, uv, s, clamp(s / (b - a + FADE), 0.0, 1.0));
+    float w = smoothstep(b - FADE, b, t);
     if (w <= 0.0) return now;
-    vec3 next = reelSlide(mod(k + 1.0, SLIDES), uv, s - HOLD + FADE);
+    float n = mod(k + 1.0, 5.0);
+    float sn = t - b + FADE;
+    float bn = reelStart(n + 1.0);
+    float an = reelStart(n);
+    vec3 next = reelSlide(n, uv, sn, clamp(sn / (bn - an + FADE), 0.0, 1.0));
     return mix(now, next, w);
   }
 `;
