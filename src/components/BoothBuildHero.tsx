@@ -123,9 +123,17 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
             reel: {
               heading: contentRef.current.exhibitions.title,
               events: contentRef.current.exhibitions.items.map((item) => item.title),
-              caption: contentRef.current.services.items[0]?.title ?? "",
               title: contentRef.current.hero.title,
               line: contentRef.current.hero.subtitle,
+            },
+            // Phones: the stand is centred between the header and the copy card.
+            freeBand: () => {
+              const frame = canvas.getBoundingClientRect();
+              const card = document.querySelector("[data-mobile-hero-card]")?.getBoundingClientRect();
+              if (!card || card.height < 1 || frame.height < 1) return null;
+              const header = document.querySelector("header")?.getBoundingClientRect();
+              const top = header ? (header.bottom - frame.top) / frame.height + 0.015 : 0.08;
+              return { top, bottom: (card.top - frame.top) / frame.height - 0.015 };
             },
             // The closing elevation sits between the fixed site header and the closing copy.
             safeBand: () => {

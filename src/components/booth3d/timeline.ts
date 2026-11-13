@@ -98,10 +98,10 @@ export const CAMERA_KEYS: Array<{ at: number; azimuth: number; distance: number;
   // 6 Power and light: just above eye level, the whole stand lighting up.
   { at: 0.6, azimuth: 9.2, distance: 23.0, height: 3.6, target: [0.1, 2.3, -1.2] },
   // 7 LED wall: near-frontal at a calm medium distance, a slow push of about 1 m.
-  { at: 0.664, azimuth: 8.4, distance: 16.4, height: 3.2, target: [1.6, 2.15, -2.6] },
-  { at: 0.716, azimuth: 7.6, distance: 15.4, height: 3.05, target: [2.0, 2.1, -3.0] },
+  { at: 0.664, azimuth: 8.4, distance: 16.4, height: 3.2, target: [2.5, 2.15, -2.6] },
+  { at: 0.716, azimuth: 7.6, distance: 15.4, height: 3.05, target: [2.9, 2.1, -3.0] },
   // Mark and sign: back out, the look-at rises toward the tower and the sign ring.
-  { at: 0.77, azimuth: 5.8, distance: 18.2, height: 3.0, target: [0.8, 3.2, -1.2] },
+  { at: 0.77, azimuth: 5.8, distance: 18.2, height: 3.0, target: [1.2, 3.2, -1.2] },
   // 8 Hosting: the front zone, easing back to the finale's distance.
   { at: 0.835, azimuth: 3.8, distance: 21.0, height: 2.97, target: [0.3, 3.0, -0.3] },
   { at: 0.9, azimuth: 2.0, distance: 23.4, height: 2.95, target: [0, 2.95, 0] },

@@ -1,10 +1,11 @@
 // Chapter 7: brand and media. LED cabinets (7 x 5 of 500 mm, rear frames and
 // handles showing) fly in and lock row by row from the bottom. Each one lights
 // the moment it locks: a very short white test flash, then its own slice of the
-// brand reel at about 85%, so the live picture assembles like a mosaic. After
-// the last cabinet the whole wall ramps to full brightness. The reel (reel.ts)
-// loops calmly with slow cross-fades and is drawn once into textures; the
-// meeting-room screen plays the same reel, offset in time.
+// event film at about 85%, so the live picture assembles like a mosaic. After
+// the last cabinet the whole wall ramps to full brightness and spills a soft
+// glow of its colour onto the floor. The film (reel.ts) loops calmly with slow
+// cross-fades from textures drawn once; the meeting-room screen plays it too,
+// offset in time.
 // A large backlit fabric lightbox hangs on the upper back wall, the 3D Aratta mark mounts on standoffs on the
 // tower with a halo, the wordmarks follow, and the hanging sign fabric wraps
 // its ring. The tower's backlit fabric face is installed with the cladding.
@@ -130,6 +131,8 @@ export function buildIdentity(ctx: Ctx) {
   decals.add("edge", ledX, FLOOR_TOP + 0.0036, ledZ + 0.6, ledW + 0.3, 0.3, (p) => window01(p, lt0 - 0.01, lt0) * 0.5);
 
   const reel = buildReel(ctx, ctx.hooks.reel as ReelText | undefined);
+  /** The scene calls this after its first frame, so the photos never slow the hero start. */
+  ctx.hooks.loadReel = reel.loadPhotos;
   // Reduced motion holds the first slide (the logo) still.
   const still = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let reelOverride: number | null = null;
@@ -191,7 +194,7 @@ export function buildIdentity(ctx: Ctx) {
           float slice = smoothstep(0.0012, 0.004, since);
           float b = uBoot;
           float level = slice * (0.85 + 0.15 * smoothstep(0.0, 1.0, b) + 0.12 * sin(3.14159 * b));
-          vec3 col = vec3(0.016, 0.017, 0.018) + vec3(1.4) * flash + c * 1.3 * level;
+          vec3 col = vec3(0.016, 0.017, 0.018) + vec3(1.4) * flash + c * 1.55 * level;
           col *= pixel * mix(0.6, 1.0, seam);
           gl_FragColor = vec4(col, 1.0);
           #include <colorspace_fragment>
@@ -239,7 +242,7 @@ export function buildIdentity(ctx: Ctx) {
   ctx.hooks.reelScreen = (offset: number) => {
     const m = track(
       new THREE.ShaderMaterial({
-        uniforms: { uReel: reel.uniforms.uReel, uPlan: reel.uniforms.uPlan, uTime: { value: 0 }, uOffset: { value: offset } },
+        uniforms: { ...reel.uniforms, uTime: { value: 0 }, uOffset: { value: offset } },
         vertexShader: /* glsl */ `
           varying vec2 vUv;
           void main() {
@@ -265,6 +268,37 @@ export function buildIdentity(ctx: Ctx) {
     screens.push(m);
     return m;
   };
+  // Soft spill of the wall's colour on the floor in front of it: one additive plane, no light.
+  const spillMat = track(
+    new THREE.ShaderMaterial({
+      uniforms: { ...reel.uniforms, uTime: { value: 0 }, uSpill: { value: 0 } },
+      vertexShader: /* glsl */ `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+      fragmentShader: /* glsl */ `
+        uniform float uTime;
+        uniform float uSpill;
+        varying vec2 vUv;
+        ${REEL_GLSL}
+        void main() {
+          vec3 avg = (reel(vec2(0.25, 0.5), uTime) + reel(vec2(0.75, 0.5), uTime) + reel(vec2(0.5, 0.25), uTime) + reel(vec2(0.5, 0.75), uTime)) * 0.25;
+          float side = 1.0 - pow(abs(vUv.x * 2.0 - 1.0), 2.0);
+          float fall = pow(vUv.y, 1.8) * side;
+          gl_FragColor = vec4(avg * fall * uSpill, 1.0);
+        }`,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    }),
+  );
+  const spill = new THREE.Mesh(track(new THREE.PlaneGeometry(ledW + 1.4, 2.6).rotateX(-Math.PI / 2)), spillMat);
+  spill.position.set(ledX, FLOOR_TOP + 0.006, ledZ + 0.32 + 1.3);
+  spill.renderOrder = 2;
+  root.add(spill);
 
   // ---- hanging sign: fabric wraps the ring, printed outside, lit from inside.
   const signTex = canvasTexture(rich ? 4096 : 2048, rich ? 260 : 130, (c, w, h) => {
@@ -381,6 +415,10 @@ export function buildIdentity(ctx: Ctx) {
     const reelTime = reelOverride ?? (still ? 1.5 : time);
     reel.uniforms.uTime.value = reelTime;
     for (const m of screens) m.uniforms.uTime.value = reelTime;
+    spillMat.uniforms.uTime.value = reelTime;
+    const wallLit = window01(p, T.ledTiles[0] + 0.01, T.ledTiles[1]) * 0.6 + boot * 0.4;
+    spillMat.uniforms.uSpill.value = wallLit * 0.3;
+    spill.visible = wallLit > 0.001;
 
     const wrap = easeInOutCubic(window01(p, T.sign[0], T.sign[1]));
     const count = Math.round(wrap * signSegs) * 6;

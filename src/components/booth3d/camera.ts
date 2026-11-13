@@ -22,6 +22,10 @@ const STAND = { halfWidth: 6.05, front: 4.5, top: 7.15, bottom: 0 };
 /** The finale's blend in from the last detail, and its push-in. */
 export const FINALE_BLEND: [number, number] = [0.846, 0.912];
 const PUSH_FROM = 1.05;
+/** Portrait screens: the share of the width the stand fills from chapter 2 on. */
+const PORTRAIT_FILL = 0.89;
+/** Portrait screens: height above eye level, relative to the crane's. */
+const PORTRAIT_HEIGHT = 1.25;
 const EYE = { start: 2.95, end: 2.45 };
 
 const smoothstep = (a: number, b: number, x: number) => {
@@ -85,6 +89,9 @@ function sample(tr: Track, p: number, out: THREE.Vector3) {
   return out.set(v(0), v(1), v(2));
 }
 
+/** Vertical field of view for a screen aspect (constant along the path). */
+export const fovFor = (aspect: number) => (aspect < 0.8 ? 52 : aspect < 1.2 ? 45 : 37);
+
 export type CameraPose = { pos: THREE.Vector3; tgt: THREE.Vector3; offX: number; offY: number };
 
 export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
@@ -106,10 +113,15 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
   const point = new THREE.Vector3();
   // Free band for the finale (fractions of the screen height), set by the hero from its layout.
   const safe = { top: 0.1, bottom: 0.62 };
+  // Free band between the header and the phone's copy card during the chapters.
+  const free = { top: 0.1, bottom: 0.64, set: false };
+  const aimPortrait = new THREE.Vector3(0, 3.1, 0.3);
+  const dir = new THREE.Vector3();
+  const corner = new THREE.Vector3();
   let cacheKey = "";
   const finale = { near: 0, far: 0, offNear: 0, offFar: 0, driftX: 0, extra: 0, extraEnd: 0 };
 
-  const fov = (aspect: number) => (aspect < 0.8 ? 52 : aspect < 1.2 ? 45 : 37);
+  const fov = fovFor;
   /** Portrait and tablet screens stand further off than the desktop path. */
   const baseStepBack = (aspect: number) => (aspect < 1 ? THREE.MathUtils.clamp(0.62 / aspect, 1, 1.45) : aspect < 1.3 ? 1.15 : 1);
   /** Portrait screens also look down a little more, so the plan still reads from above. */
@@ -151,8 +163,8 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     const aspect = width / height;
     const tv = Math.tan(THREE.MathUtils.degToRad(fov(aspect) / 2));
     const th = tv * aspect;
-    // Phones: the stand fills ~88% of the width; tablets ~80%; desktop ~70%.
-    const share = 0.88 - 0.18 * smoothstep(0.55, 1.5, aspect);
+    // Phones: the stand front fills ~93% of the width (the whole box ~89%); desktop ~70%.
+    const share = 0.935 - 0.235 * smoothstep(0.55, 1.5, aspect);
     let d = STAND.halfWidth / (share * th);
     // Keep the whole elevation inside the free band (with a little air).
     const band = (safe.bottom - safe.top) * 0.97;
@@ -189,11 +201,55 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
   };
 
   /** The camera pose at p without pointer parallax: the pure scroll path. */
+  /** Share of the screen width the stand's box (12 x 9 x 7.15 m) covers from this pose. */
+  const fillOf = (aspect: number, pos: THREE.Vector3, tgt: THREE.Vector3) => {
+    probe.fov = fov(aspect);
+    probe.aspect = aspect;
+    probe.near = 0.1;
+    probe.far = 300;
+    probe.clearViewOffset();
+    probe.updateProjectionMatrix();
+    probe.position.copy(pos);
+    probe.lookAt(tgt);
+    probe.updateMatrixWorld(true);
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (let i = 0; i < 8; i += 1) {
+      corner.set(i & 1 ? STAND.halfWidth : -STAND.halfWidth, i & 2 ? STAND.top : 0, i & 4 ? STAND.front : -STAND.front).project(probe);
+      lo = Math.min(lo, corner.x);
+      hi = Math.max(hi, corner.x);
+    }
+    return (hi - lo) / 2;
+  };
+
   const at = (p: number, width: number, height: number, out: CameraPose) => {
     const aspect = width / height;
     frameFinale(width, height);
     crane(p, out.pos, out.tgt);
-    // Portrait and tablet screens aim closer to the centre and stand further off: a constant
+    if (aspect < 1) {
+      // Portrait (phones, tablets upright): after the plot chapter the stand's full width fills
+      // about 89% of the screen. The look-at settles on the stand's middle, the camera keeps the
+      // crane's direction (so azimuth and the slow descent are kept) and its distance is solved
+      // for that fill, so it barely changes from chapter to chapter.
+      const height0 = out.pos.y;
+      out.tgt.lerp(aimPortrait, 0.45 + 0.5 * smoothstep(0.03, 0.13, p));
+      // Height follows the crane's (so it only comes down), a little higher above eye level.
+      const y = EYE.start + Math.max(0, height0 - EYE.start) * PORTRAIT_HEIGHT;
+      dir.set(out.pos.x - out.tgt.x, 0, out.pos.z - out.tgt.z);
+      const wide = dir.length() * baseStepBack(aspect);
+      dir.normalize();
+      const th = Math.tan(THREE.MathUtils.degToRad(fov(aspect) / 2)) * aspect;
+      let d = (STAND.halfWidth * 2) / (2 * PORTRAIT_FILL * th) + STAND.front;
+      for (let i = 0; i < 6; i += 1) {
+        out.pos.copy(out.tgt).addScaledVector(dir, d);
+        out.pos.y = y;
+        d *= fillOf(aspect, out.pos, out.tgt) / PORTRAIT_FILL;
+      }
+      d += (wide - d) * (1 - smoothstep(0.04, 0.13, p));
+      out.pos.copy(out.tgt).addScaledVector(dir, d);
+      out.pos.y = y;
+    } else {
+    // Tablet landscape screens aim closer to the centre and stand further off: a constant
     // extra distance (not a factor, so the slow pace of the move is kept), which eases in the
     // last chapters toward what this screen's finale needs. Height scales about eye level,
     // so it keeps coming down.
@@ -206,13 +262,16 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     out.pos.x = out.tgt.x + dx * k;
     out.pos.z = out.tgt.z + dz * k;
     out.pos.y = EYE.start + Math.max(0, out.pos.y - EYE.start) * heightStepBack(aspect);
+    }
 
     // Lens shift for the copy: phones keep a card at the bottom, desktop the reading-start side.
     // It changes only in the intro and in the finale blend.
     const blend = smoothstep(FINALE_BLEND[0], FINALE_BLEND[1], p);
     if (aspect < 1) {
+      // The optical centre sits in the middle of the free band above the copy card (a touch
+      // low, since the stand box reads top-heavy with its rig).
       out.offX = 0;
-      out.offY = height * 0.13;
+      out.offY = height * (free.set ? 0.5 - (free.top + free.bottom) / 2 - 0.03 : 0.13);
     } else {
       const middle = smoothstep(0.02, 0.1, p);
       out.offX = (fa ? 1 : -1) * width * (aspect < 1.3 ? 0 : 0.24) * middle;
@@ -243,6 +302,12 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     setSafeBand(top: number, bottom: number) {
       safe.top = clamp01(top);
       safe.bottom = Math.max(safe.top + 0.2, clamp01(bottom));
+    },
+    /** The free band between the header and the phone's copy card during the chapters. */
+    setFreeBand(top: number, bottom: number) {
+      free.top = clamp01(top);
+      free.bottom = Math.max(free.top + 0.2, clamp01(bottom));
+      free.set = true;
     },
     apply(p: number, dt: number, width: number, height: number, pointer: THREE.Vector2) {
       at(p, width, height, pose);
@@ -288,12 +353,34 @@ export function pathStats(at: (p: number, width: number, height: number, out: Ca
   const pos: THREE.Vector3[] = [];
   const dir: THREE.Vector3[] = [];
   const off: number[] = [];
+  // How much of the screen the stand's box covers: width share, and its vertical middle (0 = top).
+  const fill: number[] = [];
+  const middle: number[] = [];
+  const cam = new THREE.PerspectiveCamera(fovFor(width / height), width / height, 0.1, 300);
+  const corner = new THREE.Vector3();
   const pose: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
   for (let i = 0; i <= n; i += 1) {
     at(i / n, width, height, pose);
     pos.push(pose.pos.clone());
     dir.push(pose.tgt.clone().sub(pose.pos).normalize());
     off.push(pose.offX / width + pose.offY / height);
+    cam.position.copy(pose.pos);
+    cam.lookAt(pose.tgt);
+    cam.setViewOffset(width, height, pose.offX, pose.offY, width, height);
+    cam.updateMatrixWorld(true);
+    let x0 = Infinity;
+    let x1 = -Infinity;
+    let y0 = Infinity;
+    let y1 = -Infinity;
+    for (let c = 0; c < 8; c += 1) {
+      corner.set(c & 1 ? 6 : -6, c & 2 ? 7.15 : 0, c & 4 ? 4.5 : -4.5).project(cam);
+      x0 = Math.min(x0, corner.x);
+      x1 = Math.max(x1, corner.x);
+      y0 = Math.min(y0, corner.y);
+      y1 = Math.max(y1, corner.y);
+    }
+    fill.push((x1 - x0) / 2);
+    middle.push(1 - (y0 + y1 + 2) / 4);
   }
   const deg = THREE.MathUtils.radToDeg;
   const azimuth = (v: THREE.Vector3) => deg(Math.atan2(v.x, v.z));
@@ -316,7 +403,13 @@ export function pathStats(at: (p: number, width: number, height: number, out: Ca
     let near = Infinity;
     let far = 0;
     let pitch = -90;
+    let fillLo = Infinity;
+    let fillHi = 0;
+    let mid = 0;
     for (let i = a; i <= b; i += 1) {
+      fillLo = Math.min(fillLo, fill[i]);
+      fillHi = Math.max(fillHi, fill[i]);
+      mid += middle[i] / (b - a + 1);
       near = Math.min(near, dist(pos[i]));
       far = Math.max(far, dist(pos[i]));
       pitch = Math.max(pitch, -deg(Math.asin(dir[i].y)));
@@ -333,6 +426,9 @@ export function pathStats(at: (p: number, width: number, height: number, out: Ca
       distMax: r(far),
       lensShift: r(Math.abs(off[b] - off[a]), 1000),
       lookDownMax: r(pitch),
+      fillMin: r(fillLo),
+      fillMax: r(fillHi),
+      middle: r(mid),
     };
   });
   // Worst 0.11 window anywhere on the path.
