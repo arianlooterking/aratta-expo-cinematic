@@ -37,6 +37,8 @@ export type BoothSceneOptions = {
   reel?: ReelText;
   /** The free band for the closing elevation (fractions of the canvas height, 0 = top). */
   safeBand?: () => { top: number; bottom: number } | null;
+  /** The free band between the header and the phone's copy card during the chapters. */
+  freeBand?: () => { top: number; bottom: number } | null;
   /** "auto" picks from `compact` and a short frame-time probe. */
   quality?: BoothQuality;
 };
@@ -301,6 +303,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     ctx.sparkles.material.uniforms.uScale.value = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     const band = options.safeBand?.();
     if (band) rig.setSafeBand(band.top, band.bottom);
+    const free = options.freeBand?.();
+    if (free) rig.setFreeBand(free.top, free.bottom);
   };
 
   let frameDt = 1 / 60;
@@ -402,6 +406,8 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   for (const o of hidden) o.visible = false;
   draw(0, 0);
   frame = requestAnimationFrame(loop);
+  // The LED film's photos load once the first frame is up.
+  requestAnimationFrame(() => setTimeout(() => (ctx.hooks.loadReel as (() => void) | undefined)?.(), 100));
 
   if (new URLSearchParams(window.location.search).has("booth-debug")) {
     (window as unknown as { __booth: unknown }).__booth = {
