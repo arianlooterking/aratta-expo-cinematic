@@ -8,7 +8,7 @@
 // createSurroundMaterials); the front of the hall stays clear for the camera.
 
 import * as THREE from "three";
-import { canvasTexture, toFa, type Ctx, type V3 } from "./core";
+import { canvasTexture, type Ctx, type V3 } from "./core";
 import { createSurroundMaterials, type SurroundMaterials } from "./materials";
 import { FINALE_AT, hallLight, window01 } from "./timeline";
 import { SURROUNDINGS as S, lightsOn, nightLevel } from "./surroundings-timeline";
@@ -53,20 +53,19 @@ export function atlasPlane(w: number, h: number, cell: [number, number, number, 
  */
 export function signAtlas(ctx: Ctx) {
   if (ctx.hooks.signs) return ctx.hooks.signs as { material: THREE.Material; banner(i: number, w: number, h: number): THREE.BufferGeometry; plate(i: number, w: number, h: number): THREE.BufferGeometry };
-  const { track, rich, font } = ctx;
+  const { track, rich } = ctx;
   const W = rich ? 1024 : 512;
   const H = W;
   const k = W / 1024;
-  const plates = ["A14", "B08", "C21", "D03", "B15", "E06", "E11", "F02"];
   const atlas = canvasTexture(W, H, (c) => {
     const bw = W / 4;
     const bh = H * 0.75;
-    // Banners: muted fields, abstract marks, a zone letter and an arrow (no names).
-    const banners: Array<{ bg: string; ink: string; accent: string; mark: number; letter: string }> = [
-      { bg: "#1f3a3d", ink: "#d9e4df", accent: "#8fb8ae", mark: 0, letter: "B" },
-      { bg: "#3a2a2e", ink: "#eadfd6", accent: "#b98a76", mark: 1, letter: "C" },
-      { bg: "#cdc2ae", ink: "#2a2724", accent: "#7d6a52", mark: 2, letter: "D" },
-      { bg: "#23272c", ink: "#e6e1d6", accent: "#a99a7c", mark: 3, letter: "A" },
+    // Banners: muted fields and abstract marks only (no letters, numbers or names).
+    const banners: Array<{ bg: string; ink: string; accent: string; mark: number }> = [
+      { bg: "#1f3a3d", ink: "#d9e4df", accent: "#8fb8ae", mark: 0 },
+      { bg: "#3a2a2e", ink: "#eadfd6", accent: "#b98a76", mark: 1 },
+      { bg: "#cdc2ae", ink: "#2a2724", accent: "#7d6a52", mark: 2 },
+      { bg: "#23272c", ink: "#e6e1d6", accent: "#a99a7c", mark: 3 },
     ];
     banners.forEach((b, i) => {
       const x = i * bw;
@@ -98,32 +97,35 @@ export function signAtlas(ctx: Ctx) {
         c.arc(cx, cy + bw * 0.3, bw * 0.08, 0, Math.PI * 2);
         c.fill();
       }
+      // A quiet rule and dot in the lower field instead of any lettering.
       c.fillStyle = b.ink;
-      c.textAlign = "center";
-      c.textBaseline = "middle";
-      c.font = font(800, 120 * k);
-      c.fillText(b.letter, cx, bh * 0.72);
-      c.fillRect(x + bw * 0.3, bh * 0.86, bw * 0.4, 4 * k);
+      c.globalAlpha = 0.7;
+      c.fillRect(x + bw * 0.3, bh * 0.78, bw * 0.4, 4 * k);
+      c.beginPath();
+      c.arc(cx, bh * 0.7, 7 * k, 0, Math.PI * 2);
+      c.fill();
+      c.globalAlpha = 1;
       // Hem and header pockets.
       c.fillStyle = "rgba(0,0,0,0.25)";
       c.fillRect(x, 0, bw, 10 * k);
       c.fillRect(x, bh - 10 * k, bw, 10 * k);
     });
-    // Stand-number plates: dark ground, light numerals.
+    // Stand plates: dark ground with an abstract mark (bars and a dot; no lettering).
     const pw = W / 4;
     const ph = H / 8;
-    plates.forEach((name, i) => {
+    for (let i = 0; i < 8; i += 1) {
       const x = (i % 4) * pw;
       const y = bh + Math.floor(i / 4) * ph;
       c.fillStyle = "#1b1d20";
       c.fillRect(x, y, pw, ph);
       c.fillStyle = "#d8d2c4";
       c.fillRect(x + 10 * k, y + ph - 18 * k, pw * 0.22, 4 * k);
-      c.font = font(800, 70 * k);
-      c.textAlign = "left";
-      c.textBaseline = "middle";
-      c.fillText(name, x + 16 * k, y + ph * 0.44);
-    });
+      const bars = 1 + (i % 3);
+      for (let j = 0; j < bars; j += 1) c.fillRect(x + 18 * k + j * 22 * k, y + ph * 0.3, 12 * k, ph * 0.34);
+      c.beginPath();
+      c.arc(x + pw * 0.72, y + ph * 0.47, ph * 0.13, 0, Math.PI * 2);
+      c.fill();
+    }
   });
   track(atlas.texture);
   const material = track(new THREE.MeshStandardMaterial({ map: atlas.texture, roughness: 0.88, metalness: 0, side: THREE.DoubleSide }));
@@ -159,7 +161,7 @@ export function hallPoolKind(ctx: Ctx) {
 }
 
 export function buildHallArchitecture(ctx: Ctx) {
-  const { scene, track, parts, rich, fa, font, decals, sparkles } = ctx;
+  const { scene, track, parts, rich, decals, sparkles } = ctx;
   const m = surround(ctx);
   const opts = { cast: false, receive: false };
   const metal = ctx.bars(m.metal, scene, opts);
@@ -168,14 +170,14 @@ export function buildHallArchitecture(ctx: Ctx) {
   const glowBars = ctx.bars(hallGlow, scene, opts);
   hallPoolKind(ctx);
   const STEEL = "#4a5158";
-  const DARK = "#1f2327";
+  const DARK = "#272c32";
 
   // ---- vault: a shallow barrel roof with acoustic panels and skylight strips.
   const vaultTex = canvasTexture(rich ? 512 : 256, rich ? 1024 : 512, (c, w, h) => {
     const g = c.createLinearGradient(0, 0, w, 0);
-    g.addColorStop(0, "#1a1f25");
-    g.addColorStop(0.5, "#283039");
-    g.addColorStop(1, "#1a1f25");
+    g.addColorStop(0, "#1e242b");
+    g.addColorStop(0.5, "#2e3740");
+    g.addColorStop(1, "#1e242b");
     c.fillStyle = g;
     c.fillRect(0, 0, w, h);
     c.fillStyle = "rgba(0,0,0,0.22)";
@@ -243,14 +245,15 @@ export function buildHallArchitecture(ctx: Ctx) {
   // ---- mezzanine gallery across the back wall, on slim columns, with a glass balustrade line.
   const md = 4.2;
   const front = zb + md;
-  matte.place({ p: [0, mz, zb + md / 2], s: [HALL.x * 2, 0.5, md] }, -1, "#2a2f35");
+  matte.place({ p: [0, mz, zb + md / 2], s: [HALL.x * 2, 0.5, md] }, -1, "#31373e");
   for (let x = -40.5; x <= 40.5; x += 9) metal.place({ p: [x, (mz - 0.25) / 2, front - 0.35], s: [0.32, mz - 0.25, 0.32] }, -1, "#3b4148");
   metal.place({ p: [0, mz + 1.35, front - 0.08], s: [HALL.x * 2, 0.05, 0.06] }, -1, "#9aa1a8");
   for (let x = -45; x <= 45; x += 1.8) metal.place({ p: [x, mz + 0.8, front - 0.08], s: [0.035, 1.1, 0.035] }, -1, "#7d848b");
   // Soffit downlights under the gallery.
   for (let x = -42; x <= 42; x += 3.5) sparkles.add([x, mz - 0.3, front - 1.2], rich ? 0.45 : 0.6, new THREE.Color(1.1, 0.88, 0.62), (p) => 0.55 + 0.35 * lightsOn(p, S.far.lights));
 
-  // The fascia: a long illuminated wayfinding band (hall number, zones, arrows).
+  // The fascia: a long illuminated band with abstract wayfinding marks only
+  // (chevrons and rings; no hall name, zone letters or any other lettering).
   const BW = rich ? 4096 : 2048;
   const BH = rich ? 96 : 48;
   const band = canvasTexture(BW, BH, (c, w, h) => {
@@ -259,22 +262,26 @@ export function buildHallArchitecture(ctx: Ctx) {
     c.fillStyle = "rgba(226,214,190,0.75)";
     c.fillRect(0, h * 0.08, w, Math.max(1, h * 0.03));
     c.fillRect(0, h * 0.89, w, Math.max(1, h * 0.03));
-    c.fillStyle = "rgba(238,232,220,0.95)";
-    c.textBaseline = "middle";
-    c.textAlign = "center";
-    c.direction = fa ? "rtl" : "ltr";
-    const hall = fa ? `سالن ${toFa(3)}` : "HALL 3";
-    const items = [hall, "◂  A", "B  ▸", "○", hall, "◂  C", "D  ▸", "○", hall, "◂  E", "F  ▸"];
-    items.forEach((text, i) => {
-      const x = ((i + 0.5) / items.length) * w;
-      c.font = font(text === hall ? 800 : 600, h * (text === hall ? 0.52 : 0.42));
-      if (text === "○") {
-        c.strokeStyle = "rgba(201,169,96,0.95)";
-        c.lineWidth = Math.max(1, h * 0.06);
-        c.beginPath();
-        c.arc(x, h / 2, h * 0.2, 0, Math.PI * 2);
-        c.stroke();
-      } else c.fillText(text, x, h * 0.52);
+    const marks = ["ring", "left", "right", "dash", "ring", "left", "right", "dash", "ring", "left", "right"];
+    c.lineCap = "round";
+    c.lineJoin = "round";
+    marks.forEach((mark, i) => {
+      const x = ((i + 0.5) / marks.length) * w;
+      const y = h / 2;
+      c.lineWidth = Math.max(1, h * 0.06);
+      c.strokeStyle = mark === "ring" ? "rgba(201,169,96,0.95)" : "rgba(238,232,220,0.85)";
+      c.beginPath();
+      if (mark === "ring") c.arc(x, y, h * 0.2, 0, Math.PI * 2);
+      else if (mark === "dash") {
+        c.moveTo(x - h * 0.6, y);
+        c.lineTo(x + h * 0.6, y);
+      } else {
+        const sgn = mark === "left" ? -1 : 1;
+        c.moveTo(x - sgn * h * 0.12, y - h * 0.2);
+        c.lineTo(x + sgn * h * 0.12, y);
+        c.lineTo(x - sgn * h * 0.12, y + h * 0.2);
+      }
+      c.stroke();
     });
   });
   track(band.texture);
@@ -368,7 +375,7 @@ export function buildHallArchitecture(ctx: Ctx) {
   const housingGeo = track(new THREE.TorusGeometry(1, 0.05, 4, rich ? 72 : 44).rotateX(Math.PI / 2));
   const ringPool = parts.pool(ringGeo, ringMat, scene, opts);
   const housing = parts.pool(housingGeo, m.metal, scene, opts);
-  const ringLevel = (p: number) => (0.55 + 0.45 * hallLight(p)) * (1 - 0.25 * finaleLight(p)) * (1 - 0.35 * themeLevel(ctx));
+  const ringLevel = (p: number) => (0.64 + 0.36 * hallLight(p)) * (1 - 0.16 * finaleLight(p)) * (1 - 0.35 * themeLevel(ctx));
   const cones: Array<{ at: V3; r: number }> = [];
   for (const [x, y, z, r] of rings) {
     // Unit rings scaled to size: the tube grows with r across (~9 cm), y keeps it as tall.
@@ -384,7 +391,7 @@ export function buildHallArchitecture(ctx: Ctx) {
       const a = (k / n) * Math.PI * 2;
       sparkles.add([x + Math.sin(a) * r, y - 0.05, z + Math.cos(a) * r], rich ? 0.9 : 1.3, new THREE.Color(1.0, 0.86, 0.64), (p) => ringLevel(p) * (rich ? 0.22 : 0.34));
     }
-    decals.add("hallpool", x, 0.006, z, r * 4.2, r * 4.2, (p) => ringLevel(p) * (z > 5 ? 0.3 : 0.2));
+    decals.add("hallpool", x, 0.006, z, r * 4.8, r * 4.8, (p) => ringLevel(p) * (z > 5 ? 0.4 : 0.32));
     if (z < -12) cones.push({ at: [x, y, z], r });
   }
 
@@ -466,8 +473,8 @@ export function buildHallArchitecture(ctx: Ctx) {
   onTheme(ctx, (theme) => {
     const light = theme === "light";
     glassMat.map = light ? day.texture : sky.texture;
-    m.matte.color.setScalar(light ? 1.7 : 1);
-    m.metal.color.setScalar(light ? 1.35 : 1);
+    m.matte.color.setScalar(light ? 1.7 : 1.3);
+    m.metal.color.setScalar(light ? 1.35 : 1.2);
   });
   ctx.anims.push((p) => {
     const L = themeLevel(ctx);
@@ -478,11 +485,11 @@ export function buildHallArchitecture(ctx: Ctx) {
     const rl = ringLevel(p);
     ringMat.color.setRGB(1.6 * rl, 1.42 * rl, 1.15 * rl);
     shaftMat.uniforms.uStrength.value = shaftBase * rl;
-    vaultMat.color.setScalar(0.62 + 0.38 * hall).multiplyScalar((1 - 0.25 * nl * (1 - L)) * (1 + 2.2 * L));
+    vaultMat.color.setScalar(0.72 + 0.28 * hall).multiplyScalar((1 - 0.16 * nl * (1 - L)) * (1 + 2.2 * L));
     if (L) glassMat.color.setScalar(1 - 0.08 * fin);
     else glassMat.color.copy(white).lerp(night, nl).multiplyScalar(0.92 - 0.12 * fin);
     const far = lightsOn(p, S.far.lights);
-    hallGlow.color.setScalar(0.45 + 0.35 * far);
+    hallGlow.color.setScalar(0.5 + 0.35 * far);
     bandMat.color.setScalar(0.62 + 0.12 * far - 0.1 * fin);
   });
 }

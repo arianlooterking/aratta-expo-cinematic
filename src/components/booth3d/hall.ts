@@ -59,7 +59,7 @@ export function buildHall(ctx: Ctx) {
   // Theme: carpet colour, and a lighter power-floated floor on the light opening day.
   onTheme(ctx, (theme) => {
     mats.aisle.color.set(theme === "light" ? AISLE.light : AISLE.dark);
-    mats.concrete.color.setScalar(theme === "light" ? 1.85 : 1);
+    mats.concrete.color.setScalar(theme === "light" ? 1.85 : 1.1);
   });
 
   // ---- service duct cover behind the plot (power and data come from here).

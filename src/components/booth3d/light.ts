@@ -37,9 +37,9 @@ export const finaleLight = (p: number) => {
 const WARM = new THREE.Color("#ffd2a1"); // ~3000 K
 const WORK = new THREE.Color("#e8eff5"); // hall work light, ~5000 K
 const AIR_BUILD = new THREE.Color("#3d444b");
-const AIR_SHOW = new THREE.Color("#161c23");
+const AIR_SHOW = new THREE.Color("#1b222a");
 // The closing frame: the hall falls to a deep blue-grey (never black) around the lit stand.
-const AIR_FINALE = new THREE.Color("#0e141c");
+const AIR_FINALE = new THREE.Color("#151d27");
 // The light theme (a bright opening day): pale daylight haze that only deepens a little for the show.
 const AIR_DAY = new THREE.Color("#9ca7b0");
 const AIR_DAY_SHOW = new THREE.Color("#8d98a2");
@@ -315,7 +315,7 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
     const fin = finaleLight(p);
     // Slow breathing of the show light in the resting frame (about a 10 s cycle).
     const breath = 1 + fin * 0.07 * Math.sin(time * 0.62);
-    const hall = hallLight(p) * (1 - 0.48 * fin);
+    const hall = hallLight(p) * (1 - 0.42 * fin);
     const fl = floodLevel(p);
     // Work light (cool, generous) hands over to warm show light; the hall dims to a third.
     keyColor.copy(WORK).lerp(WARM, show);
@@ -324,10 +324,10 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
     hemi.color.copy(SKY_SHOW).lerp(SKY_BUILD, Math.max(0, (hall - 0.32) / 0.68));
     // Hall and ambient only; the theme lifts the daylight fill (the stand's own show lights are untouched).
     const day = themeLevel(ctx);
-    hemi.intensity = 0.42 + 1.1 * hall + day * (0.1 + 0.55 * (1 - hall));
+    hemi.intensity = 0.56 + 1.0 * hall + day * (0.1 + 0.55 * (1 - hall));
     rim.intensity = 0.45 + show * 0.15;
     flood.intensity = fl * 1.3;
-    scene.environmentIntensity = 0.32 + 0.6 * hall + day * 0.3;
+    scene.environmentIntensity = 0.36 + 0.58 * hall + day * 0.3;
     air.copy(AIR_SHOW).lerp(AIR_BUILD, Math.max(0, (hall - 0.32) / 0.68)).lerp(AIR_FINALE, fin);
     if (day) air.copy(AIR_DAY_SHOW).lerp(AIR_DAY, Math.max(0, (hall - 0.32) / 0.68));
     if (day) hemi.color.copy(SKY_BUILD);
