@@ -739,6 +739,14 @@ dt {
 }
 
 /* ---------------------------------------------------------------- 3D booth hero */
+.booth3d {
+  --booth-bg: #06080a;
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) {
+  --booth-bg: #e9e3d8;
+}
+
 .booth3d__canvas {
   display: block;
   touch-action: pan-y;
@@ -756,12 +764,13 @@ dt {
   transition: opacity 700ms ease;
 }
 
+/* The neighbouring stands stand behind the chapter copy, so its side of the frame is held well down. */
 .booth3d__side-scrim {
-  background: linear-gradient(to left, rgba(4, 6, 8, 0.86) 0%, rgba(4, 6, 8, 0.72) 24%, rgba(4, 6, 8, 0.4) 40%, rgba(4, 6, 8, 0.12) 52%, transparent 62%);
+  background: linear-gradient(to left, rgba(4, 6, 8, 0.92) 0%, rgba(4, 6, 8, 0.84) 24%, rgba(4, 6, 8, 0.6) 40%, rgba(4, 6, 8, 0.24) 53%, transparent 66%);
 }
 
 [dir="ltr"].booth3d__side-scrim {
-  background: linear-gradient(to right, rgba(4, 6, 8, 0.86) 0%, rgba(4, 6, 8, 0.72) 24%, rgba(4, 6, 8, 0.4) 40%, rgba(4, 6, 8, 0.12) 52%, transparent 62%);
+  background: linear-gradient(to right, rgba(4, 6, 8, 0.92) 0%, rgba(4, 6, 8, 0.84) 24%, rgba(4, 6, 8, 0.6) 40%, rgba(4, 6, 8, 0.24) 53%, transparent 66%);
 }
 
 .booth3d__low-scrim {
@@ -783,6 +792,16 @@ dt {
 .booth3d__intro.is-on {
   opacity: 1;
   transform: translate3d(0, -50%, 0);
+}
+
+/* A soft pool behind the opening title keeps it readable over the half-built hall. */
+.booth3d__intro::before {
+  content: "";
+  position: absolute;
+  inset: -34% 6%;
+  z-index: -1;
+  background: radial-gradient(ellipse closest-side, rgba(4, 6, 8, 0.74) 0%, rgba(4, 6, 8, 0.52) 48%, rgba(4, 6, 8, 0.18) 78%, transparent 100%);
+  pointer-events: none;
 }
 
 .booth3d__title {
@@ -1027,6 +1046,83 @@ html[lang="fa"] .booth3d__chapter-title {
 
   .booth3d__finale .booth3d__chapter-title {
     font-size: clamp(1.45rem, 6.4vw, 1.9rem);
+  }
+}
+
+/* 3D booth hero in the light theme: the hall is day-lit with a red carpet, so the copy turns to
+   dark ink on ivory veils. Without WebGL the dark still image is shown and the dark look stays (.on-photo). */
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__scrim {
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 0%, transparent 58%, rgba(244, 239, 230, 0.34) 100%),
+    linear-gradient(180deg, rgba(244, 239, 230, 0.62) 0%, transparent 22%, transparent 72%, rgba(244, 239, 230, 0.8) 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__side-scrim {
+  background: linear-gradient(to left, rgba(244, 239, 230, 0.95) 0%, rgba(244, 239, 230, 0.88) 24%, rgba(244, 239, 230, 0.64) 40%, rgba(244, 239, 230, 0.26) 53%, transparent 66%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) [dir="ltr"].booth3d__side-scrim {
+  background: linear-gradient(to right, rgba(244, 239, 230, 0.95) 0%, rgba(244, 239, 230, 0.88) 24%, rgba(244, 239, 230, 0.64) 40%, rgba(244, 239, 230, 0.26) 53%, transparent 66%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__low-scrim {
+  background: linear-gradient(180deg, transparent 48%, rgba(244, 239, 230, 0.62) 64%, rgba(244, 239, 230, 0.9) 80%, rgba(244, 239, 230, 0.97) 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__vignette {
+  background: radial-gradient(120% 85% at 50% 40%, transparent 58%, rgba(244, 239, 230, 0.5) 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__intro::before {
+  background: radial-gradient(ellipse closest-side, rgba(244, 239, 230, 0.9) 0%, rgba(244, 239, 230, 0.72) 48%, rgba(244, 239, 230, 0.28) 78%, transparent 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__title,
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__chapter,
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__finale {
+  text-shadow: 0 1px 22px rgba(244, 239, 230, 0.9);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__hint-line {
+  background: rgba(29, 24, 18, 0.18);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__step {
+  color: rgba(29, 24, 18, 0.5);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__step.is-done {
+  color: rgba(29, 24, 18, 0.74);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__step.is-current {
+  color: var(--carpet);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__cta:not(.booth3d__cta--gold) {
+  border-color: rgba(29, 24, 18, 0.14);
+  background: rgba(255, 253, 249, 0.72);
+  color: #1d1812;
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__cta:not(.booth3d__cta--gold):hover {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__cta--gold {
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__card {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 253, 249, 0.78);
+  box-shadow: 0 24px 60px rgba(59, 42, 23, 0.2);
+}
+
+@media (min-width: 768px) and (orientation: portrait) {
+  :root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__side-scrim {
+    background: linear-gradient(180deg, transparent 50%, rgba(244, 239, 230, 0.9) 82%) !important;
   }
 }
 
