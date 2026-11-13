@@ -401,7 +401,8 @@ export function buildHallArchitecture(ctx: Ctx) {
           vec4 p = instanceMatrix * vec4(position, 1.0);
           vec3 n = mat3(instanceMatrix) * normal;
           vec4 mv = modelViewMatrix * p;
-          vEdge = abs(dot(normalize(normalMatrix * n), normalize(-mv.xyz)));
+          vec3 vn = normalMatrix * n;
+          vEdge = abs(dot(vn / max(length(vn), 0.000001), normalize(-mv.xyz)));
           vAlong = uv.y;
           gl_Position = projectionMatrix * mv;
         }`,
@@ -411,8 +412,12 @@ export function buildHallArchitecture(ctx: Ctx) {
         varying float vAlong;
         varying float vEdge;
         void main() {
-          float a = uStrength * pow(vEdge, 2.0) * pow(vAlong, 1.6) * smoothstep(0.0, 0.25, vAlong);
-          gl_FragColor = vec4(uColor * a, 1.0);
+          // Varyings can leave 0..1 on multisampled edges, and pow() of a negative
+          // value is not a number on some graphics drivers: clamp first.
+          float along = clamp(vAlong, 0.0, 1.0);
+          float edge = clamp(vEdge, 0.0, 1.0);
+          float a = uStrength * edge * edge * pow(max(along, 0.0001), 1.6) * smoothstep(0.0, 0.25, along);
+          gl_FragColor = vec4(uColor * max(a, 0.0), 1.0);
           #include <colorspace_fragment>
         }`,
       transparent: true,

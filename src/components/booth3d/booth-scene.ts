@@ -11,6 +11,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { canvasTexture, createCtx, preloadLogo } from "./core";
 import { createMaterials } from "./materials";
 import { buildHall } from "./hall";
@@ -55,6 +56,32 @@ export type BoothScene = {
   resize(): void;
   setTheme(theme: SceneTheme): void;
   dispose(): void;
+};
+
+/**
+ * Runs before the bloom. A single invalid pixel (NaN or infinity, which some
+ * graphics drivers produce where software rendering does not) is otherwise
+ * blurred by every bloom level into a screen-sized black block. Invalid and
+ * negative values become black, and highlights are capped.
+ */
+const GuardShader = {
+  name: "BoothGuardShader",
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    varying vec2 vUv;
+    // NaN fails every comparison, so it takes the zero branch.
+    float safe(float v) { return v > 0.0 ? min(v, 64.0) : 0.0; }
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      gl_FragColor = vec4(safe(c.r), safe(c.g), safe(c.b), 1.0);
+    }`,
 };
 
 /** Rendering tiers: high = composer + bloom + shadows + transmission; mid = shadows; low = phones. */
@@ -221,11 +248,14 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   // ---- post: MSAA target, subtle bloom, output (tone mapping + sRGB).
   let composer: EffectComposer | null = null;
   let bloom: UnrealBloomPass | null = null;
+  let guard: ShaderPass | null = null;
   const buildComposer = () => {
     const size = renderer.getDrawingBufferSize(new THREE.Vector2());
     const target = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
     composer = new EffectComposer(renderer, target);
     composer.addPass(new RenderPass(scene, camera));
+    guard = new ShaderPass(GuardShader);
+    composer.addPass(guard);
     bloom = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.32, 0.55, 0.9);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
@@ -234,9 +264,11 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     composer?.renderTarget1.dispose();
     composer?.renderTarget2.dispose();
     bloom?.dispose();
+    guard?.dispose();
     composer?.dispose();
     composer = null;
     bloom = null;
+    guard = null;
   };
   if (tier === "high") buildComposer();
 
@@ -465,6 +497,40 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
               if (hit) hits.push({ point: point.toArray(), object: hit.object.name || hit.object.type, distance: Math.round(hit.distance * 100) / 100 });
             }
         return { p, rays, hits: hits.length, sample: hits.slice(0, 6), camera: camera.position.toArray().map((v) => Math.round(v * 100) / 100) };
+      },
+      /**
+       * Regression check for the bloom guard: `poison(true)` puts one small patch of
+       * invalid (NaN) pixels over the plot, `guard(false)` switches the guard off.
+       * With the guard on, the patch must stay a patch; with it off, the bloom
+       * spreads it into a large black block.
+       */
+      poison(on: boolean) {
+        const old = scene.getObjectByName("debug-poison");
+        if (old) scene.remove(old);
+        if (on) {
+          const mesh = new THREE.Mesh(
+            track(new THREE.PlaneGeometry(0.3, 0.3)),
+            track(
+              new THREE.ShaderMaterial({
+                uniforms: { uMinus: { value: -1 } },
+                vertexShader: "void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+                fragmentShader: "uniform float uMinus; void main(){ gl_FragColor = vec4(vec3(sqrt(uMinus)), 1.0); }",
+                side: THREE.DoubleSide,
+                toneMapped: false,
+              }),
+            ),
+          );
+          mesh.name = "debug-poison";
+          mesh.position.set(0, 1.6, 0);
+          mesh.frustumCulled = false;
+          scene.add(mesh);
+        }
+        draw(current, elapsed);
+      },
+      guard(on: boolean) {
+        if (guard) guard.enabled = on;
+        draw(current, elapsed);
+        return guard ? guard.enabled : null;
       },
       /** Pin the LED reel to a time in seconds (null lets it run), and redraw. */
       reel(t: number | null) {

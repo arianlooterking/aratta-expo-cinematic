@@ -178,7 +178,7 @@ export function buildIdentity(ctx: Ctx) {
             vec2 g = vUv * 64.0;
             vec2 fw = fwidth(g);
             vec2 f = abs(fract(g) - 0.5);
-            vec2 dots = smoothstep(vec2(0.5), vec2(0.5) - max(fw, vec2(0.12)), f);
+            vec2 dots = 1.0 - smoothstep(vec2(0.5) - max(fw, vec2(0.12)), vec2(0.5), f);
             float grid = dots.x * dots.y;
             float detail = 1.0 - smoothstep(0.2, 0.5, max(fw.x, fw.y));
             pixel = mix(1.0, 0.55 + 0.45 * grid, detail);
@@ -285,9 +285,12 @@ export function buildIdentity(ctx: Ctx) {
         ${REEL_GLSL}
         void main() {
           vec3 avg = (reel(vec2(0.25, 0.5), uTime) + reel(vec2(0.75, 0.5), uTime) + reel(vec2(0.5, 0.25), uTime) + reel(vec2(0.5, 0.75), uTime)) * 0.25;
-          float side = 1.0 - pow(abs(vUv.x * 2.0 - 1.0), 2.0);
-          float fall = pow(vUv.y, 1.8) * side;
-          gl_FragColor = vec4(avg * fall * uSpill, 1.0);
+          // Clamped: pow() of a negative value is not a number on some graphics drivers.
+          vec2 q = clamp(vUv, 0.0, 1.0);
+          float sx = q.x * 2.0 - 1.0;
+          float side = 1.0 - sx * sx;
+          float fall = pow(max(q.y, 0.0001), 1.8) * side;
+          gl_FragColor = vec4(max(avg * fall * uSpill, 0.0), 1.0);
         }`,
       transparent: true,
       blending: THREE.AdditiveBlending,

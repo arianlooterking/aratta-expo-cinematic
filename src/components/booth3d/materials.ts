@@ -9,8 +9,8 @@ import { canvasTexture, rng } from "./core";
 
 export const BRASS = "#d3a84b";
 export const TEAL = "#63c9a4";
-/** Aisle carpet colour per scene theme (the pile texture is neutral). */
-export const AISLE = { dark: "#26343b", light: "#8e1820" } as const;
+/** Aisle carpet tint per scene theme (the pile texture is a neutral light grey). */
+export const AISLE = { dark: "#27405e", light: "#8e1820" } as const;
 
 type Track = <T extends { dispose(): void }>(item: T) => T;
 
@@ -172,8 +172,9 @@ export function createMaterials(track: Track, rich: boolean) {
     });
   const carpetMap = carpetDraw("#5f5a52", 41);
   const carpet = track(new THREE.MeshStandardMaterial({ map: tex(repeat(carpetMap.texture, 6, 6)), roughness: 1, metalness: 0 }));
-  // Aisle carpet: a neutral pile texture tinted by the theme (deep petrol
-  // graphite in the dark hall, a deep trade-fair red on the light opening day).
+  // Aisle carpet: a neutral pile texture tinted by the theme (the hall's own
+  // deep blue, #203650 on screen, in the dark hall; a deep trade-fair red on
+  // the light opening day).
   const aisleMap = carpetDraw("#dcdcdc", 43);
   const aisle = track(new THREE.MeshStandardMaterial({ color: AISLE.dark, map: tex(repeat(aisleMap.texture, 1, 1)), roughness: 1, metalness: 0, envMapIntensity: 0.2 }));
   const rugMap = canvasTexture(S / 2, S / 2, (ctx, w, h) => {
@@ -423,7 +424,8 @@ export function createLedLineMaterial() {
       void main() {
         float d = (vWorld.x + 6.0) + (4.5 - vWorld.z) * 0.55 + vWorld.y * 0.35;
         float on = 1.0 - smoothstep(uSweep - 0.8, uSweep, d);
-        float head = exp(-pow((d - uSweep + 0.4) * 2.2, 2.0)) * step(0.001, uLevel) * (1.0 - step(16.0, uSweep));
+        float k = (d - uSweep + 0.4) * 2.2;
+        float head = exp(-k * k) * step(0.001, uLevel) * (1.0 - step(16.0, uSweep));
         vec3 base = vec3(0.035, 0.034, 0.032);
         vec3 c = base + uColor * (on * uLevel + head * 0.8);
         gl_FragColor = vec4(c, 1.0);

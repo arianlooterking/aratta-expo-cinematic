@@ -212,7 +212,8 @@ export const REEL_GLSL = /* glsl */ `
       vec2 q = 0.5 + (uv - 0.5) * (1.0 - 0.025 * life);
       vec3 c = atlasAt(k < 0.5 ? 0.0 : 1.0, q).rgb;
       float x0 = -0.35 + 1.7 * life;
-      float band = exp(-pow(q.x + (q.y - 0.5) * 0.45 - x0, 2.0) / 0.014);
+      float bx = q.x + (q.y - 0.5) * 0.45 - x0;
+      float band = exp(-bx * bx / 0.014);
       return c + gold * band * 0.35 * smoothstep(0.1, 0.45, dot(c, vec3(0.333)));
     }
     // Photos: slow pan and zoom (about 3.5% over the slide), the caption held still over it.

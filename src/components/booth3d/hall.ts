@@ -309,7 +309,8 @@ function buildPlot(ctx: Ctx) {
           vec4 t = texture2D(uMap, vUv);
           float d = length((vUv - vec2(0.12, 0.0)) * vec2(1.18, 1.0));
           float shown = 1.0 - smoothstep(uReveal - 0.04, uReveal, d);
-          float scan = exp(-pow((d - uReveal) * 40.0, 2.0)) * step(uReveal, 1.6) * 0.35;
+          float k = (d - uReveal) * 40.0;
+          float scan = exp(-k * k) * step(uReveal, 1.6) * 0.35;
           vec3 c = t.rgb * t.a * shown + uColor * scan * 0.5;
           gl_FragColor = vec4(c * uOpacity, 1.0);
           #include <colorspace_fragment>

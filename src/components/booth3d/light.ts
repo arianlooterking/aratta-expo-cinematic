@@ -240,8 +240,9 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
             n = mat3(instanceMatrix) * n;
           #endif
           vec4 mv = modelViewMatrix * p;
-          vec3 vn = normalize(normalMatrix * n);
-          vEdge = abs(dot(vn, normalize(-mv.xyz)));
+          // Unlit beams are scaled to nothing: never normalise a zero vector.
+          vec3 vn = normalMatrix * n;
+          vEdge = abs(dot(vn / max(length(vn), 0.000001), normalize(-mv.xyz)));
           vAlong = uv.y;
           vLevel = aLevel;
           gl_Position = projectionMatrix * mv;
@@ -253,8 +254,11 @@ export function buildLight(ctx: Ctx, options: { realSpots: boolean }) {
         varying float vAlong;
         varying float vEdge;
         void main() {
-          float a = vLevel * uStrength * pow(vEdge, 3.0) * (0.35 + 0.65 * (1.0 - vAlong)) * smoothstep(0.0, 0.08, vAlong) * (1.0 - smoothstep(0.7, 1.0, vAlong));
-          gl_FragColor = vec4(uColor * a, 1.0);
+          // Clamped: varyings can leave 0..1 on multisampled edges (see the hall shafts).
+          float along = clamp(vAlong, 0.0, 1.0);
+          float edge = clamp(vEdge, 0.0, 1.0);
+          float a = max(vLevel, 0.0) * uStrength * edge * edge * edge * (0.35 + 0.65 * (1.0 - along)) * smoothstep(0.0, 0.08, along) * (1.0 - smoothstep(0.7, 1.0, along));
+          gl_FragColor = vec4(uColor * max(a, 0.0), 1.0);
           #include <colorspace_fragment>
         }`,
       transparent: true,
