@@ -2,10 +2,15 @@
 // stand (see CAMERA_KEYS). Azimuth, distance and height around the plot centre
 // and the look-at point are each a monotone cubic (PCHIP) against scroll
 // progress, so position and velocity are continuous everywhere and the path
-// never overshoots a key. Desktop keeps the booth on the side away from the
-// copy with a constant lens shift; portrait screens step back and aim closer
-// to the stand's centre, and ease out further during the last chapters so the
+// never overshoots a key. Portrait screens step back and aim closer to the
+// stand's centre, and ease out further during the last chapters so the
 // hand-over to the (more distant) portrait finale stays gentle.
+//
+// Landscape screens sweep a wider, even arc (three-quarter view to front), keep
+// the crane's height, and solve the distance
+// every frame: the subject box (the plot, as tall as the build so far: low for
+// the plan, the full stand once the truss is hoisted) fills the free band
+// between the header and the chapter copy under it, centred on the screen.
 //
 // The finale is a front elevation: the camera arrives on the stand's centre
 // line in front of the open long side and makes a slow ease-out push-in to a
@@ -27,6 +32,19 @@ const PORTRAIT_FILL = 0.89;
 /** Portrait screens: height above eye level, relative to the crane's. */
 const PORTRAIT_HEIGHT = 1.25;
 const EYE = { start: 2.95, end: 2.45 };
+/** Landscape chapters: the subject box fills this share of the width or of the free band's height. */
+const LAND_FILL_W = 0.64;
+const LAND_FILL_H = 0.9;
+/** Where the box sits in the band's spare height (0 = top, 1 = bottom): centred, a touch low. */
+const LAND_PLACE = 0.6;
+/** Landscape: the opening frame eases into the chapter framing over this progress. */
+const LAND_OPEN: [number, number] = [0, 0.12];
+/** Landscape arc (deg): three-quarter view at the opening and plan, nearly front-on at the hand-over. */
+const LAND_ARC: [number, number] = [40, 2];
+/** Subject height during the plan (m): the plot with its tape, plan and the truss on its trestles. */
+const PLAN_HEIGHT = 1.2;
+/** The subject grows to the full stand while the truss is assembled and hoisted. */
+const RISE: [number, number] = [0.13, 0.215];
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = clamp01((x - a) / (b - a));
@@ -37,6 +55,13 @@ const pushEase = (t: number) => {
   const u = clamp01(t);
   return 1 - (1 - u) ** 3 * (1 + 3 * u);
 };
+
+/** Height of the subject box the landscape chapters frame (m): low for the plan, then the whole stand. */
+export const subjectHeight = (p: number) => PLAN_HEIGHT + (STAND.top - PLAN_HEIGHT) * smoothstep(RISE[0], RISE[1], p);
+/** Landscape azimuth (deg from the front axis toward +x): an even sweep that hands over near the front. */
+export const landAzimuth = (p: number) => LAND_ARC[1] + (LAND_ARC[0] - LAND_ARC[1]) * (1 - clamp01(p / FINALE_AT));
+/** A smooth minimum of two positive values (no kink where the limits cross). */
+const softMin = (a: number, b: number) => (a ** -12 + b ** -12) ** (-1 / 12);
 
 /** Monotone cubic Hermite (Fritsch-Carlson) tangents for one axis. */
 function pchipTangents(t: number[], y: number[], hold: number[]) {
@@ -93,41 +118,63 @@ function sample(tr: Track, p: number, out: THREE.Vector3) {
 export const fovFor = (aspect: number) => (aspect < 0.8 ? 52 : aspect < 1.2 ? 45 : 37);
 
 export type CameraPose = { pos: THREE.Vector3; tgt: THREE.Vector3; offX: number; offY: number };
+/** Projected bounds of the subject box, as fractions of the screen (0 = left / top). */
+export type SubjectBounds = { left: number; right: number; top: number; bottom: number };
 
-export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
+/** Projects the subject box (plot footprint, `height` tall) through a camera; fractions of the screen. */
+export function projectSubject(cam: THREE.PerspectiveCamera, height: number, out: SubjectBounds) {
+  const corner = projectSubject.corner;
+  let x0 = Infinity;
+  let x1 = -Infinity;
+  let y0 = Infinity;
+  let y1 = -Infinity;
+  for (let i = 0; i < 8; i += 1) {
+    corner.set(i & 1 ? STAND.halfWidth : -STAND.halfWidth, i & 2 ? height : 0, i & 4 ? STAND.front : -STAND.front).project(cam);
+    x0 = Math.min(x0, corner.x);
+    x1 = Math.max(x1, corner.x);
+    y0 = Math.min(y0, corner.y);
+    y1 = Math.max(y1, corner.y);
+  }
+  out.left = (x0 + 1) / 2;
+  out.right = (x1 + 1) / 2;
+  out.top = (1 - y1) / 2;
+  out.bottom = (1 - y0) / 2;
+  return out;
+}
+projectSubject.corner = new THREE.Vector3();
+
+export function createCameraRig(camera: THREE.PerspectiveCamera) {
   // The crane path ends at the finale's hand-over key; the finale owns everything after it.
   const keys = CAMERA_KEYS.filter((k) => k.at <= FINALE_AT);
   const times = keys.map((k) => k.at);
   const hold = keys.map(() => 1);
   const cylTrack = track(times, keys.map((k) => [k.azimuth, k.distance, k.height]), hold);
   const tgtTrack = track(times, keys.map((k) => [...k.target]), hold);
-  const centre = new THREE.Vector3(0, 2.6, 0);
   const pointerSmooth = new THREE.Vector2();
   const pose: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
   const cyl = new THREE.Vector3();
   const fPos = new THREE.Vector3();
   const fTgt = new THREE.Vector3();
-  const endPos = new THREE.Vector3();
-  const endTgt = new THREE.Vector3();
   const probe = new THREE.PerspectiveCamera();
   const point = new THREE.Vector3();
   // Free band for the finale (fractions of the screen height), set by the hero from its layout.
   const safe = { top: 0.1, bottom: 0.62 };
   // Free band between the header and the phone's copy card during the chapters.
   const free = { top: 0.1, bottom: 0.64, set: false };
+  // Landscape: free band between the header and the chapter copy under the stand.
+  const chapterBand = { top: 0.1, bottom: 0.74 };
+  const lPos = new THREE.Vector3();
+  const lTgt = new THREE.Vector3();
+  const box: SubjectBounds = { left: 0, right: 1, top: 0, bottom: 1 };
   const aimPortrait = new THREE.Vector3(0, 3.1, 0.3);
   const dir = new THREE.Vector3();
   const corner = new THREE.Vector3();
   let cacheKey = "";
-  const finale = { near: 0, far: 0, offNear: 0, offFar: 0, driftX: 0, extra: 0, extraEnd: 0 };
+  const finale = { near: 0, far: 0, offNear: 0, offFar: 0, driftX: 0 };
 
   const fov = fovFor;
   /** Portrait and tablet screens stand further off than the desktop path. */
   const baseStepBack = (aspect: number) => (aspect < 1 ? THREE.MathUtils.clamp(0.62 / aspect, 1, 1.45) : aspect < 1.3 ? 1.15 : 1);
-  /** Portrait screens also look down a little more, so the plan still reads from above. */
-  const heightStepBack = (aspect: number) => baseStepBack(aspect) * (aspect < 1 ? 1.2 : 1);
-  /** Portrait screens aim a little closer to the stand's centre. */
-  const aimCentre = (aspect: number) => (aspect < 1 ? 0.45 : 0);
 
   /** The crane pose at p on the desktop path (no screen adjustments). */
   const crane = (p: number, pos: THREE.Vector3, tgt: THREE.Vector3) => {
@@ -190,14 +237,20 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
     // The camera arrives a little to the side it came from (+x) and settles on the centre line,
     // so the swing round the stand keeps one direction in both languages.
     finale.driftX = Math.min(1, d * 0.04);
-    // How far this screen's path must ease back by the hand-over so that it meets the
-    // finale's distance instead of pulling back fast inside the blend.
-    crane(FINALE_AT, endPos, endTgt);
-    endTgt.lerp(centre, aimCentre(aspect));
-    finale.extraEnd = Math.max(0, finale.far - endTgt.z - Math.hypot(endPos.x - endTgt.x, endPos.z - endTgt.z));
-    crane(0, endPos, endTgt);
-    endTgt.lerp(centre, aimCentre(aspect));
-    finale.extra = (baseStepBack(aspect) - 1) * Math.hypot(endPos.x - endTgt.x, endPos.z - endTgt.z);
+  };
+
+  /** Points the probe from pos at tgt (no lens shift) and projects the subject box. */
+  const look = (aspect: number, pos: THREE.Vector3, tgt: THREE.Vector3, h: number) => {
+    probe.fov = fov(aspect);
+    probe.aspect = aspect;
+    probe.near = 0.1;
+    probe.far = 300;
+    probe.clearViewOffset();
+    probe.updateProjectionMatrix();
+    probe.position.copy(pos);
+    probe.lookAt(tgt);
+    probe.updateMatrixWorld(true);
+    return projectSubject(probe, h, box);
   };
 
   /** The camera pose at p without pointer parallax: the pure scroll path. */
@@ -249,23 +302,38 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
       out.pos.copy(out.tgt).addScaledVector(dir, d);
       out.pos.y = y;
     } else {
-    // Tablet landscape screens aim closer to the centre and stand further off: a constant
-    // extra distance (not a factor, so the slow pace of the move is kept), which eases in the
-    // last chapters toward what this screen's finale needs. Height scales about eye level,
-    // so it keeps coming down.
-    out.tgt.lerp(centre, aimCentre(aspect));
-    const dx = out.pos.x - out.tgt.x;
-    const dz = out.pos.z - out.tgt.z;
-    const r = Math.max(1e-3, Math.hypot(dx, dz));
-    const extra = finale.extra + (finale.extraEnd - finale.extra) * smoothstep(0.45, FINALE_AT, p);
-    const k = (r + extra) / r;
-    out.pos.x = out.tgt.x + dx * k;
-    out.pos.z = out.tgt.z + dz * k;
-    out.pos.y = EYE.start + Math.max(0, out.pos.y - EYE.start) * heightStepBack(aspect);
+      // Landscape: the crane gives the direction (azimuth) and the height, both only ever
+      // decreasing; the distance is solved so the subject box fills the free band above the
+      // chapter copy (or 64% of the width, whichever comes first), and the box is centred.
+      const h = subjectHeight(p);
+      const y = out.pos.y;
+      const r0 = Math.max(1e-3, Math.hypot(out.pos.x, out.pos.z));
+      // A wider, even arc than the crane's: from a three-quarter view off the front corner to the
+      // straight front, about 4.6 degrees per chapter, always in one direction.
+      const az = THREE.MathUtils.degToRad(landAzimuth(p));
+      dir.set(Math.sin(az), 0, Math.cos(az));
+      // Look at the box's middle; near the hand-over, at the finale's eye height.
+      lTgt.set(0, h / 2 + (EYE.start - h / 2) * smoothstep(0.7, FINALE_AT, p), 0);
+      const bandH = chapterBand.bottom - chapterBand.top;
+      let d = r0 * 0.6;
+      for (let i = 0; i < 10; i += 1) {
+        lPos.copy(dir).multiplyScalar(d);
+        lPos.y = y;
+        look(aspect, lPos, lTgt, h);
+        const grow = softMin(LAND_FILL_W / (box.right - box.left), (LAND_FILL_H * bandH) / (box.bottom - box.top));
+        // Projected size goes roughly as 1 / (distance to the box's front), so solve on that.
+        d = STAND.front + Math.max(0.5, d - STAND.front) / grow;
+      }
+      // The opening (title over the hall) keeps the crane's frame and eases into this one.
+      // Distance eases geometrically, so the push-in reads at an even pace.
+      const k = smoothstep(LAND_OPEN[0], LAND_OPEN[1], p);
+      const r = r0 * (d / r0) ** k;
+      out.pos.set(dir.x * r, y, dir.z * r);
+      out.tgt.lerp(lTgt, k);
     }
 
-    // Lens shift for the copy: phones keep a card at the bottom, desktop the reading-start side.
-    // It changes only in the intro and in the finale blend.
+    // Lens shift: phones keep the stand in the free band above the copy card; landscape screens
+    // centre the subject box across the width and place it in the band above the chapter copy.
     const blend = smoothstep(FINALE_BLEND[0], FINALE_BLEND[1], p);
     if (aspect < 1) {
       // The optical centre sits in the middle of the free band above the copy card (a touch
@@ -273,9 +341,12 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
       out.offX = 0;
       out.offY = height * (free.set ? 0.5 - (free.top + free.bottom) / 2 - 0.03 : 0.13);
     } else {
-      const middle = smoothstep(0.02, 0.1, p);
-      out.offX = (fa ? 1 : -1) * width * (aspect < 1.3 ? 0 : 0.24) * middle;
-      out.offY = 0;
+      look(aspect, out.pos, out.tgt, subjectHeight(p));
+      const hf = box.bottom - box.top;
+      const spare = Math.max(0, chapterBand.bottom - chapterBand.top - hf);
+      const place = chapterBand.top + spare * LAND_PLACE + hf / 2;
+      out.offX = ((box.left + box.right) / 2 - 0.5) * width;
+      out.offY = ((box.top + box.bottom) / 2 - place) * height * smoothstep(LAND_OPEN[0], LAND_OPEN[1], p);
     }
 
     if (blend > 0) {
@@ -289,6 +360,12 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
       out.tgt.lerp(fTgt, blend);
       out.offX += (0 - out.offX) * blend;
       out.offY += (off - out.offY) * blend;
+      if (aspect >= 1) {
+        // Landscape: keep the box centred across the width while the camera settles on the
+        // centre line (a small correction that fades out as the front elevation becomes symmetric).
+        look(aspect, out.pos, out.tgt, subjectHeight(p));
+        out.offX = ((box.left + box.right) / 2 - 0.5) * width;
+      }
     }
     return out;
   };
@@ -308,6 +385,42 @@ export function createCameraRig(camera: THREE.PerspectiveCamera, fa: boolean) {
       free.top = clamp01(top);
       free.bottom = Math.max(free.top + 0.2, clamp01(bottom));
       free.set = true;
+    },
+    /** Landscape: the free band between the header and the chapter copy under the stand. */
+    setChapterBand(top: number, bottom: number) {
+      chapterBand.top = clamp01(top);
+      chapterBand.bottom = Math.max(chapterBand.top + 0.3, clamp01(bottom));
+    },
+    /**
+     * Where the subject box lands on screen at p (scroll path, no pointer parallax): its
+     * bounds as fractions of the screen, its width share, and its height as a share of the
+     * free band (the chapter band; the closing band once the finale has taken over).
+     */
+    subjectBounds(p: number, width: number, height: number) {
+      const pose: CameraPose = { pos: new THREE.Vector3(), tgt: new THREE.Vector3(), offX: 0, offY: 0 };
+      at(p, width, height, pose);
+      const cam = new THREE.PerspectiveCamera(fov(width / height), width / height, 0.1, 300);
+      cam.position.copy(pose.pos);
+      cam.lookAt(pose.tgt);
+      cam.setViewOffset(width, height, pose.offX, pose.offY, width, height);
+      cam.updateMatrixWorld(true);
+      const b = projectSubject(cam, subjectHeight(p), { left: 0, right: 0, top: 0, bottom: 0 });
+      const band = p >= FINALE_BLEND[1] ? safe : p > FINALE_BLEND[0] ? { top: Math.min(safe.top, chapterBand.top), bottom: Math.max(safe.bottom, chapterBand.bottom) } : chapterBand;
+      const r = (v: number) => Math.round(v * 10000) / 10000;
+      return {
+        p,
+        left: r(b.left),
+        right: r(b.right),
+        top: r(b.top),
+        bottom: r(b.bottom),
+        centreX: r((b.left + b.right) / 2),
+        fillWidth: r(b.right - b.left),
+        fillBand: r((b.bottom - b.top) / (band.bottom - band.top)),
+        bandTop: r(band.top),
+        bandBottom: r(band.bottom),
+        inBand: b.top >= band.top - 1e-4 && b.bottom <= band.bottom + 1e-4,
+        distance: r(Math.hypot(pose.pos.x, pose.pos.z)),
+      };
     },
     apply(p: number, dt: number, width: number, height: number, pointer: THREE.Vector2) {
       at(p, width, height, pose);

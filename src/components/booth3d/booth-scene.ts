@@ -43,6 +43,8 @@ export type BoothSceneOptions = {
   safeBand?: () => { top: number; bottom: number } | null;
   /** The free band between the header and the phone's copy card during the chapters. */
   freeBand?: () => { top: number; bottom: number } | null;
+  /** Landscape screens: the free band between the header and the chapter copy under the stand. */
+  chapterBand?: () => { top: number; bottom: number } | null;
   /** "auto" picks from `compact` and a short frame-time probe. */
   quality?: BoothQuality;
   /** Surroundings theme ("dark" default; `?booth-theme=light` for testing). */
@@ -54,6 +56,8 @@ export type BoothScene = {
   setPointer(x: number, y: number): void;
   setActive(active: boolean): void;
   resize(): void;
+  /** Re-reads the free bands from the page layout (the copy or the header changed height). */
+  relayout(): void;
   setTheme(theme: SceneTheme): void;
   dispose(): void;
 };
@@ -294,7 +298,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   };
   canvas.dataset.tier = tier;
 
-  const rig = createCameraRig(camera, fa);
+  const rig = createCameraRig(camera);
   // Debug only (with booth-debug): ?booth-cam=x,y,z,tx,ty,tz pins the camera to a pose.
   const debugCam = (() => {
     const q = new URLSearchParams(window.location.search);
@@ -354,10 +358,17 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       composer.setSize(size.x, size.y);
     }
     ctx.sparkles.material.uniforms.uScale.value = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    bands();
+  };
+
+  const bands = () => {
     const band = options.safeBand?.();
     if (band) rig.setSafeBand(band.top, band.bottom);
     const free = options.freeBand?.();
     if (free) rig.setFreeBand(free.top, free.bottom);
+    const chapter = options.chapterBand?.();
+    if (chapter) rig.setChapterBand(chapter.top, chapter.bottom);
+    lastRender = 0;
   };
 
   let frameDt = 1 / 60;
@@ -472,6 +483,17 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       },
       freeze(value: boolean) {
         frozen = value;
+      },
+      /** The progress the scene shows (it follows the scroll with a speed limit), and the scroll target. */
+      get shown() {
+        return current;
+      },
+      get target() {
+        return target;
+      },
+      /** The subject box's projected bounds at p, as fractions of the screen and of the free band. */
+      subjectBounds(p: number) {
+        return rig.subjectBounds(clamp01(p), width, height);
       },
       /** Hall or neighbour meshes between the camera and a grid over the stand's box. */
       occlusion(p: number) {
@@ -634,6 +656,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       last = performance.now();
     },
     resize,
+    relayout: bands,
     setTheme(theme) {
       applyTheme(ctx, theme);
       renderer.shadowMap.needsUpdate = true;

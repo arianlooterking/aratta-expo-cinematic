@@ -29,6 +29,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const barRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const finaleRef = useRef<HTMLDivElement | null>(null);
+  const copyRef = useRef<HTMLDivElement | null>(null);
   const chapterRef = useRef(-1);
   const [chapter, setChapter] = useState(-1);
   const [ready, setReady] = useState(false);
@@ -135,6 +136,18 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
               const top = header ? (header.bottom - frame.top) / frame.height + 0.015 : 0.08;
               return { top, bottom: (card.top - frame.top) / frame.height - 0.015 };
             },
+            // Landscape screens: the stand is centred between the header and the chapter copy under it.
+            chapterBand: () => {
+              const frame = canvas.getBoundingClientRect();
+              const copy = copyRef.current;
+              const holder = copy?.offsetParent;
+              if (!copy || !holder || copy.offsetHeight < 1 || frame.height < 1 || frame.width < frame.height) return null;
+              // Layout position (offsetTop), not the box: the copy's entrance transform must not move the band.
+              const copyTop = holder.getBoundingClientRect().top + copy.offsetTop;
+              const header = document.querySelector("header")?.getBoundingClientRect();
+              const top = header ? (header.bottom - frame.top) / frame.height + 0.02 : 0.1;
+              return { top: Math.max(0.06, top), bottom: (copyTop - frame.top) / frame.height - 0.025 };
+            },
             // The closing elevation sits between the fixed site header and the closing copy.
             safeBand: () => {
               const frame = canvas.getBoundingClientRect();
@@ -172,6 +185,13 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
 
     const onResize = () => scene?.resize();
     window.addEventListener("resize", onResize);
+    // The free bands follow the copy and the header when their height changes (fonts, wrapping).
+    const relayout = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => scene?.relayout());
+    if (relayout) {
+      if (copyRef.current) relayout.observe(copyRef.current);
+      const header = document.querySelector("header");
+      if (header) relayout.observe(header);
+    }
     const finePointer = window.matchMedia("(pointer: fine)").matches;
     const onPointer = (event: PointerEvent) => {
       scene?.setPointer((event.clientX / window.innerWidth - 0.5) * 2, (event.clientY / window.innerHeight - 0.5) * -2);
@@ -183,6 +203,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
       window.clearTimeout(fallbackTimer);
       trigger?.kill();
       visibility.disconnect();
+      relayout?.disconnect();
       unsubscribeTheme();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onPointer);
@@ -221,15 +242,18 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
 
         <div dir={content.dir} className={`booth3d__side-scrim pointer-events-none absolute inset-0 hidden md:block ${inChapter ? "is-on" : ""}`} aria-hidden="true" />
         <div className={`booth3d__low-scrim pointer-events-none absolute inset-0 ${finale ? "is-on" : ""}`} aria-hidden="true" />
+        {/* Landscape screens: a lower veil under the centred chapter copy (it cross-fades with the finale's). */}
+        <div className={`booth3d__low-scrim booth3d__low-scrim--chapter pointer-events-none absolute inset-0 hidden ${inChapter ? "is-on" : ""}`} aria-hidden="true" />
 
-        {/* Chapter copy on wide screens: reading-start side, large and calm. */}
+        {/* Chapter copy on wide screens: centred under the stand on landscape screens (reading-start
+            side on upright tablets and without WebGL), large and calm. */}
         <div dir={content.dir} className="pointer-events-none absolute inset-0 z-10 hidden md:block">
           <div className="booth3d__chapter-wrap section-shell flex h-full items-center">
-            <div className={`booth3d__chapter booth3d__stack ${inChapter ? "is-on" : ""}`}>
+            <div ref={copyRef} className={`booth3d__chapter booth3d__stack ${inChapter ? "is-on" : ""}`}>
               {/* Every chapter is laid out in the same cell: the copy cross-fades without a layout shift. */}
               {stages.map((item, index) => (
                 <div key={`chapter-${item.label}`} aria-hidden={index !== chapter} className={`hero-stage-copy ${index === chapter ? "is-on" : ""}`}>
-                  <div className="flex items-center gap-3">
+                  <div className="booth3d__chapter-meta flex items-center gap-3">
                     <span className={`text-[0.72rem] font-black text-[var(--gold)] ${fa ? "" : "font-latin tracking-[0.3em]"}`}>
                       {fa ? (
                         <>
@@ -245,7 +269,7 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
                     <span className="text-xs font-bold text-ink-66">{item.label}</span>
                   </div>
                   <h2 className="booth3d__chapter-title mt-5 text-balance text-ink">{item.title}</h2>
-                  <p className={`mt-5 max-w-[30rem] leading-8 text-ink-78 ${fa ? "text-[1.06rem]" : "text-[0.98rem]"}`}>{item.body}</p>
+                  <p className={`booth3d__chapter-body mt-5 max-w-[30rem] leading-8 text-ink-78 ${fa ? "text-[1.06rem]" : "text-[0.98rem]"}`}>{item.body}</p>
                 </div>
               ))}
             </div>
