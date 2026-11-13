@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { getBrandAssets } from "@/lib/brand-assets";
 import type { Lang } from "@/lib/lang";
 import { getLanguageSeo, siteName, siteUrl, socialPreviewImage } from "@/lib/seo";
+import { themeInitScript } from "@/lib/theme-script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,8 +68,12 @@ export function DocumentShell({
       lang={lang}
       dir={lang === "fa" ? "rtl" : "ltr"}
       className={`${geistSans.variable} ${persianSans.variable} h-full antialiased`}
+      // The inline script at the top of <body> sets data-theme before first
+      // paint and before React hydrates; the server markup is the same for both.
+      suppressHydrationWarning
     >
       <body className="min-h-full bg-[var(--background)] text-[var(--foreground)]">
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {children}
       </body>
     </html>
