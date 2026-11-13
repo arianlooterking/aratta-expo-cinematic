@@ -22,7 +22,7 @@ export function ExhibitionNotice({ lang }: { lang: Lang }) {
   const fa = lang === "fa";
   return (
     <aside
-      className="rounded-3xl border border-amber-200/30 bg-amber-200/[0.07] p-5 sm:p-7"
+      className="rounded-3xl border border-gilt-200/30 bg-gilt-200/[0.07] p-5 sm:p-7"
       aria-label={fa ? "آخرین اطلاعیه نمایشگاه" : "Latest exhibition notice"}
     >
       <div className="flex items-start gap-4">
@@ -33,12 +33,12 @@ export function ExhibitionNotice({ lang }: { lang: Lang }) {
               ? "اطلاعیه رسمی · ۲۶ مرداد ۱۴۰۵"
               : "Official notice · 17 August 2026"}
           </p>
-          <h2 className="mt-2 text-xl font-bold text-white sm:text-2xl">
+          <h2 className="mt-2 text-xl font-bold text-ink sm:text-2xl">
             {fa
               ? "برگزاری نمایشگاه معدن کرمان به تعویق افتاده است"
               : "Kerman mining exhibition postponed"}
           </h2>
-          <p className="mt-3 max-w-4xl leading-8 text-white/75">
+          <p className="mt-3 max-w-4xl leading-8 text-ink-75">
             {fa
               ? "رویداد برنامه‌ریزی‌شده برای ۲۶ تا ۲۹ مرداد ۱۴۰۵ تا اطلاع بعدی به تعویق افتاده است. زمان و محل جدید پس از تأیید مراجع مربوط از طریق کانال‌های رسمی اعلام خواهد شد."
               : "The event planned for 17–20 August 2026 has been postponed until further notice. A new date and venue will be announced through official channels after the required approvals."}
@@ -70,9 +70,9 @@ export function ArchiveCards({
         <Link
           key={entry.id}
           href={`/${lang}/archive/${entry.id}`}
-          className="industrial-card group flex min-w-0 flex-col overflow-hidden rounded-3xl transition hover:border-amber-200/40"
+          className="industrial-card group flex min-w-0 flex-col overflow-hidden rounded-3xl transition hover:border-gilt-200/40"
         >
-          <div className="relative aspect-[16/10] overflow-hidden bg-white/[0.035]">
+          <div className="on-photo relative aspect-[16/10] overflow-hidden bg-ink/[0.035]">
             {entry.images[0] ? (
               <Image
                 src={entry.images[0].src}
@@ -87,7 +87,7 @@ export function ArchiveCards({
                 <Newspaper size={42} />
               </div>
             )}
-            <span className="absolute start-4 top-4 rounded-full border border-white/20 bg-black/80 px-3 py-1 text-xs text-white">
+            <span className="absolute start-4 top-4 rounded-full border border-ink/20 bg-shade/80 px-3 py-1 text-xs text-ink">
               {archiveLabels[lang][entry.kind as keyof typeof archiveLabels.fa]}
             </span>
           </div>
@@ -99,14 +99,14 @@ export function ArchiveCards({
               {archiveDate(entry.publishedAt, lang)}
             </time>
             <h2
-              className="mt-3 text-xl font-bold leading-9 text-white"
+              className="mt-3 text-xl font-bold leading-9 text-ink"
               dir="rtl"
               lang="fa"
             >
               {entry.title}
             </h2>
             <p
-              className="mt-3 line-clamp-3 text-sm leading-7 text-white/65"
+              className="mt-3 line-clamp-3 text-sm leading-7 text-ink-65"
               dir="rtl"
               lang="fa"
             >
@@ -142,7 +142,7 @@ export function ArchiveOverview({ lang, kind }: { lang: Lang; kind?: string }) {
           </h2>
         </div>
         <Link
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-[var(--gold)]"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/20 px-5 py-2 text-[var(--gold)]"
           href={`/${lang}/archive${kind ? "?type=" + kind : ""}`}
         >
           {lang === "fa"
@@ -173,12 +173,12 @@ export function ArchiveDownloads({ lang }: { lang: Lang }) {
   const fa = lang === "fa";
   return (
     <section className="industrial-card mt-10 rounded-[2rem] p-5 sm:p-7">
-      <h2 className="text-2xl font-black text-white">
+      <h2 className="text-2xl font-black text-ink">
         {fa
           ? "فایل‌های دوره‌های گذشته"
           : "Files from past editions"}
       </h2>
-      <p className="mt-3 text-white/65">
+      <p className="mt-3 text-ink-65">
         {fa
           ? "فایل‌های دوره‌های گذشته برای مراجعه و بایگانی نگهداری می‌شوند؛ پیش از استفاده از فرم یا تعرفه، اعتبار آن را با دفتر اَرَتَ بررسی کنید."
           : "Past-edition documents are retained for reference. Confirm the validity of any form or tariff with the Aratta office before using it."}
@@ -197,26 +197,26 @@ export function ArchiveDownloads({ lang }: { lang: Lang }) {
               key={asset.src}
               href={asset.src}
               download
-              className="flex min-w-0 items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4 transition hover:border-amber-200/40 hover:bg-white/[0.045]"
+              className="flex min-w-0 items-start gap-3 rounded-2xl border border-ink/10 bg-ink/[0.025] p-4 transition hover:border-gilt-200/40 hover:bg-ink/[0.045]"
             >
               <FileDown
                 size={23}
                 className="mt-1 shrink-0 text-[var(--gold)]"
               />
               <span className="min-w-0">
-                <strong className="block text-sm font-black leading-7 text-white">
+                <strong className="block text-sm font-black leading-7 text-ink">
                   {kind[lang]}
                 </strong>
                 {owner && (
                   <span
-                    className="mt-0.5 block text-xs leading-6 text-white/60"
+                    className="mt-0.5 block text-xs leading-6 text-ink-60"
                     dir="rtl"
                     lang="fa"
                   >
                     {owner.title}
                   </span>
                 )}
-                <span className="mt-2 flex min-w-0 gap-1.5 text-xs text-white/40">
+                <span className="mt-2 flex min-w-0 gap-1.5 text-xs text-ink-40">
                   <bdi className="truncate">{fileName}</bdi>
                   <span aria-hidden="true">·</span>
                   <span className="font-latin shrink-0" dir="ltr">
@@ -246,7 +246,7 @@ export function ArchiveGalleryLinks({ lang }: { lang: Lang }) {
       <h2 className="text-2xl font-bold">
         {fa ? "آلبوم‌های کامل نمایشگاه‌ها" : "Complete exhibition albums"}
       </h2>
-      <p className="text-white/65">
+      <p className="text-ink-65">
         {fa
           ? "نسخه کامل تصاویر، پوسترها و گزارش‌های هر دوره را در آلبوم مربوط ببینید."
           : "Explore the full photographs, posters and reports in each edition’s album."}

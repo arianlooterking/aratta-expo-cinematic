@@ -128,7 +128,7 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
         onChange={(value) => update("interest", value)}
       />
       <label className="grid gap-2">
-        <span className="text-sm font-semibold text-white/82">
+        <span className="text-sm font-semibold text-ink-82">
           {fields.message}
         </span>
         <textarea
@@ -137,13 +137,13 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
           rows={compact ? 4 : 5}
           value={form.message}
           onChange={(event) => update("message", event.target.value)}
-          className="min-h-32 rounded-3xl border border-white/12 bg-black/28 px-4 py-3 text-white outline-none transition placeholder:text-white/30 focus:border-cyan-200/60 focus:ring-4 focus:ring-cyan-200/10"
+          className="min-h-32 rounded-3xl border border-ink/12 bg-shade/28 px-4 py-3 text-ink outline-none transition placeholder:text-ink-30 focus:border-aqua-200/60 focus:ring-4 focus:ring-aqua-200/10"
         />
       </label>
 
       <button
         type="submit"
-        className="liquid-button inline-flex items-center justify-center gap-3 rounded-full px-6 py-3 font-bold text-white"
+        className="liquid-button inline-flex items-center justify-center gap-3 rounded-full px-6 py-3 font-bold text-ink"
       >
         <Send size={18} />
         {fields.submit}
@@ -152,7 +152,7 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
       <div aria-live="polite" className="min-h-6">
         <button
           type="button"
-          className="mb-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm text-white/85"
+          className="mb-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-ink/20 px-5 py-3 text-sm text-ink-85"
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(
@@ -176,7 +176,7 @@ export function InquiryForm({ content, compact = false }: InquiryFormProps) {
           {content.lang === "fa" ? "کپی متن درخواست" : "Copy inquiry text"}
         </button>
         {copyStatus && (
-          <p className="mb-3 text-sm text-white/75">{copyStatus}</p>
+          <p className="mb-3 text-sm text-ink-75">{copyStatus}</p>
         )}
         {status === "error" ? (
           <p className="text-sm text-[var(--danger)]">{fields.error}</p>
@@ -211,7 +211,7 @@ function Field({
 
   return (
     <label htmlFor={id} className="grid gap-2">
-      <span className="text-sm font-semibold text-white/82">{label}</span>
+      <span className="text-sm font-semibold text-ink-82">{label}</span>
       <input
         id={id}
         type={type}
@@ -219,7 +219,7 @@ function Field({
         autoComplete={autoComplete}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-full border border-white/12 bg-black/28 px-4 text-white outline-none transition placeholder:text-white/30 focus:border-cyan-200/60 focus:ring-4 focus:ring-cyan-200/10"
+        className="h-12 rounded-full border border-ink/12 bg-shade/28 px-4 text-ink outline-none transition placeholder:text-ink-30 focus:border-aqua-200/60 focus:ring-4 focus:ring-aqua-200/10"
       />
     </label>
   );

@@ -41,7 +41,7 @@ export default async function AppPage({ params }: Props) {
       <main id="main-content" className="section-shell min-h-screen pb-20 pt-36">
         <p className="text-sm text-[var(--gold)]">{fa ? "ویژه همکاران اَرَتَ" : "For the Aratta team"}</p>
         <h1 className="mt-4 text-3xl font-bold sm:text-5xl">{fa ? "اپلیکیشن کارکنان اَرَتَ" : "Aratta Staff app"}</h1>
-        <p className="mt-5 max-w-3xl leading-8 text-white/65">
+        <p className="mt-5 max-w-3xl leading-8 text-ink-65">
           {fa
             ? "پورتال کارکنان روی گوشی: نقشه سالن‌ها، شرکت‌ها و پیگیری فروش، فاکتور و وصول، کارها و تحویل تجهیزات، با اعلان برای کارهایی که به شما سپرده می‌شود. ورود فقط با حساب کاری دعوت‌شده ممکن است."
             : "The staff portal on your phone: hall maps, companies and sales follow-ups, invoices and collections, tasks and hand-over, with notifications for work assigned to you. Signing in needs an invited work account."}

@@ -88,25 +88,25 @@ function RegistrationSection({ content }: HomeSectionsProps) {
         <div className="glass relative isolate min-w-0 overflow-hidden rounded-[2rem] p-5 sm:p-8">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_12%_8%,rgba(125,220,232,0.14),transparent_22rem),radial-gradient(circle_at_90%_90%,rgba(214,174,101,0.14),transparent_20rem)]" />
           <div className="section-kicker">{content.registration.kicker}</div>
-          <h2 className="card-display-title mt-4 font-black text-white">{content.registration.title}</h2>
-          <p className="site-copy mt-4 text-white/68">{content.registration.body}</p>
+          <h2 className="card-display-title mt-4 font-black text-ink">{content.registration.title}</h2>
+          <p className="site-copy mt-4 text-ink-68">{content.registration.body}</p>
           <div className="mt-7 grid gap-3 sm:grid-cols-2">
-            <Link href={`${base}/registration#booth-request`} className="liquid-button flex items-center gap-3 rounded-2xl p-4 text-white">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-black/25"><LayoutGrid size={20} /></span>
+            <Link href={`${base}/registration#booth-request`} className="liquid-button flex items-center gap-3 rounded-2xl p-4 text-ink">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-shade/25"><LayoutGrid size={20} /></span>
               <span>
                 <span className="block font-black">{fa ? "ساخت درخواست غرفه" : "Build a booth request"}</span>
-                <span className="block text-xs text-white/70">{fa ? "نوع، متراژ، موقعیت و خدمات" : "Type, size, position and services"}</span>
+                <span className="block text-xs text-ink-70">{fa ? "نوع، متراژ، موقعیت و خدمات" : "Type, size, position and services"}</span>
               </span>
             </Link>
-            <Link href={`${base}/equipment#equipment-request`} className="flex items-center gap-3 rounded-2xl border border-white/14 bg-white/[0.05] p-4 text-white transition hover:border-cyan-200/35">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-black/25 text-[var(--cyan)]"><Wrench size={20} /></span>
+            <Link href={`${base}/equipment#equipment-request`} className="flex items-center gap-3 rounded-2xl border border-ink/14 bg-ink/[0.05] p-4 text-ink transition hover:border-aqua-200/35">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-shade/25 text-[var(--cyan)]"><Wrench size={20} /></span>
               <span>
                 <span className="block font-black">{fa ? "فهرست اجاره تجهیزات" : "Equipment rental list"}</span>
-                <span className="block text-xs text-white/60">{fa ? "مبلمان، تلویزیون، برق و پذیرایی" : "Furniture, screens, power, refreshments"}</span>
+                <span className="block text-xs text-ink-60">{fa ? "مبلمان، تلویزیون، برق و پذیرایی" : "Furniture, screens, power, refreshments"}</span>
               </span>
             </Link>
           </div>
-          <p className="mt-5 flex items-start gap-2 text-sm leading-7 text-white/52">
+          <p className="mt-5 flex items-start gap-2 text-sm leading-7 text-ink-52">
             <ShieldCheck className="mt-1 shrink-0 text-[var(--success)]" size={17} />
             {fa
               ? "درخواست با ایمیل به دفتر اَرَتَ می‌رسد؛ قرارداد و پرداخت فقط پس از هماهنگی با کارشناس فروش انجام می‌شود."
@@ -115,22 +115,22 @@ function RegistrationSection({ content }: HomeSectionsProps) {
         </div>
 
         <div className="industrial-card min-w-0 rounded-[2rem] p-5 sm:p-7">
-          <h3 className="text-xl font-black text-white">{fa ? "فایل‌های رسمی" : "Official files"}</h3>
+          <h3 className="text-xl font-black text-ink">{fa ? "فایل‌های رسمی" : "Official files"}</h3>
           <div className="mt-5 grid gap-3">
             {content.registration.downloads.map((download) => (
               <a
                 key={download.href}
                 href={download.href}
                 download={download.fileName}
-                className="group flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-white/12 bg-white/[0.045] p-3.5 transition hover:border-cyan-200/38 hover:bg-cyan-200/8"
+                className="group flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-ink/12 bg-ink/[0.045] p-3.5 transition hover:border-aqua-200/38 hover:bg-aqua-200/8"
               >
                 <span className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-black/28 text-[var(--cyan)]">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-shade/28 text-[var(--cyan)]">
                     <FileDown size={20} />
                   </span>
                   <span className="min-w-0">
-                    <span className="line-clamp-2 block font-bold leading-6 text-white">{download.label}</span>
-                    <span className="font-latin mt-0.5 block text-xs uppercase tracking-[0.18em] text-white/42">
+                    <span className="line-clamp-2 block font-bold leading-6 text-ink">{download.label}</span>
+                    <span className="font-latin mt-0.5 block text-xs uppercase tracking-[0.18em] text-ink-42">
                       {download.type} · {download.size}
                     </span>
                   </span>
@@ -139,7 +139,7 @@ function RegistrationSection({ content }: HomeSectionsProps) {
               </a>
             ))}
           </div>
-          <Link href={`${base}/forms`} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--gold)] hover:text-white">
+          <Link href={`${base}/forms`} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--gold)] hover:text-ink">
             <ArrowUpRight size={16} />
             {fa ? "همه فرم‌ها و کاتالوگ‌ها" : "All forms and catalogues"}
           </Link>
@@ -171,11 +171,11 @@ function FaqSection({ content }: HomeSectionsProps) {
       <div className="section-shell grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           <div className="section-kicker">{fa ? "پرسش‌های پرتکرار" : "Common questions"}</div>
-          <h2 className="section-display-title mt-4 font-black text-white">{fa ? "پیش از تماس بدانید" : "Before you call"}</h2>
-          <p className="site-copy mt-4 text-white/60">
+          <h2 className="section-display-title mt-4 font-black text-ink">{fa ? "پیش از تماس بدانید" : "Before you call"}</h2>
+          <p className="site-copy mt-4 text-ink-60">
             {fa ? "پاسخ کوتاه به سوال‌هایی که بیشتر از دفتر اَرَتَ پرسیده می‌شود." : "Short answers to the questions the Aratta office hears most."}
           </p>
-          <Link href={`/${content.lang}/contact`} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white hover:border-cyan-200/42">
+          <Link href={`/${content.lang}/contact`} className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-aqua-200/22 bg-aqua-200/8 px-4 py-3 text-sm font-black text-ink hover:border-aqua-200/42">
             <Phone size={16} />
             {fa ? "سوال دیگری دارید؟" : "Another question?"}
           </Link>
@@ -195,18 +195,18 @@ function RelatedNewsSection({ content }: HomeSectionsProps) {
         <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div>
             <div className="section-kicker">{content.news.relatedKicker}</div>
-            <h2 className="section-display-title mt-4 font-black text-white">
+            <h2 className="section-display-title mt-4 font-black text-ink">
               {content.news.relatedTitle}
             </h2>
           </div>
           <div className="industrial-card rounded-[1.6rem] p-5">
             <div className="flex items-start gap-3">
               <Newspaper className="mt-1 shrink-0 text-[var(--gold)]" size={22} />
-              <p className="site-copy text-white/66">{content.news.relatedBody}</p>
+              <p className="site-copy text-ink-66">{content.news.relatedBody}</p>
             </div>
             <Link
               href={`/${content.lang}/industry-news`}
-              className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white transition hover:border-cyan-200/42 hover:bg-cyan-200/12"
+              className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-aqua-200/22 bg-aqua-200/8 px-4 py-3 text-sm font-black text-ink transition hover:border-aqua-200/42 hover:bg-aqua-200/12"
             >
               <ArrowUpRight size={17} />
               {content.lang === "fa" ? "مشاهده اخبار مرتبط" : "View related news"}
@@ -219,9 +219,9 @@ function RelatedNewsSection({ content }: HomeSectionsProps) {
             <Link
               key={item.title}
               href={`/${content.lang}/industry-news`}
-              className="industrial-card group overflow-hidden rounded-[1.8rem] transition hover:-translate-y-1 hover:border-cyan-200/34"
+              className="industrial-card group overflow-hidden rounded-[1.8rem] transition hover:-translate-y-1 hover:border-aqua-200/34"
             >
-              <div className="relative aspect-[16/10]">
+              <div className="on-photo relative aspect-[16/10]">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -231,14 +231,14 @@ function RelatedNewsSection({ content }: HomeSectionsProps) {
                   className="object-cover transition duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
-                <span className="absolute start-4 top-4 rounded-full border border-white/12 bg-black/42 px-3 py-1 text-xs font-bold text-white/82 backdrop-blur-xl">
+                <span className="absolute start-4 top-4 rounded-full border border-ink/12 bg-shade/42 px-3 py-1 text-xs font-bold text-ink-82 backdrop-blur-xl">
                   {item.sector}
                 </span>
               </div>
               <div className="p-5">
                 <time className="text-xs font-black text-[var(--gold)]">{item.date}</time>
-                <h3 className="mt-3 text-lg font-black leading-8 text-white sm:text-xl">{item.title}</h3>
-                <p className="mt-3 line-clamp-2 text-sm leading-7 text-white/60">{item.body}</p>
+                <h3 className="mt-3 text-lg font-black leading-8 text-ink sm:text-xl">{item.title}</h3>
+                <p className="mt-3 line-clamp-2 text-sm leading-7 text-ink-60">{item.body}</p>
               </div>
             </Link>
           ))}
@@ -261,18 +261,18 @@ function BlogSection({ content }: HomeSectionsProps) {
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             <div className="section-kicker">{content.blog.kicker}</div>
-            <h2 className="section-display-title mt-4 font-black text-white">
+            <h2 className="section-display-title mt-4 font-black text-ink">
               {content.blog.title}
             </h2>
           </div>
           <div className="industrial-card rounded-[1.6rem] p-5">
             <div className="flex items-start gap-3">
               <BookOpenText className="mt-1 shrink-0 text-[var(--gold)]" size={22} />
-              <p className="site-copy text-white/66">{content.blog.body}</p>
+              <p className="site-copy text-ink-66">{content.blog.body}</p>
             </div>
             <Link
               href={`/${content.lang}/blog`}
-              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/22 bg-cyan-200/8 px-4 py-3 text-sm font-black text-white transition hover:border-cyan-200/42 hover:bg-cyan-200/12"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-2xl border border-aqua-200/22 bg-aqua-200/8 px-4 py-3 text-sm font-black text-ink transition hover:border-aqua-200/42 hover:bg-aqua-200/12"
             >
               <ArrowUpRight size={17} />
               {content.blog.allPostsLabel}
@@ -297,9 +297,9 @@ function GallerySection({ content }: HomeSectionsProps) {
         <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-3xl">
             <div className="section-kicker">{content.gallery.kicker}</div>
-            <h2 className="section-display-title mt-4 font-black text-white">{content.gallery.title}</h2>
+            <h2 className="section-display-title mt-4 font-black text-ink">{content.gallery.title}</h2>
           </div>
-          <Link href={`/${content.lang}/gallery`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/20 px-5 py-2 text-[var(--gold)] hover:bg-white/10">
+          <Link href={`/${content.lang}/gallery`} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/20 px-5 py-2 text-[var(--gold)] hover:bg-ink/10">
             <Images size={17} />
             {fa ? "همه گزارش‌های تصویری" : "All photo reports"}
           </Link>
@@ -319,7 +319,7 @@ function ContactSection({ content }: HomeSectionsProps) {
       <div className="section-shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <div className="section-kicker">{content.contact.kicker}</div>
-          <h2 className="card-display-title mt-4 font-black text-white">{content.contact.title}</h2>
+          <h2 className="card-display-title mt-4 font-black text-ink">{content.contact.title}</h2>
           <div className="mt-8 grid gap-5">
             <ContactRow icon={<MapPin size={21} />} label={content.contact.addressLabel}>
               {content.contact.address}
@@ -336,15 +336,15 @@ function ContactSection({ content }: HomeSectionsProps) {
             </ContactRow>
           </div>
           <div className="mt-8 grid grid-cols-3 gap-2 [&>a]:px-2 sm:[&>a]:px-4">
-            <a href={telHref(content.contact.phones[0])} className="liquid-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 font-black text-white">
+            <a href={telHref(content.contact.phones[0])} className="liquid-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 font-black text-ink">
               <Phone size={17} />
               {content.lang === "fa" ? "تماس" : "Call"}
             </a>
-            <a href="mailto:info@arattaexpo.ir" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/[0.05] px-4 font-black text-white">
+            <a href="mailto:info@arattaexpo.ir" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-ink/14 bg-ink/[0.05] px-4 font-black text-ink">
               <Mail size={17} />
               {content.lang === "fa" ? "ایمیل" : "Email"}
             </a>
-            <a href={content.contact.mapsUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/[0.05] px-4 font-black text-white">
+            <a href={content.contact.mapsUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-ink/14 bg-ink/[0.05] px-4 font-black text-ink">
               <Navigation size={17} />
               {content.lang === "fa" ? "مسیریابی" : "Directions"}
             </a>
@@ -367,12 +367,12 @@ function ContactRow({
 }) {
   return (
     <div className="flex gap-4">
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/12 bg-white/8 text-[var(--cyan)]">
+      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-ink/12 bg-ink/8 text-[var(--cyan)]">
         {icon}
       </span>
       <div>
         <div className="text-sm font-bold text-[var(--gold)]">{label}</div>
-        <div className="mt-1 leading-8 text-white/72">{children}</div>
+        <div className="mt-1 leading-8 text-ink-72">{children}</div>
       </div>
     </div>
   );

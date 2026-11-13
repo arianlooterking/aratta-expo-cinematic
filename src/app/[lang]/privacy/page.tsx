@@ -99,12 +99,12 @@ export default async function PrivacyPage({ params }: Props) {
       <SiteChrome content={getContent(lang)} />
       <main id="main-content" className="section-shell min-h-screen pb-20 pt-36">
         <h1 className="text-3xl font-bold sm:text-5xl">{fa ? "حریم خصوصی" : "Privacy"}</h1>
-        <p className="mt-4 text-sm text-white/50">{fa ? `آخرین به‌روزرسانی: ${updated.fa}` : `Last updated: ${updated.en}`}</p>
+        <p className="mt-4 text-sm text-ink-50">{fa ? `آخرین به‌روزرسانی: ${updated.fa}` : `Last updated: ${updated.en}`}</p>
         <div className="mt-10 max-w-3xl space-y-10">
           {sections[lang].map((section) => (
             <section key={section.title}>
               <h2 className="text-xl font-bold text-[var(--gold)]">{section.title}</h2>
-              <div className="mt-4 space-y-3 leading-8 text-white/70">
+              <div className="mt-4 space-y-3 leading-8 text-ink-70">
                 {section.body.map((p) => (
                   <p key={p}>{p}</p>
                 ))}
