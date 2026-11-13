@@ -79,9 +79,10 @@ export function createMaterials(track: Track, rich: boolean) {
     new THREE.MeshStandardMaterial({
       map: tex(repeat(concreteMap.texture, 1, 1)),
       roughnessMap: tex(repeat(concreteRough.texture, 1, 1)),
-      roughness: 0.46,
+      // A touch glossier: the hall's lights read as soft streaks in the sealed floor.
+      roughness: rich ? 0.4 : 0.44,
       metalness: 0.0,
-      envMapIntensity: 0.9,
+      envMapIntensity: 1.0,
     }),
   );
 
@@ -388,8 +389,10 @@ export type Materials = ReturnType<typeof createMaterials>;
  * every neighbour's panels, frames and floors cost two draw calls.
  */
 export function createSurroundMaterials(track: Track) {
-  const matte = track(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.8, metalness: 0, side: THREE.DoubleSide }));
-  const metal = track(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.42, metalness: 0.65 }));
+  // Panels and fabric: fully matt, so the neighbours never compete with our stand's sheen.
+  const matte = track(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.86, metalness: 0, side: THREE.DoubleSide, envMapIntensity: 0.8 }));
+  // Hall steel and the neighbours' frames: satin metal that catches the ring lights.
+  const metal = track(new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.36, metalness: 0.7 }));
   /** Self-lit pieces whose level is driven per frame (colour = level). */
   const glow = () => track(new THREE.MeshBasicMaterial({ color: "#000000", toneMapped: false }));
   return { matte, metal, glow };
