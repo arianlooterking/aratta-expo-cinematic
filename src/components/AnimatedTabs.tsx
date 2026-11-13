@@ -91,7 +91,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
 
   return (
     <section id="forms" className="relative isolate overflow-hidden section-pad">
-      <BuildBackdrop motif="walls" lang={content.lang} className="end-[-15%] top-2 w-[115vw] lg:end-[calc(50%-min(590px,47%)-4rem)] lg:top-[-3.5rem] lg:w-[30rem]" />
+      <BuildBackdrop motif="truss" lang={content.lang} className="end-[-25%] top-0 w-[140vw] lg:end-[calc(50%-min(590px,47%)-5rem)] lg:top-[-4rem] lg:w-[min(720px,50vw)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua-200/22 to-transparent" />
       <div className="section-shell">
         <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">

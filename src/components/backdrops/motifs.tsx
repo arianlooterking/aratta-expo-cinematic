@@ -8,6 +8,7 @@ import { LOGO_BAND, LOGO_HEIGHT, LOGO_RECTS, type LogoRect } from "@/components/
 import {
   Arrive,
   Beam,
+  BeamGradient,
   Bubble,
   Dim,
   Fade,
@@ -22,18 +23,18 @@ import {
   type MotifProps,
   type Span,
 } from "./primitives";
+import {
+  CompassMotif,
+  ConveyorMotif,
+  LayoutMotif,
+  LensMotif,
+  PressWallMotif,
+  RouteMotif,
+  ScheduleMotif,
+  ScreenMotif,
+} from "./motifs-topics";
 
 const at = (a: number, len: number): Span => [a, a + len];
-
-function BeamGradient({ id, tone = "gold" }: { id: string; tone?: "gold" | "teal" }) {
-  const color = tone === "gold" ? "var(--bb-beam-gold)" : "var(--bb-beam-teal)";
-  return (
-    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stopColor={color} stopOpacity="1" />
-      <stop offset="1" stopColor={color} stopOpacity="0" />
-    </linearGradient>
-  );
-}
 
 /* ------------------------------------------------------------------ truss */
 // Side elevation: a 12 m run of 290 mm box truss in four 3 m sections. The
@@ -491,6 +492,12 @@ function PlanMotif({ fa }: MotifProps) {
         return (
           <g key={s.code}>
             <Ln d={rectPath(x, y, w, h)} span={at(0.34 + i * 0.05, 0.14)} w={2} />
+            {/* One stand is taken: it fills in last and glows faintly. */}
+            {s.code === "B1" ? (
+              <Fade span={[0.86, 0.96]}>
+                <path d={rectPath(x, y, w, h)} className="bb-solid-gold bb-breathe bb-breathe--3" />
+              </Fade>
+            ) : null}
             <Fade span={at(0.44 + i * 0.05, 0.08)}>
               <Label x={x + w / 2} y={y + h / 2} size="md">
                 {s.code}
@@ -512,6 +519,14 @@ export const motifs = {
   stand: { w: 1400, h: 770, render: (p) => <StandMotif {...p} /> },
   logo: { w: 1180, h: 1140, render: (p) => <LogoMotif {...p} /> },
   plan: { w: 1640, h: 620, render: (p) => <PlanMotif {...p} /> },
+  schedule: { w: 1400, h: 560, render: (p) => <ScheduleMotif {...p} /> },
+  presswall: { w: 1200, h: 740, render: (p) => <PressWallMotif {...p} /> },
+  route: { w: 1400, h: 640, render: (p) => <RouteMotif {...p} /> },
+  screen: { w: 1200, h: 700, render: (p) => <ScreenMotif {...p} /> },
+  conveyor: { w: 1600, h: 500, render: (p) => <ConveyorMotif {...p} /> },
+  layout: { w: 1160, h: 780, render: (p) => <LayoutMotif {...p} /> },
+  lens: { w: 1200, h: 720, render: (p) => <LensMotif {...p} /> },
+  compass: { w: 920, h: 900, render: (p) => <CompassMotif {...p} /> },
 } satisfies Record<string, Motif>;
 
 export type MotifName = keyof typeof motifs;

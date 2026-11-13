@@ -15,7 +15,18 @@ const statusCopy: Record<CalendarStatus, { fa: string; en: string; tone: string 
   past: { fa: "برگزار شده", en: "Held", tone: "border-ink/20 text-ink-60" },
 };
 
-export function UpcomingExhibitions({ lang, items, live }: { lang: "fa" | "en"; items: UpcomingCard[]; live: boolean }) {
+export function UpcomingExhibitions({
+  lang,
+  items,
+  live,
+  backdrop,
+}: {
+  lang: "fa" | "en";
+  items: UpcomingCard[];
+  live: boolean;
+  /** Optional decorative drawing behind the panel header. */
+  backdrop?: React.ReactNode;
+}) {
   const fa = lang === "fa";
   const cities = useMemo(() => Array.from(new Set(items.map((i) => i.city).filter(Boolean))), [items]);
   const [city, setCity] = useState<string>("");
@@ -24,7 +35,8 @@ export function UpcomingExhibitions({ lang, items, live }: { lang: "fa" | "en"; 
   const datedCount = items.filter((i) => i.startsOn).length;
 
   return (
-    <section className="industrial-card rounded-[2rem] p-5 sm:p-7" aria-labelledby="upcoming-title">
+    <section className="industrial-card relative isolate overflow-hidden rounded-[2rem] p-5 sm:p-7" aria-labelledby="upcoming-title">
+      {backdrop}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">

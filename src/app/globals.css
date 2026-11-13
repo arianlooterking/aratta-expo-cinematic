@@ -1671,6 +1671,42 @@ html[lang="fa"] .bb-label { font-family: var(--font-persian), Tahoma, sans-serif
   90% { transform: translateY(0); }
 }
 
+/* Slow idle motion for the topic drawings (backdrops/motifs-topics.tsx). Every
+   loop moves a few screen pixels per second at most and never flashes. */
+.bb-dash { stroke-dasharray: calc(7px * var(--u)) calc(9px * var(--u)); }
+.bb.is-live .bb-flow { animation: bb-flow 9s linear infinite; }
+.bb.is-live .bb-drift { animation: bb-drift 8s linear infinite; }
+.bb.is-live .bb-scan { animation: bb-scan 16s ease-in-out infinite alternate; }
+.bb.is-live .bb-sway { animation: bb-sway 11s ease-in-out infinite alternate; }
+.bb-ripple { transform-box: fill-box; transform-origin: center; opacity: 0; }
+.bb.is-live .bb-ripple { animation: bb-ripple 8s ease-out infinite; }
+
+@keyframes bb-flow {
+  to { stroke-dashoffset: calc(-48px * var(--u)); }
+}
+
+@keyframes bb-drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(calc(var(--px, 0) * 1px), calc(var(--py, 0) * 1px)); }
+}
+
+@keyframes bb-scan {
+  from { transform: translateY(0); opacity: 0.2; }
+  50% { opacity: 1; }
+  to { transform: translateY(calc(var(--sy, 0) * 1px)); opacity: 0.2; }
+}
+
+@keyframes bb-sway {
+  from { transform: translateX(calc(var(--sx, 0) * -1px)); }
+  to { transform: translateX(calc(var(--sx, 0) * 1px)); }
+}
+
+@keyframes bb-ripple {
+  0% { transform: scale(0.7); opacity: 0; }
+  12% { opacity: 0.9; }
+  70%, 100% { transform: scale(3); opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bb { --draw: 1 !important; }
   .bb *,

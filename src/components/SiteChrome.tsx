@@ -187,7 +187,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
                   href={navHref(lang, item.id)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "whitespace-nowrap rounded-full px-3.5 py-2 text-[0.84rem] font-semibold transition",
+                    "whitespace-nowrap rounded-full px-[0.55rem] py-2 text-[0.82rem] font-semibold transition min-[1360px]:px-2.5 2xl:px-3.5 2xl:text-[0.84rem]",
                     active
                       ? "bg-ink/12 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]"
                       : "text-ink-72 hover:bg-ink/8 hover:text-ink",
@@ -218,7 +218,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
             <ThemeSwitch lang={lang} />
             <Link
               href={`/${lang}/registration#booth-request`}
-              className="liquid-button liquid-button--gold hidden min-h-10 items-center gap-1.5 rounded-full px-4 text-[0.82rem] font-black lg:inline-flex"
+              className="liquid-button liquid-button--gold hidden min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-4 text-[0.82rem] font-black lg:inline-flex"
             >
               {isFa ? "درخواست غرفه" : "Request a booth"}
               <Arrow size={15} />

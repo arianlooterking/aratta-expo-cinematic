@@ -60,6 +60,7 @@ test("bilingual navigation preserves all current public tabs", () => {
     "home",
     "about",
     "exhibitions",
+    "plans",
     "registration",
     "forms",
     "equipment",
@@ -402,6 +403,7 @@ test("robots and sitemap handle admin and public pages correctly", () => {
     assert.match(robots, new RegExp(privateRoute.replace(/[/*]/g, "\\$&")));
   }
   assert.match(sitemap, /"industry-news"/);
+  assert.match(sitemap, /"plans"/);
   assert.match(sitemap, /"blog"/);
   assert.match(sitemap, /siteUrl/);
 });

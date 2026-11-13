@@ -50,7 +50,7 @@ export function HomeSections({ content, upcoming }: HomeProps) {
       <PartnersSection lang={content.lang} />
       <AnimatedTabs content={content} />
       <section id="journey" className="relative isolate section-pad">
-        <BuildBackdrop motif="plan" lang={content.lang} className="inset-x-0 top-6 mx-auto w-[min(1640px,230vw)]" />
+        <BuildBackdrop motif="route" lang={content.lang} className="end-[-25%] top-0 w-[150vw] lg:end-[calc(50%-min(590px,47%)-5rem)] lg:top-[-2.5rem] lg:w-[min(780px,54vw)]" />
         <div className="section-shell">
           <ExhibitorJourney lang={content.lang} />
         </div>
@@ -70,9 +70,13 @@ export function HomeSections({ content, upcoming }: HomeProps) {
 function UpcomingSection({ content, upcoming }: HomeProps) {
   return (
     <section id="exhibitions" className="section-pad relative isolate">
-      <BuildBackdrop motif="stand" lang={content.lang} className="inset-x-0 top-[-1rem] mx-auto w-[min(1560px,200vw)]" />
       <div className="section-shell">
-        <UpcomingExhibitions lang={content.lang} items={upcoming.items} live={upcoming.live} />
+        <UpcomingExhibitions
+          lang={content.lang}
+          items={upcoming.items}
+          live={upcoming.live}
+          backdrop={<BuildBackdrop motif="schedule" lang={content.lang} className="end-[-6%] top-1 w-[112%] sm:end-[2%] sm:top-3 sm:w-[min(620px,54%)]" />}
+        />
       </div>
     </section>
   );
@@ -152,7 +156,7 @@ function RegistrationSection({ content }: HomeSectionsProps) {
 function NewsSection({ content }: HomeSectionsProps) {
   return (
     <section id="news" className="section-pad relative isolate">
-      <BuildBackdrop motif="plan" lang={content.lang} tone="quiet" className="inset-x-0 top-0 mx-auto w-[min(1640px,240vw)]" />
+      <BuildBackdrop motif="screen" lang={content.lang} className="inset-x-0 top-[-2rem] mx-auto w-[min(640px,125vw)] lg:top-[-3rem]" />
       <div className="section-shell">
         {/* Six latest posts on wide screens, three on phones. */}
         <div className="max-md:[&_.grid>a:nth-child(n+4)]:hidden">
@@ -190,7 +194,7 @@ function RelatedNewsSection({ content }: HomeSectionsProps) {
   const featuredItems = content.news.relatedItems.slice(0, 3);
   return (
     <section id="industry-news" className="section-pad relative isolate">
-      <BuildBackdrop motif="truss" lang={content.lang} tone="quiet" className="start-[-25%] top-0 w-[150vw] lg:start-[calc(50%-min(590px,47%)-8rem)] lg:w-[min(760px,52vw)]" />
+      <BuildBackdrop motif="conveyor" lang={content.lang} className="inset-x-0 top-[-1rem] mx-auto w-[min(1500px,210vw)]" />
       <div className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div>
@@ -256,7 +260,7 @@ function BlogSection({ content }: HomeSectionsProps) {
 
   return (
     <section id="blog" className="section-pad relative isolate">
-      <BuildBackdrop motif="walls" lang={content.lang} tone="quiet" className="end-[-20%] top-0 w-[120vw] lg:end-[calc(50%-min(590px,47%)-6rem)] lg:top-[-4.5rem] lg:w-[34rem]" />
+      <BuildBackdrop motif="layout" lang={content.lang} className="end-[-30%] top-[-1rem] w-[115vw] lg:end-[calc(50%-min(590px,47%)-15rem)] lg:top-[-4rem] lg:w-[28rem]" />
       <div className="section-shell">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -292,7 +296,7 @@ function GallerySection({ content }: HomeSectionsProps) {
   const fa = content.lang === "fa";
   return (
     <section id="gallery" className="section-pad relative isolate">
-      <BuildBackdrop motif="stand" lang={content.lang} tone="quiet" className="inset-x-0 top-[-2rem] mx-auto w-[min(1500px,190vw)]" />
+      <BuildBackdrop motif="lens" lang={content.lang} className="inset-x-0 top-[-1.5rem] mx-auto w-[min(470px,110vw)]" />
       <div className="section-shell">
         <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
           <div className="max-w-3xl">
@@ -315,7 +319,7 @@ function GallerySection({ content }: HomeSectionsProps) {
 function ContactSection({ content }: HomeSectionsProps) {
   return (
     <section id="contact" className="section-pad relative isolate">
-      <BuildBackdrop motif="floor" lang={content.lang} className="start-[-15%] top-[-2rem] w-[min(560px,110vw)] lg:start-auto lg:end-[calc(50%-min(590px,47%)-22rem)] lg:top-auto lg:bottom-0 lg:w-[30rem]" />
+      <BuildBackdrop motif="compass" lang={content.lang} className="end-[-25%] top-[-2rem] w-[min(520px,100vw)] lg:end-[calc(50%-min(590px,47%)-21rem)] lg:top-auto lg:bottom-[-2rem] lg:w-[30rem]" />
       <div className="section-shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="industrial-card rounded-[2rem] p-5 sm:p-7">
           <div className="section-kicker">{content.contact.kicker}</div>

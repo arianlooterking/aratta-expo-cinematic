@@ -49,7 +49,7 @@ export function PartnersSection({
       className={compact ? "" : "section-pad relative isolate"}
     >
       {compact ? null : (
-        <BuildBackdrop motif="truss" lang={lang} className="end-[-30%] top-0 w-[170vw] lg:end-[calc(50%-min(590px,47%)-6rem)] lg:w-[min(900px,62vw)]" />
+        <BuildBackdrop motif="presswall" lang={lang} className="end-[-30%] top-0 w-[140vw] lg:end-[calc(50%-min(590px,47%)-4rem)] lg:top-[-1rem] lg:w-[min(640px,46vw)]" />
       )}
       <div className={compact ? "" : "section-shell"}>
         {compact ? null : (

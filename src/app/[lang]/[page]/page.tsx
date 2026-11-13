@@ -39,6 +39,7 @@ import { UpcomingExhibitions } from "@/components/UpcomingExhibitions";
 import { toCards, type CalendarCard } from "@/lib/public-calendar";
 import { getUpcomingExhibitions } from "@/lib/public-calendar-source";
 import { SiteChrome } from "@/components/SiteChrome";
+import { PlansPage } from "@/components/plans/PlansPage";
 import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 import type { MotifName } from "@/components/backdrops/motifs";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -55,6 +56,7 @@ import { getLanguageSeo, siteName, siteUrl, socialPreviewImage } from "@/lib/seo
 const canonicalPageSlugs = [
   "about",
   "exhibitions",
+  "plans",
   "registration",
   "forms",
   "equipment",
@@ -165,16 +167,17 @@ export default async function RoutedPage({ params }: PageProps) {
 // A quieter build drawing behind each page header, chosen for what the page is about.
 const pageBackdrops: Record<PageSlug, { motif: MotifName; className: string }> = {
   about: { motif: "logo", className: "end-[-12%] top-16 w-[min(30rem,80vw)] lg:end-[calc(50%-min(590px,47%)-22rem)] lg:top-10" },
-  exhibitions: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  exhibitions: { motif: "schedule", className: "inset-x-0 top-6 mx-auto w-[min(1400px,200vw)]" },
   registration: { motif: "floor", className: "end-[-20%] top-6 w-[min(40rem,120vw)] lg:end-[calc(50%-min(590px,47%)-26rem)]" },
-  forms: { motif: "walls", className: "inset-x-0 top-8 mx-auto w-[min(1500px,200vw)]" },
+  forms: { motif: "layout", className: "end-[-18%] top-8 w-[min(44rem,120vw)] lg:end-[calc(50%-min(590px,47%)-24rem)]" },
   equipment: { motif: "truss", className: "inset-x-0 top-0 mx-auto w-[min(1600px,220vw)]" },
-  participants: { motif: "truss", className: "inset-x-0 top-0 mx-auto w-[min(1600px,220vw)]" },
-  news: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
-  "industry-news": { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
-  gallery: { motif: "stand", className: "inset-x-0 top-0 mx-auto w-[min(1500px,210vw)]" },
-  contact: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
-  search: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  participants: { motif: "presswall", className: "inset-x-0 top-4 mx-auto w-[min(1100px,170vw)]" },
+  plans: { motif: "plan", className: "inset-x-0 top-2 mx-auto w-[min(1640px,240vw)]" },
+  news: { motif: "screen", className: "inset-x-0 top-4 mx-auto w-[min(1100px,170vw)]" },
+  "industry-news": { motif: "conveyor", className: "inset-x-0 top-10 mx-auto w-[min(1600px,220vw)]" },
+  gallery: { motif: "lens", className: "inset-x-0 top-2 mx-auto w-[min(1100px,170vw)]" },
+  contact: { motif: "compass", className: "end-[-15%] top-4 w-[min(40rem,110vw)] lg:end-[calc(50%-min(590px,47%)-24rem)]" },
+  search: { motif: "route", className: "inset-x-0 top-4 mx-auto w-[min(1400px,200vw)]" },
 };
 
 function PageBackdrop({ lang, page }: { lang: Lang; page: PageSlug }) {
@@ -196,6 +199,7 @@ function canonicalPage(page: RoutePageSlug): PageSlug {
 
 function pageLabel(content: ReturnType<typeof getContent>, page: PageSlug) {
   if (page === "search") return content.lang === "fa" ? "جستجو" : "Search";
+  if (page === "plans") return content.lang === "fa" ? "پلان‌ها و راهنمای غرفه" : "Plans and stand guide";
   return content.nav.find((item) => item.id === page)?.label ?? page;
 }
 
@@ -208,6 +212,9 @@ function pageIntro(content: ReturnType<typeof getContent>, page: PageSlug) {
     exhibitions: fa
       ? "تقویم رویدادهای پیش روی اَرَتَ و همه دوره‌های برگزارشده، با اطلاعیه‌ها، فایل‌ها و تاریخ‌ها به محض اعلام رسمی."
       : "Aratta's upcoming events and every edition held, with notices, files and dates as soon as they are officially announced.",
+    plans: fa
+      ? "سالن‌ها و کدهای غرفه دوره گذشته، راهنمای انواع غرفه با مقیاس واقعی، مدارک رسمی هر نمایشگاه و درخواست پلان سالن از دفتر اَرَتَ."
+      : "Last edition's halls and stand codes, a to-scale guide to stand types, each exhibition's official documents, and hall plan requests to the Aratta office.",
     registration: content.registration.body,
     forms: fa
       ? "فرم رسمی شرکت در نمایشگاه، فهرست مشارکت‌کنندگان، لیست تجهیزات و کاتالوگ دوره‌های گذشته؛ همه برای دانلود مستقیم."
@@ -290,6 +297,8 @@ function renderPage(content: ReturnType<typeof getContent>, page: PageSlug, cale
       return <AboutPage content={content} />;
     case "exhibitions":
       return <ExhibitionsPage content={content} calendar={calendar} />;
+    case "plans":
+      return <PlansPage content={content} calendar={calendar.items} />;
     case "registration":
       return <RegistrationPage content={content} eventNames={eventNames} />;
     case "forms":

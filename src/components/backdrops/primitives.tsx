@@ -240,6 +240,29 @@ export function rectPath(x: number, y: number, w: number, h: number) {
   return `M${x} ${y}H${x + w}V${y + h}H${x}Z`;
 }
 
+/** Vertical fade used by light beams: full colour at the fixture, nothing at the floor. */
+export function BeamGradient({ id, tone = "gold" }: { id: string; tone?: "gold" | "teal" }) {
+  const color = tone === "gold" ? "var(--bb-beam-gold)" : "var(--bb-beam-teal)";
+  return (
+    <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stopColor={color} stopOpacity="1" />
+      <stop offset="1" stopColor={color} stopOpacity="0" />
+    </linearGradient>
+  );
+}
+
+/**
+ * Horizontal mirror for right-to-left pages: the Persian drawing is built and
+ * read from the right, the English one from the left. Labels stay upright
+ * because only coordinates are mirrored, never the text.
+ */
+export function mirror(fa: boolean, width: number) {
+  const x = (value: number) => (fa ? width - value : value);
+  /** Left edge of a box of width `w` that starts at `left` in the LTR drawing. */
+  const box = (left: number, w: number) => (fa ? width - left - w : left);
+  return { x, box };
+}
+
 /** A light beam from a fixture down to the floor: a soft gradient fan, no blur. */
 export function Beam({
   x,
