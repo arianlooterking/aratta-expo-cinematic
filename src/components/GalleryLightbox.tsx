@@ -54,7 +54,7 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
             key={image.src}
             type="button"
             onClick={() => setActive(index)}
-            className={`group relative aspect-[4/3] overflow-hidden ${index === 0 && visible.length % 3 === 1 ? "lg:col-span-2 lg:aspect-auto" : ""} rounded-[1.6rem] border border-white/12 bg-white/[0.035] text-start shadow-2xl shadow-black/20`}
+            className={`on-photo group relative aspect-[4/3] overflow-hidden ${index === 0 && visible.length % 3 === 1 ? "lg:col-span-2 lg:aspect-auto" : ""} rounded-[1.6rem] border border-ink/12 bg-ink/[0.035] text-start shadow-2xl shadow-umbra/20`}
           >
             <Image
               src={image.src}
@@ -66,8 +66,8 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/76 via-black/8 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
-              <span className="font-bold text-white">{image.caption}</span>
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-white/12 text-white backdrop-blur-xl">
+              <span className="font-bold text-ink">{image.caption}</span>
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-ink/20 bg-ink/12 text-ink backdrop-blur-xl">
                 <Maximize2 size={17} />
               </span>
             </div>
@@ -79,7 +79,7 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
         <dialog
           ref={dialogRef}
           aria-label={item.caption}
-          className="fixed inset-0 m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 bg-black/95 p-4 text-white backdrop:bg-black/80 open:flex open:flex-col"
+          className="on-photo fixed inset-0 m-0 h-[100dvh] max-h-none w-screen max-w-none border-0 bg-black/95 p-4 text-white backdrop:bg-black/80 open:flex open:flex-col"
           onCancel={(event) => {
             event.preventDefault();
             setActive(null);
@@ -99,7 +99,7 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
           }}
         >
           <div className="flex shrink-0 items-center justify-between gap-3 pb-4">
-            <p className="text-sm text-white/70" aria-live="polite">
+            <p className="text-sm text-ink-70" aria-live="polite">
               {(active ?? 0) + 1} / {content.gallery.items.length}
             </p>
             <div className="flex gap-3">
@@ -109,14 +109,14 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
                 aria-label={
                   fa ? "دریافت تصویر اصلی" : "Download original image"
                 }
-                className="grid h-12 w-12 place-items-center rounded-full border border-white/20"
+                className="grid h-12 w-12 place-items-center rounded-full border border-ink/20"
               >
                 <Download size={20} />
               </a>
               <button
                 type="button"
                 aria-label={fa ? "بستن گالری" : "Close gallery"}
-                className="grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10"
+                className="grid h-12 w-12 place-items-center rounded-full border border-ink/20 bg-ink/10"
                 onClick={() => setActive(null)}
               >
                 <X size={22} />
@@ -139,7 +139,7 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
               onClick={() => move(-1)}
               aria-label={fa ? "تصویر قبلی" : "Previous image"}
               disabled={content.gallery.items.length < 2}
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 disabled:invisible"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-ink/20 disabled:invisible"
             >
               {fa ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
             </button>
@@ -151,7 +151,7 @@ export function GalleryLightbox({ content, limit }: GalleryLightboxProps) {
               onClick={() => move(1)}
               aria-label={fa ? "تصویر بعدی" : "Next image"}
               disabled={content.gallery.items.length < 2}
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 disabled:invisible"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-ink/20 disabled:invisible"
             >
               {fa ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
             </button>

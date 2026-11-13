@@ -92,16 +92,16 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
   return (
     <section id="forms" className="relative isolate overflow-hidden section-pad">
       <BuildBackdrop motif="walls" lang={content.lang} className="end-[-15%] top-2 w-[115vw] lg:end-[calc(50%-min(590px,47%)-4rem)] lg:top-[-3.5rem] lg:w-[30rem]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/22 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-aqua-200/22 to-transparent" />
       <div className="section-shell">
         <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
           <div>
             <div className="section-kicker">{content.services.kicker}</div>
-            <h2 className="section-display-title mt-4 max-w-4xl text-balance font-black text-white">
+            <h2 className="section-display-title mt-4 max-w-4xl text-balance font-black text-ink">
               {content.services.title}
             </h2>
           </div>
-          <p className="site-copy max-w-2xl text-lg text-white/64 lg:ms-auto">
+          <p className="site-copy max-w-2xl text-lg text-ink-64 lg:ms-auto">
             {copy.intro}
           </p>
         </div>
@@ -112,7 +112,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.42, ease: "easeOut" }}
-            className="industrial-card relative min-h-[500px] overflow-hidden rounded-[2rem] lg:min-h-[600px]"
+            className="on-photo industrial-card relative min-h-[500px] overflow-hidden rounded-[2rem] lg:min-h-[600px]"
           >
             <Image
               src={activeMeta.frame}
@@ -129,36 +129,36 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
             <div className="relative z-10 flex min-h-[500px] max-w-2xl lg:min-h-[600px] flex-col justify-between p-5 sm:p-8 lg:p-10">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-cyan-100/22 bg-cyan-100/8 px-4 py-2 text-xs font-black text-[var(--cyan)]">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-aqua-100/22 bg-aqua-100/8 px-4 py-2 text-xs font-black text-[var(--cyan)]">
                     {copy.serviceLabel} {number(active)}
                   </span>
                 </div>
 
-                <div className="mt-9 grid h-20 w-20 place-items-center rounded-[1.4rem] border border-white/18 bg-white/12 text-[var(--cyan)] shadow-[0_20px_90px_rgba(62,231,255,0.18)] backdrop-blur-2xl">
+                <div className="mt-9 grid h-20 w-20 place-items-center rounded-[1.4rem] border border-ink/18 bg-ink/12 text-[var(--cyan)] shadow-[0_20px_90px_rgba(62,231,255,0.18)] backdrop-blur-2xl">
                   <ActiveIcon size={34} strokeWidth={1.7} />
                 </div>
 
-                <h3 className="card-display-title mt-8 text-balance font-black text-white">
+                <h3 className="card-display-title mt-8 text-balance font-black text-ink">
                   {current.title}
                 </h3>
-                <p className="site-copy mt-5 max-w-xl text-base text-white/72 sm:text-lg">
+                <p className="site-copy mt-5 max-w-xl text-base text-ink-72 sm:text-lg">
                   {current.body}
                 </p>
               </div>
 
               <div className="mt-10">
-                <div className="mb-4 flex items-center gap-2 text-sm font-black text-white/86">
+                <div className="mb-4 flex items-center gap-2 text-sm font-black text-ink-86">
                   <Layers3 size={18} className="text-[var(--gold)]" />
                   {copy.deliverables}
                 </div>
-                <div className="grid border-y border-white/12 sm:grid-cols-2">
+                <div className="grid border-y border-ink/12 sm:grid-cols-2">
                   {activeTracks.map((track, index) => (
                     <div
                       key={track}
                       className={cn(
-                        "flex items-center gap-3 py-4 text-sm font-bold text-white/78",
-                        index % 2 === 0 ? "sm:border-e sm:border-white/12" : "",
-                        index > 1 ? "border-t border-white/12" : "",
+                        "flex items-center gap-3 py-4 text-sm font-bold text-ink-78",
+                        index % 2 === 0 ? "sm:border-e sm:border-ink/12" : "",
+                        index > 1 ? "border-t border-ink/12" : "",
                       )}
                     >
                       <span className="text-xs font-black text-[var(--gold)]">
@@ -171,7 +171,7 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
 
                 <Link
                   href={`/${content.lang}/${activeMeta.route}`}
-                  className="liquid-button mt-7 inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 text-sm font-black text-white"
+                  className="liquid-button mt-7 inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 text-sm font-black text-ink"
                 >
                   {copy.open[active] ?? copy.open[0]}
                   <ArrowUpRight size={18} />
@@ -182,8 +182,8 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
 
           <div className="grid content-start gap-4">
             <div className="mb-1 flex items-center justify-between gap-4">
-              <div className="text-sm font-black text-white">{copy.tabsLabel}</div>
-              <div className="text-xs font-bold text-white/42">{copy.count}</div>
+              <div className="text-sm font-black text-ink">{copy.tabsLabel}</div>
+              <div className="text-xs font-bold text-ink-42">{copy.count}</div>
             </div>
 
             {content.services.items.map((item, index) => {
@@ -199,14 +199,14 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                   className={cn(
                     "group relative overflow-hidden rounded-[1.5rem] border p-4 text-start transition duration-300 sm:p-5",
                     isActive
-                      ? "border-cyan-200/45 bg-cyan-200/12 shadow-[0_22px_80px_rgba(62,231,255,0.12)]"
-                      : "border-white/10 bg-white/[0.035] hover:border-white/24 hover:bg-white/[0.06]",
+                      ? "border-aqua-200/45 bg-aqua-200/12 shadow-[0_22px_80px_rgba(62,231,255,0.12)]"
+                      : "border-ink/10 bg-ink/[0.035] hover:border-ink/24 hover:bg-ink/[0.06]",
                   )}
                 >
                   <div className="absolute inset-y-0 start-0 w-1 bg-gradient-to-b from-[var(--cyan)] to-[var(--gold)] opacity-0 transition group-hover:opacity-80" />
                   <div
                     className={cn(
-                      "absolute inset-y-5 end-5 w-px bg-gradient-to-b from-transparent via-white/16 to-transparent transition",
+                      "absolute inset-y-5 end-5 w-px bg-gradient-to-b from-transparent via-ink/16 to-transparent transition",
                       isActive ? "opacity-100" : "opacity-0",
                     )}
                   />
@@ -215,20 +215,20 @@ export function AnimatedTabs({ content }: AnimatedTabsProps) {
                       className={cn(
                         "grid h-11 w-11 shrink-0 place-items-center rounded-[0.95rem] border transition sm:h-[3.25rem] sm:w-[3.25rem] sm:rounded-[1.1rem]",
                         isActive
-                          ? "border-cyan-100/32 bg-cyan-100/12 text-[var(--cyan)]"
-                          : "border-white/12 bg-black/28 text-[var(--gold)]",
+                          ? "border-aqua-100/32 bg-aqua-100/12 text-[var(--cyan)]"
+                          : "border-ink/12 bg-shade/28 text-[var(--gold)]",
                       )}
                     >
                       <RowIcon size={23} strokeWidth={1.7} />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-black text-white/40">
+                      <span className="block text-xs font-black text-ink-40">
                         {number(index)}
                       </span>
-                      <span className="mt-2 block text-lg font-black leading-7 text-white">
+                      <span className="mt-2 block text-lg font-black leading-7 text-ink">
                         {item.title}
                       </span>
-                      <span className="mt-2 block text-sm leading-7 text-white/56">
+                      <span className="mt-2 block text-sm leading-7 text-ink-56">
                         {item.body}
                       </span>
                     </span>

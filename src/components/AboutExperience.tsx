@@ -58,7 +58,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
   return (
     <section id="about" className="relative isolate overflow-hidden section-pad">
       <BuildBackdrop motif="logo" lang={lang} className="end-[-6%] top-[-0.5rem] w-[min(420px,68vw)] lg:end-[calc(50%-min(590px,47%)-19rem)] lg:top-auto lg:bottom-8 lg:w-[22rem] min-[1600px]:end-[calc(50%-590px-25.5rem)] min-[1600px]:w-[24rem]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ink/12 to-transparent" />
       <div className="section-shell grid gap-6 lg:grid-cols-[1fr_1.05fr] lg:items-stretch">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
@@ -69,17 +69,17 @@ export function AboutExperience({ content }: AboutExperienceProps) {
         >
           <div>
             <div className="section-kicker">{content.about.kicker}</div>
-            <h2 className="section-display-title mt-4 text-balance font-black text-white">
+            <h2 className="section-display-title mt-4 text-balance font-black text-ink">
               {content.about.title}
             </h2>
-            <p className="site-copy mt-5 text-base text-white/68 sm:text-lg">
+            <p className="site-copy mt-5 text-base text-ink-68 sm:text-lg">
               {content.about.body}
             </p>
           </div>
 
           <div>
             <div className="mb-3 flex items-baseline justify-between gap-3">
-              <h3 className="text-sm font-black text-white">{copy.factsTitle}</h3>
+              <h3 className="text-sm font-black text-ink">{copy.factsTitle}</h3>
               <Link
                 href={`/${lang}/archive`}
                 className="inline-flex min-h-11 items-center text-xs font-bold text-[var(--cyan)] hover:underline"
@@ -98,14 +98,14 @@ export function AboutExperience({ content }: AboutExperienceProps) {
                     <span className="block text-3xl font-black leading-none text-[var(--gold)] sm:text-4xl">
                       {metric.value}
                     </span>
-                    <span className="mt-2 block text-xs font-semibold leading-5 text-white/56 sm:text-[0.8rem]">
+                    <span className="mt-2 block text-xs font-semibold leading-5 text-ink-56 sm:text-[0.8rem]">
                       {metric.label}
                     </span>
                   </dd>
                 </div>
               ))}
             </dl>
-            <p className="mt-3 text-[0.72rem] text-white/38">{copy.factsNote}</p>
+            <p className="mt-3 text-[0.72rem] text-ink-38">{copy.factsNote}</p>
           </div>
         </motion.div>
 
@@ -114,7 +114,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-120px" }}
           transition={{ duration: 0.55, delay: 0.08, ease: "easeOut" }}
-          className="industrial-card relative isolate min-h-[560px] overflow-hidden rounded-[2rem] sm:min-h-[600px]"
+          className="on-photo industrial-card relative isolate min-h-[560px] overflow-hidden rounded-[2rem] sm:min-h-[600px]"
         >
           <AnimatePresence initial={false}>
             <motion.div
@@ -148,7 +148,7 @@ export function AboutExperience({ content }: AboutExperienceProps) {
           <div className="flex min-h-[560px] flex-col justify-end gap-4 p-4 sm:min-h-[600px] sm:p-6">
             <div className="glass rounded-[1.6rem] p-5 sm:p-6">
               <div className="mb-4 flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/14 bg-white/8 text-[var(--gold)]">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-ink/14 bg-ink/8 text-[var(--gold)]">
                   <ActiveIcon size={21} strokeWidth={1.8} />
                 </span>
                 <AnimatePresence mode="wait" initial={false}>
@@ -158,18 +158,18 @@ export function AboutExperience({ content }: AboutExperienceProps) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -6 }}
                     transition={{ duration: 0.25 }}
-                    className="text-xl font-black text-white sm:text-2xl"
+                    className="text-xl font-black text-ink sm:text-2xl"
                   >
                     {sectors[active]}
                   </motion.h3>
                 </AnimatePresence>
               </div>
-              <p className="min-h-[5.25rem] text-sm leading-7 text-white/72 sm:text-[0.95rem]">
+              <p className="min-h-[5.25rem] text-sm leading-7 text-ink-72 sm:text-[0.95rem]">
                 {copy.cards[active]}
               </p>
               <Link
                 href={`/${lang}/${sectorRoutes[active] ?? "exhibitions"}`}
-                className="liquid-button mt-4 inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-black text-white"
+                className="liquid-button mt-4 inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-black text-ink"
               >
                 {copy.ctas[active]}
                 <ArrowUpRight size={16} />
@@ -190,11 +190,11 @@ export function AboutExperience({ content }: AboutExperienceProps) {
                     className={cn(
                       "flex min-h-12 items-center gap-2 rounded-2xl border px-3 py-2.5 text-start text-xs font-bold backdrop-blur-xl transition sm:text-[0.8rem]",
                       isActive
-                        ? "border-[var(--gold)]/50 bg-black/55 text-white shadow-[0_0_24px_-8px_rgba(214,174,101,0.6)]"
-                        : "border-white/10 bg-black/40 text-white/70 hover:border-white/25 hover:text-white",
+                        ? "border-[var(--gold)]/50 bg-shade/55 text-ink shadow-[0_0_24px_-8px_rgba(214,174,101,0.6)]"
+                        : "border-ink/10 bg-shade/40 text-ink-70 hover:border-ink/25 hover:text-ink",
                     )}
                   >
-                    <Icon size={15} className={isActive ? "shrink-0 text-[var(--gold)]" : "shrink-0 text-white/45"} />
+                    <Icon size={15} className={isActive ? "shrink-0 text-[var(--gold)]" : "shrink-0 text-ink-45"} />
                     <span className="leading-5">{item}</span>
                   </button>
                 );

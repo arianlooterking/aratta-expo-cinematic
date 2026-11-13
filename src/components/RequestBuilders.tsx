@@ -22,7 +22,7 @@ import {
 type Lang = "fa" | "en";
 
 const inputClass =
-  "h-12 w-full rounded-2xl border border-white/12 bg-black/28 px-4 text-white outline-none transition placeholder:text-white/30 focus:border-cyan-200/60 focus:ring-4 focus:ring-cyan-200/10";
+  "h-12 w-full rounded-2xl border border-ink/12 bg-shade/28 px-4 text-ink outline-none transition placeholder:text-ink-30 focus:border-aqua-200/60 focus:ring-4 focus:ring-aqua-200/10";
 
 /** Keeps an unsent draft in this browser only; works without storage too. */
 function useDraft<T>(key: string, initial: T) {
@@ -91,10 +91,10 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
                 onClick={() => setStep(i)}
                 aria-current={step === i ? "step" : undefined}
                 className={`flex w-full items-center gap-2 rounded-2xl border px-3 py-2.5 text-start text-sm font-bold transition ${
-                  step === i ? "border-amber-200/45 bg-amber-200/12 text-white" : "border-white/10 bg-white/[0.03] text-white/58"
+                  step === i ? "border-gilt-200/45 bg-gilt-200/12 text-ink" : "border-ink/10 bg-ink/[0.03] text-ink-58"
                 }`}
               >
-                <span className={`font-latin grid h-7 w-7 shrink-0 place-items-center rounded-lg border text-xs ${step > i ? "border-emerald-200/40 text-[var(--success)]" : "border-white/18"}`}>
+                <span className={`font-latin grid h-7 w-7 shrink-0 place-items-center rounded-lg border text-xs ${step > i ? "border-jade-200/40 text-[var(--success)]" : "border-ink/18"}`}>
                   {step > i ? <Check size={14} /> : i + 1}
                 </span>
                 <span className={step === i ? "truncate" : "hidden truncate sm:inline"}>{label}</span>
@@ -108,17 +108,17 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
             <Label text={fa ? "کدام نمایشگاه؟" : "Which exhibition?"}>
               <select value={req.exhibition} onChange={(e) => set("exhibition", e.target.value)} className={inputClass}>
                 {exhibitions.map((x) => (
-                  <option key={x} value={x} className="bg-[#0b1016]">
+                  <option key={x} value={x} className="bg-[var(--field-option)]">
                     {x}
                   </option>
                 ))}
-                <option value={fa ? "سایر / هنوز مشخص نیست" : "Other / not decided"} className="bg-[#0b1016]">
+                <option value={fa ? "سایر / هنوز مشخص نیست" : "Other / not decided"} className="bg-[var(--field-option)]">
                   {fa ? "سایر / هنوز مشخص نیست" : "Other / not decided"}
                 </option>
               </select>
             </Label>
             <fieldset>
-              <legend className="text-sm font-semibold text-white/82">{fa ? "نوع غرفه" : "Booth type"}</legend>
+              <legend className="text-sm font-semibold text-ink-82">{fa ? "نوع غرفه" : "Booth type"}</legend>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 {(Object.keys(boothTypeLabels) as BoothType[]).map((t) => (
                   <ChoiceCard key={t} active={req.boothType === t} onClick={() => set("boothType", t)} title={boothTypeLabels[t][lang]} hint={boothTypeLabels[t].hint[lang]} />
@@ -126,7 +126,7 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
               </div>
             </fieldset>
             <fieldset>
-              <legend className="text-sm font-semibold text-white/82">{fa ? "متراژ تقریبی (متر مربع)" : "Approximate area (m²)"}</legend>
+              <legend className="text-sm font-semibold text-ink-82">{fa ? "متراژ تقریبی (متر مربع)" : "Approximate area (m²)"}</legend>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {AREA_PRESETS.map((a) => (
                   <Pill key={a} active={req.area === a} onClick={() => set("area", a)}>
@@ -141,12 +141,12 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
                   aria-label={fa ? "متراژ دلخواه" : "Custom area"}
                   value={req.area}
                   onChange={(e) => set("area", Math.max(1, Math.min(2000, Number(e.target.value) || 0)))}
-                  className="font-latin h-10 w-24 rounded-full border border-white/12 bg-black/28 px-3 text-center text-white outline-none focus:border-cyan-200/60"
+                  className="font-latin h-10 w-24 rounded-full border border-ink/12 bg-shade/28 px-3 text-center text-ink outline-none focus:border-aqua-200/60"
                 />
               </div>
             </fieldset>
             <fieldset>
-              <legend className="text-sm font-semibold text-white/82">{fa ? "موقعیت دلخواه" : "Preferred position"}</legend>
+              <legend className="text-sm font-semibold text-ink-82">{fa ? "موقعیت دلخواه" : "Preferred position"}</legend>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(Object.keys(positionLabels) as BoothPosition[]).map((p) => (
                   <Pill key={p} active={req.position === p} onClick={() => set("position", p)}>
@@ -161,7 +161,7 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
         {step === 1 ? (
           <div className="mt-6 grid gap-5">
             <fieldset>
-              <legend className="text-sm font-semibold text-white/82">{fa ? "به چه خدماتی نیاز دارید؟" : "Which services do you need?"}</legend>
+              <legend className="text-sm font-semibold text-ink-82">{fa ? "به چه خدماتی نیاز دارید؟" : "Which services do you need?"}</legend>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
                 {(Object.keys(extraLabels) as BoothExtra[]).map((e) => {
                   const on = req.extras.includes(e);
@@ -172,10 +172,10 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
                       aria-pressed={on}
                       onClick={() => toggleExtra(e)}
                       className={`flex min-h-12 items-center gap-2 rounded-2xl border px-3 text-sm font-bold transition ${
-                        on ? "border-cyan-200/45 bg-cyan-200/10 text-white" : "border-white/10 bg-white/[0.03] text-white/66"
+                        on ? "border-aqua-200/45 bg-aqua-200/10 text-ink" : "border-ink/10 bg-ink/[0.03] text-ink-66"
                       }`}
                     >
-                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${on ? "border-cyan-200 bg-cyan-200 text-black" : "border-white/25"}`}>
+                      <span className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${on ? "border-aqua-200 bg-aqua-200 text-shade" : "border-ink/25"}`}>
                         {on ? <Check size={13} /> : null}
                       </span>
                       {extraLabels[e][lang]}
@@ -192,7 +192,7 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
                 rows={4}
                 value={req.notes}
                 onChange={(e) => set("notes", e.target.value)}
-                className="rounded-2xl border border-white/12 bg-black/28 px-4 py-3 text-white outline-none focus:border-cyan-200/60 focus:ring-4 focus:ring-cyan-200/10"
+                className="rounded-2xl border border-ink/12 bg-shade/28 px-4 py-3 text-ink outline-none focus:border-aqua-200/60 focus:ring-4 focus:ring-aqua-200/10"
                 placeholder={fa ? "محصولاتی که نمایش می‌دهید، غرفه همسایه، زمان تماس..." : "What you will show, neighbours, best time to call..."}
               />
             </Label>
@@ -204,18 +204,18 @@ export function BoothRequestBuilder({ lang, exhibitions }: { lang: Lang; exhibit
         ) : null}
 
         <div className="mt-7 flex flex-wrap items-center justify-between gap-3">
-          <button type="button" onClick={() => { reset(); setStep(0); setTried(false); }} className="inline-flex items-center gap-2 text-sm font-bold text-white/50 hover:text-white">
+          <button type="button" onClick={() => { reset(); setStep(0); setTried(false); }} className="inline-flex items-center gap-2 text-sm font-bold text-ink-50 hover:text-ink">
             <RotateCcw size={15} />
             {fa ? "شروع دوباره" : "Start over"}
           </button>
           <div className="flex gap-2">
             {step > 0 ? (
-              <button type="button" onClick={() => setStep(step - 1)} className="rounded-2xl border border-white/14 bg-white/[0.05] px-5 py-3 font-bold text-white">
+              <button type="button" onClick={() => setStep(step - 1)} className="rounded-2xl border border-ink/14 bg-ink/[0.05] px-5 py-3 font-bold text-ink">
                 {fa ? "قبلی" : "Back"}
               </button>
             ) : null}
             {step < 2 ? (
-              <button type="button" onClick={() => setStep(step + 1)} className="liquid-button rounded-2xl px-6 py-3 font-black text-white">
+              <button type="button" onClick={() => setStep(step + 1)} className="liquid-button rounded-2xl px-6 py-3 font-black text-ink">
                 {fa ? "بعدی" : "Next"}
               </button>
             ) : null}
@@ -263,7 +263,7 @@ export function EquipmentRequestBuilder({ lang, exhibitions }: { lang: Lang; exh
           <Label text={fa ? "نمایشگاه" : "Exhibition"}>
             <select value={d.exhibition} onChange={(e) => setD((x) => ({ ...x, exhibition: e.target.value }))} className={inputClass}>
               {exhibitions.map((x) => (
-                <option key={x} value={x} className="bg-[#0b1016]">
+                <option key={x} value={x} className="bg-[var(--field-option)]">
                   {x}
                 </option>
               ))}
@@ -282,8 +282,8 @@ export function EquipmentRequestBuilder({ lang, exhibitions }: { lang: Lang; exh
                 {group.items.map((item) => {
                   const q = d.qty[item.id] ?? 0;
                   return (
-                    <div key={item.id} className={`flex items-center justify-between gap-3 rounded-2xl border px-3 py-2 ${q ? "border-cyan-200/35 bg-cyan-200/[0.06]" : "border-white/10 bg-white/[0.03]"}`}>
-                      <span className="text-sm font-bold text-white/82">{item[lang]}</span>
+                    <div key={item.id} className={`flex items-center justify-between gap-3 rounded-2xl border px-3 py-2 ${q ? "border-aqua-200/35 bg-aqua-200/[0.06]" : "border-ink/10 bg-ink/[0.03]"}`}>
+                      <span className="text-sm font-bold text-ink-82">{item[lang]}</span>
                       <span className="flex items-center gap-1">
                         <StepButton label={fa ? "کم کردن" : "Remove one"} onClick={() => setQty(item.id, q - 1)} disabled={!q}>
                           <Minus size={15} />
@@ -295,7 +295,7 @@ export function EquipmentRequestBuilder({ lang, exhibitions }: { lang: Lang; exh
                           aria-label={item[lang]}
                           value={q}
                           onChange={(e) => setQty(item.id, Number(e.target.value) || 0)}
-                          className="font-latin h-9 w-12 rounded-lg border border-white/12 bg-black/30 text-center text-white outline-none focus:border-cyan-200/60"
+                          className="font-latin h-9 w-12 rounded-lg border border-ink/12 bg-shade/30 text-center text-ink outline-none focus:border-aqua-200/60"
                         />
                         <StepButton label={fa ? "اضافه کردن" : "Add one"} onClick={() => setQty(item.id, q + 1)}>
                           <Plus size={15} />
@@ -320,7 +320,7 @@ export function EquipmentRequestBuilder({ lang, exhibitions }: { lang: Lang; exh
         <div className="mt-6">
           <ContactFields lang={lang} value={d} onChange={(c) => setD((x) => ({ ...x, ...c }))} bad={tried ? bad : []} />
         </div>
-        <button type="button" onClick={() => { reset(); setTried(false); }} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-white/50 hover:text-white">
+        <button type="button" onClick={() => { reset(); setTried(false); }} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-ink-50 hover:text-ink">
           <RotateCcw size={15} />
           {fa ? "پاک کردن فهرست" : "Clear the list"}
         </button>
@@ -386,12 +386,12 @@ function DraftPanel({
   const [hint, setHint] = useState(false);
   return (
     <aside className="industrial-card h-fit rounded-[2rem] p-6 lg:sticky lg:top-28">
-      <h3 className="text-xl font-black text-white">{title}</h3>
+      <h3 className="text-xl font-black text-ink">{title}</h3>
       <dl className="mt-4 grid gap-2 text-sm">
         {rows.map(([k, v]) => (
-          <div key={k} className="flex items-start justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
-            <dt className="shrink-0 text-white/48">{k}</dt>
-            <dd className="text-end font-bold text-white/85">{v}</dd>
+          <div key={k} className="flex items-start justify-between gap-4 rounded-xl border border-ink/10 bg-ink/[0.03] px-3 py-2">
+            <dt className="shrink-0 text-ink-48">{k}</dt>
+            <dd className="text-end font-bold text-ink-85">{v}</dd>
           </div>
         ))}
       </dl>
@@ -407,7 +407,7 @@ function DraftPanel({
               onBlocked();
             }
           }}
-          className="liquid-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 font-black text-white"
+          className="liquid-button inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl px-5 py-3 font-black text-ink"
         >
           <Send size={18} />
           {fa ? "ساخت پیش‌نویس ایمیل" : "Create email draft"}
@@ -422,7 +422,7 @@ function DraftPanel({
               setCopied("fail");
             }
           }}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/14 bg-white/[0.05] px-5 py-3 text-sm font-bold text-white/80"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-ink/14 bg-ink/[0.05] px-5 py-3 text-sm font-bold text-ink-80"
         >
           <ClipboardCopy size={16} />
           {fa ? "کپی متن" : "Copy text"}
@@ -431,9 +431,9 @@ function DraftPanel({
       <div aria-live="polite" className="mt-3 min-h-5 text-sm">
         {hint && !ready ? <p className="text-[var(--danger)]">{blockedHint ?? (fa ? "نام، ایمیل معتبر و شماره تماس را وارد کنید." : "Enter your name, a valid email and a phone number.")}</p> : null}
         {copied === "ok" ? <p className="text-[var(--success)]">{fa ? "متن کپی شد." : "Copied."}</p> : null}
-        {copied === "fail" ? <p className="text-white/60">{fa ? "کپی خودکار مجاز نیست؛ متن را دستی کپی کنید." : "Clipboard is blocked; copy the text by hand."}</p> : null}
+        {copied === "fail" ? <p className="text-ink-60">{fa ? "کپی خودکار مجاز نیست؛ متن را دستی کپی کنید." : "Clipboard is blocked; copy the text by hand."}</p> : null}
       </div>
-      <p className="mt-3 flex items-start gap-2 text-xs leading-6 text-white/48">
+      <p className="mt-3 flex items-start gap-2 text-xs leading-6 text-ink-48">
         <Mail size={14} className="mt-1 shrink-0" />
         {fa
           ? "ایمیل در برنامه ایمیل خودتان باز می‌شود و تا شما ارسال نکنید چیزی فرستاده نمی‌شود. پیش‌نویس فقط در همین مرورگر نگه داشته می‌شود."
@@ -446,7 +446,7 @@ function DraftPanel({
 function Label({ text, error, children }: { text: string; error?: string; children: ReactNode }) {
   return (
     <label className="grid gap-2">
-      <span className="text-sm font-semibold text-white/82">{text}</span>
+      <span className="text-sm font-semibold text-ink-82">{text}</span>
       {children}
       {error ? <span className="text-xs text-[var(--danger)]">{error}</span> : null}
     </label>
@@ -459,10 +459,10 @@ function ChoiceCard({ active, onClick, title, hint }: { active: boolean; onClick
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-2xl border p-4 text-start transition ${active ? "border-amber-200/45 bg-amber-200/10" : "border-white/10 bg-white/[0.03] hover:border-white/22"}`}
+      className={`rounded-2xl border p-4 text-start transition ${active ? "border-gilt-200/45 bg-gilt-200/10" : "border-ink/10 bg-ink/[0.03] hover:border-ink/22"}`}
     >
-      <span className="block font-black text-white">{title}</span>
-      <span className="mt-1 block text-xs leading-6 text-white/55">{hint}</span>
+      <span className="block font-black text-ink">{title}</span>
+      <span className="mt-1 block text-xs leading-6 text-ink-55">{hint}</span>
     </button>
   );
 }
@@ -473,7 +473,7 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`min-h-10 rounded-full border px-4 text-sm font-bold transition ${active ? "border-amber-200/45 bg-amber-200/14 text-[var(--gold)]" : "border-white/14 bg-white/[0.04] text-white/70 hover:text-white"}`}
+      className={`min-h-10 rounded-full border px-4 text-sm font-bold transition ${active ? "border-gilt-200/45 bg-gilt-200/14 text-[var(--gold)]" : "border-ink/14 bg-ink/[0.04] text-ink-70 hover:text-ink"}`}
     >
       {children}
     </button>
@@ -482,7 +482,7 @@ function Pill({ active, onClick, children }: { active: boolean; onClick: () => v
 
 function StepButton({ label, onClick, disabled, children }: { label: string; onClick: () => void; disabled?: boolean; children: ReactNode }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} disabled={disabled} className="grid h-9 w-9 place-items-center rounded-lg border border-white/14 bg-white/[0.05] text-white disabled:opacity-35">
+    <button type="button" aria-label={label} onClick={onClick} disabled={disabled} className="grid h-9 w-9 place-items-center rounded-lg border border-ink/14 bg-ink/[0.05] text-ink disabled:opacity-35">
       {children}
     </button>
   );

@@ -75,7 +75,7 @@ export default async function ArchivePage({ params, searchParams }: Props) {
     return `/${lang}/archive?${new URLSearchParams({ q, type, year, p: String(p) })}`;
   }
   const inputClass =
-    "min-h-12 min-w-0 rounded-2xl border border-white/20 bg-[#101819] px-4 text-white";
+    "min-h-12 min-w-0 rounded-2xl border border-ink/20 bg-[var(--field)] px-4 text-ink";
   return (
     <>
       <SiteChrome content={getContent(lang)} />
@@ -89,7 +89,7 @@ export default async function ArchivePage({ params, searchParams }: Props) {
         <h1 className="mt-4 text-3xl font-bold sm:text-5xl">
           {fa ? "آرشیو اخبار و نمایشگاه‌ها" : "News & exhibition archive"}
         </h1>
-        <p className="mt-5 max-w-3xl leading-8 text-white/65">
+        <p className="mt-5 max-w-3xl leading-8 text-ink-65">
           {fa
             ? "گزارش‌ها، اطلاعیه‌ها و تصاویر رسمی اَرَتَ را بر اساس موضوع، سال یا نام شرکت پیدا کنید. تاریخ هر مطلب، تاریخ انتشار آن است؛ نه زمان ثبت‌نام جدید."
             : "Find Aratta reports, notices and photographs by topic, year or company. Dates indicate original publication, not new registration availability. Original articles are preserved in Persian."}
@@ -99,7 +99,7 @@ export default async function ArchivePage({ params, searchParams }: Props) {
         </div>
         <form
           action={`/${lang}/archive`}
-          className="grid gap-3 rounded-3xl border border-white/15 p-4 md:grid-cols-[1fr_180px_130px_auto]"
+          className="grid gap-3 rounded-3xl border border-ink/15 p-4 md:grid-cols-[1fr_180px_130px_auto]"
           role="search"
         >
           <label className="grid gap-2 text-sm">
@@ -135,7 +135,7 @@ export default async function ArchivePage({ params, searchParams }: Props) {
             </select>
           </label>
           <button
-            className="flex min-h-12 items-center justify-center gap-2 self-end rounded-2xl bg-[var(--gold)] px-6 font-bold text-black"
+            className="flex min-h-12 items-center justify-center gap-2 self-end rounded-2xl bg-[var(--gold-fill)] px-6 font-bold text-black"
             type="submit"
           >
             <Search size={18} />
@@ -143,7 +143,7 @@ export default async function ArchivePage({ params, searchParams }: Props) {
           </button>
         </form>
         <div
-          className="my-6 flex items-center justify-between text-sm text-white/65"
+          className="my-6 flex items-center justify-between text-sm text-ink-65"
           aria-live="polite"
         >
           <p>
@@ -165,11 +165,11 @@ export default async function ArchivePage({ params, searchParams }: Props) {
             lang={lang}
           />
         ) : (
-          <div className="rounded-3xl border border-white/15 p-10 text-center">
+          <div className="rounded-3xl border border-ink/15 p-10 text-center">
             <h2 className="text-xl">
               {fa ? "مطلبی پیدا نشد" : "No articles found"}
             </h2>
-            <p className="mt-3 text-white/65">
+            <p className="mt-3 text-ink-65">
               {fa
                 ? "عبارت کوتاه‌تری بنویسید یا فیلترها را پاک کنید."
                 : "Try a shorter search or clear the filters."}
@@ -186,7 +186,7 @@ export default async function ArchivePage({ params, searchParams }: Props) {
                 key={p}
                 href={pageHref(p)}
                 aria-current={p === page ? "page" : undefined}
-                className={`grid min-h-11 min-w-11 place-items-center rounded-xl border ${p === page ? "border-[var(--gold)] bg-[var(--gold)] text-black" : "border-white/20 text-white"}`}
+                className={`grid min-h-11 min-w-11 place-items-center rounded-xl border ${p === page ? "border-[var(--gold-fill)] bg-[var(--gold-fill)] text-black" : "border-ink/20 text-ink"}`}
               >
                 {new Intl.NumberFormat(lang).format(p)}
               </Link>
