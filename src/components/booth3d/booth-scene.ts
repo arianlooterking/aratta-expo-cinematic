@@ -26,7 +26,7 @@ import { buildLight } from "./light";
 import { buildIdentity } from "./identity";
 import { buildFurniture } from "./furniture";
 import { buildSite } from "./site";
-import { createCameraRig, pathStats, type CameraPose } from "./camera";
+import { CAMERA_SPEED, createCameraRig, pathStats, playbackStep, type CameraPose, type Playback } from "./camera";
 import { clamp01 } from "./timeline";
 import type { ReelText } from "./reel";
 
@@ -36,7 +36,8 @@ export type BoothSceneOptions = {
   lang: "fa" | "en";
   compact: boolean; // phones: lighter renderer, portrait framing
   fontFamily: string;
-  onFrame?: (progress: number) => void;
+  /** Every drawn frame: the progress shown, and whether the build is catching up with a fast scroll. */
+  onFrame?: (progress: number, catchingUp: boolean) => void;
   /** Text for the LED wall's brand reel, from the site content. */
   reel?: ReelText;
   /** The free band for the closing elevation (fractions of the canvas height, 0 = top). */
@@ -318,25 +319,21 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   let active = true;
   let disposed = false;
   let target = 0;
-  let current = 0;
-  let velocity = 0;
   let last = performance.now();
   let elapsed = 0;
   let lastRender = 0;
   let lastShadowAt = -1;
   let pointerAt = -1e9;
   let frozen = false;
-  // Slow-motion playback: the build follows the scroll, but never faster than SPEED
-  // progress per second (a chapter takes at least ~2.2 s), rising smoothly to SPEED_FAR only
-  // when the visitor is far ahead, so a fast flick never rushes the build. The velocity
-  // itself is smoothed, so starts and stops have no jerk; slow scrolling follows 1:1.
-  const SPEED = 0.05;
-  const SPEED_FAR = 0.2;
-  const FAR_GAP: [number, number] = [0.18, 0.32];
+  // Slow-motion playback with a bounded catch-up after a fast scroll (see PLAYBACK).
+  const play: Playback = { current: 0, velocity: 0, catchUp: false };
+  // On the path, the build is played no faster than the camera may move (CAMERA_SPEED).
+  const pathLimit = () => {
+    const rate = rig.pathRate(play.current, width, height);
+    return Math.min(CAMERA_SPEED.metres / Math.max(1e-6, rate.metres), CAMERA_SPEED.degrees / Math.max(1e-6, rate.degrees));
+  };
   // When the scroll is still, the reel keeps playing at a capped frame rate.
   const IDLE_FPS = compact ? 20 : 30;
-  const VELOCITY_TAU = 0.22; // s: how smoothly the speed itself changes
-  const FOLLOW = 4 * VELOCITY_TAU; // s: gap closing time; 4x the velocity lag is critically damped (no overshoot)
   // Frame-time probe: render every frame for a short window and step down if slow.
   let probeFrames = 0;
   let probeTime = 0;
@@ -358,6 +355,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       composer.setSize(size.x, size.y);
     }
     ctx.sparkles.material.uniforms.uScale.value = size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    sparkleFov = 0;
     bands();
   };
 
@@ -372,12 +370,19 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
   };
 
   let frameDt = 1 / 60;
+  let sparkleFov = 0;
+  const sparkleSize = new THREE.Vector2();
   const draw = (p: number, time: number) => {
     for (const anim of ctx.anims) anim(p, time);
     ctx.parts.update(p);
     ctx.decals.update(p);
     ctx.sparkles.update(p, time);
-    rig.apply(p, frameDt, width, height, pointer);
+    rig.apply(p, frameDt, width, height, pointer, play.catchUp);
+    // The lens widens over the plan: keep the sparkles' size in step with it.
+    if (camera.fov !== sparkleFov) {
+      sparkleFov = camera.fov;
+      ctx.sparkles.material.uniforms.uScale.value = renderer.getDrawingBufferSize(sparkleSize).y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    }
     if (debugCam) debugCam(camera);
     if (renderer.shadowMap.enabled && p !== lastShadowAt) {
       renderer.shadowMap.needsUpdate = true;
@@ -385,7 +390,7 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     }
     if (composer) composer.render();
     else renderer.render(scene, camera);
-    options.onFrame?.(p);
+    options.onFrame?.(p, play.catchUp);
   };
 
   const render = (now: number) => {
@@ -394,20 +399,11 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     last = now;
     elapsed += dt;
     frameDt = dt;
-    const before = current;
+    const before = play.current;
     // Speed-limited follower, frame-rate independent (ScrollTrigger hands over raw progress).
-    const gap = target - current;
-    const far = Math.abs(gap);
-    const ramp = Math.min(1, Math.max(0, (far - FAR_GAP[0]) / (FAR_GAP[1] - FAR_GAP[0])));
-    const limit = SPEED + (SPEED_FAR - SPEED) * ramp * ramp * (3 - 2 * ramp);
-    const wanted = Math.max(-limit, Math.min(limit, gap / FOLLOW));
-    velocity += (wanted - velocity) * (1 - Math.exp(-dt / VELOCITY_TAU));
-    current += velocity * dt;
-    // Never pass the target; settle exactly on it once the remaining motion is invisible.
-    if ((gap > 0 && current > target) || (gap < 0 && current < target) || (far < 0.00002 && Math.abs(velocity) < 0.0005)) {
-      current = target;
-      velocity = 0;
-    }
+    // Playback keeps real time down to 4 fps, so a slow machine still finishes the stand in time.
+    playbackStep(play, target, Math.min(0.25, rawDt / 1000), pathLimit);
+    const current = play.current;
     const moving = before !== current || now - pointerAt < 1500;
     const probe = probing();
     // Settled frames still play the LED reel and the sign, at a capped rate.
@@ -486,14 +482,25 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       },
       /** The progress the scene shows (it follows the scroll with a speed limit), and the scroll target. */
       get shown() {
-        return current;
+        return play.current;
       },
       get target() {
         return target;
       },
+      /** Whether the build is catching up with a fast scroll, and whether the camera is gliding back to its path. */
+      get catchingUp() {
+        return play.catchUp;
+      },
+      get gliding() {
+        return rig.gliding;
+      },
+      /** The camera's real position (with any catch-up glide and pointer parallax). */
+      get cameraPosition() {
+        return camera.position.toArray().map((v) => Math.round(v * 100) / 100);
+      },
       /** The subject box's projected bounds at p, as fractions of the screen and of the free band. */
-      subjectBounds(p: number) {
-        return rig.subjectBounds(clamp01(p), width, height);
+      subjectBounds(p: number, which: "subject" | "focus" | "whole" = "subject") {
+        return rig.subjectBounds(clamp01(p), width, height, which);
       },
       /** Hall or neighbour meshes between the camera and a grid over the stand's box. */
       occlusion(p: number) {
@@ -547,17 +554,17 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
           mesh.frustumCulled = false;
           scene.add(mesh);
         }
-        draw(current, elapsed);
+        draw(play.current, elapsed);
       },
       guard(on: boolean) {
         if (guard) guard.enabled = on;
-        draw(current, elapsed);
+        draw(play.current, elapsed);
         return guard ? guard.enabled : null;
       },
       /** Pin the LED reel to a time in seconds (null lets it run), and redraw. */
       reel(t: number | null) {
         (ctx.hooks.setReel as (t: number | null) => void)(t);
-        draw(current, elapsed);
+        draw(play.current, elapsed);
       },
       /** Per chapter and finale: camera travel, view rotation, azimuth, height, distance; monotone checks. */
       pathStats(step = 0.0005) {
@@ -619,12 +626,14 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
       },
       measure(p: number) {
         target = clamp01(p);
-        current = target;
-        velocity = 0;
+        play.current = target;
+        play.velocity = 0;
+        play.catchUp = false;
+        rig.snap();
         renderer.info.autoReset = false;
         renderer.info.reset();
         const t0 = performance.now();
-        draw(current, elapsed);
+        draw(play.current, elapsed);
         renderer.getContext().finish();
         const ms = Math.round(performance.now() - t0);
         const info = { calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, tier, ms, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures };
@@ -638,8 +647,10 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     setTarget(progress, immediate) {
       target = clamp01(progress);
       if (immediate) {
-        current = target;
-        velocity = 0;
+        play.current = target;
+        play.velocity = 0;
+        play.catchUp = false;
+        rig.snap();
       }
     },
     setPointer(x, y) {
@@ -649,8 +660,10 @@ export async function createBoothScene(canvas: HTMLCanvasElement, options: Booth
     setActive(value) {
       // Coming back into view (from above or below): show where the visitor is, at rest.
       if (value && !active) {
-        current = target;
-        velocity = 0;
+        play.current = target;
+        play.velocity = 0;
+        play.catchUp = false;
+        rig.snap();
       }
       active = value;
       last = performance.now();

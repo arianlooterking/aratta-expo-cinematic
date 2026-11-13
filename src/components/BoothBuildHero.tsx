@@ -18,6 +18,14 @@ type BoothBuildHeroProps = {
 const faDigits = (value: string) => value.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
 /**
+ * Share of the pinned scroll (900svh) that builds the stand; the rest, about 70svh, holds the
+ * finished stand before the hero scrolls away.
+ */
+const BUILD_SHARE = 0.92;
+/** While the build catches up with a fast scroll, a chapter's copy stays at least this long (ms). */
+const CHAPTER_DWELL = 650;
+
+/**
  * Landing hero: a real 3D exhibition booth is built piece by piece while the
  * visitor scrolls, in the real build order: plot and plan, rigging, raised floor,
  * structure, walls and glass, power and light, brand and media, hosting.
@@ -68,10 +76,16 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
     const requested = new URLSearchParams(window.location.search).get("booth");
     const quality: BoothQuality = requested === "high" || requested === "low" ? requested : "auto";
 
-    const paint = (p: number) => {
+    // While the build catches up with a fast scroll, the copy changes chapter at most every
+    // CHAPTER_DWELL ms (no flashing text); the closing copy comes in at once.
+    let chapterSince = 0;
+    const paint = (p: number, catchingUp = false) => {
       for (const bar of barRefs.current) if (bar) bar.style.transform = `scaleX(${Math.max(0.02, p)})`;
       const next = chapterAt(p);
       if (next !== chapterRef.current) {
+        const now = performance.now();
+        if (catchingUp && next < CHAPTER_STARTS.length && now - chapterSince < CHAPTER_DWELL) return;
+        chapterSince = now;
         chapterRef.current = next;
         setChapter(next);
       }
@@ -85,7 +99,8 @@ export function BoothBuildHero({ content }: BoothBuildHeroProps) {
           end: "bottom bottom",
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            progress = self.progress;
+            // The last stretch of the pin holds the finished stand.
+            progress = Math.min(1, self.progress / BUILD_SHARE);
             if (scene) scene.setTarget(progress);
             else paint(progress);
           },
