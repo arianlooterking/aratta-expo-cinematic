@@ -13,10 +13,10 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { SiteContent } from "@/data/aratta-content";
 import { isActiveNav, navGroups, navHref, primaryNav, telHref } from "@/data/site-nav";
-import { getBrandAssets } from "@/lib/brand-assets";
+import { brandLogoAlt, getBrandAssets } from "@/lib/brand-assets";
 import { cn } from "@/lib/cn";
 import {
   getAlternateLang,
@@ -24,6 +24,8 @@ import {
   getLanguageLabel,
   type Lang,
 } from "@/lib/lang";
+import { clearTheme, restoreTheme } from "@/lib/theme";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 
 type SiteChromeProps = {
   content: SiteContent;
@@ -41,6 +43,15 @@ export function SiteChrome({ content }: SiteChromeProps) {
   const brand = getBrandAssets(content.lang);
   const isFa = lang === "fa";
   const Arrow = isFa ? ArrowUpLeft : ArrowUpRight;
+
+  // The public theme lives on <html> while a public page is on screen. The
+  // inline head script sets it on a full load; this puts it back after React's
+  // development remount or a client navigation from the portal, and hands the
+  // page back to the portal's own palette when the header goes away.
+  useLayoutEffect(() => {
+    restoreTheme();
+    return clearTheme;
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -117,10 +128,10 @@ export function SiteChrome({ content }: SiteChromeProps) {
       </a>
       <div
         aria-hidden="true"
-        className="fixed inset-x-0 top-0 z-50 h-[3px] bg-white/5"
+        className="fixed inset-x-0 top-0 z-50 h-[3px] bg-ink/5"
       >
         <div
-          className="h-full bg-gradient-to-r from-[var(--gold)] via-[var(--cyan)] to-[var(--steel)] ltr:origin-left rtl:origin-right"
+          className="scroll-progress h-full bg-gradient-to-r from-[var(--gold)] via-[var(--cyan)] to-[var(--steel)] ltr:origin-left rtl:origin-right"
           style={{ transform: `scaleX(${scrollProgress})` }}
         />
       </div>
@@ -134,19 +145,19 @@ export function SiteChrome({ content }: SiteChromeProps) {
             className="flex min-w-0 items-center gap-3"
             onClick={close}
           >
-            <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-[1rem] border border-amber-200/24 bg-black shadow-[inset_0_1px_0_rgba(255,255,255,0.13),0_14px_34px_rgba(0,0,0,0.35)] sm:h-14 sm:w-14 sm:rounded-[1.15rem]">
+            <span className="relative flex h-12 w-12 shrink-0 overflow-hidden rounded-[0.9rem] border border-ink/10 bg-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_14px_34px_rgba(0,0,0,0.35)] sm:h-14 sm:w-14 sm:rounded-[1.05rem]">
               <Image
                 src={brand.logo}
-                alt={content.brand}
+                alt={brandLogoAlt[lang]}
                 fill
                 unoptimized
                 sizes="56px"
-                className="object-contain p-1"
+                className="object-contain p-[7px] sm:p-2"
                 loading="eager"
               />
             </span>
             <span className="hidden min-w-0 leading-tight sm:block">
-              <span className="font-latin block max-w-[13rem] truncate text-sm font-black text-white">
+              <span className="font-latin block max-w-[13rem] truncate text-sm font-black text-ink">
                 Aratta Expo
               </span>
               <span
@@ -154,7 +165,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
                   "mt-1 block whitespace-nowrap font-bold",
                   isFa
                     ? "text-[0.7rem] text-[var(--cyan)]"
-                    : "font-latin text-[0.62rem] tracking-[0.035em] text-white/68",
+                    : "font-latin text-[0.62rem] tracking-[0.035em] text-ink-68",
                 )}
               >
                 {isFa
@@ -166,7 +177,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
 
           <nav
             aria-label={isFa ? "ناوبری اصلی" : "Primary navigation"}
-            className="hidden items-center gap-0.5 rounded-full border border-white/8 bg-white/[0.03] p-1 xl:flex"
+            className="hidden items-center gap-0.5 rounded-full border border-ink/8 bg-ink/[0.03] p-1 xl:flex"
           >
             {primaryNav.map((item) => {
               const active = isActiveNav(pathname, lang, item.id);
@@ -176,10 +187,10 @@ export function SiteChrome({ content }: SiteChromeProps) {
                   href={navHref(lang, item.id)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "whitespace-nowrap rounded-full px-3.5 py-2 text-[0.84rem] font-semibold transition",
+                    "whitespace-nowrap rounded-full px-[0.55rem] py-2 text-[0.82rem] font-semibold transition min-[1360px]:px-2.5 2xl:px-3.5 2xl:text-[0.84rem]",
                     active
-                      ? "bg-white/12 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]"
-                      : "text-white/72 hover:bg-white/8 hover:text-white",
+                      ? "bg-ink/12 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]"
+                      : "text-ink-72 hover:bg-ink/8 hover:text-ink",
                   )}
                 >
                   {item.label[lang]}
@@ -192,7 +203,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
             <Link
               href={`/${lang}/search`}
               aria-label={isFa ? "جستجو" : "Search"}
-              className="hidden h-10 w-10 place-items-center rounded-full text-white/80 transition hover:bg-white/10 hover:text-white md:grid"
+              className="hidden h-10 w-10 place-items-center rounded-full text-ink-80 transition hover:bg-ink/10 hover:text-ink md:grid"
             >
               <Search size={18} />
             </Link>
@@ -200,13 +211,14 @@ export function SiteChrome({ content }: SiteChromeProps) {
               href={altHref}
               hrefLang={altLang}
               lang={altLang}
-              className="inline-flex min-h-10 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-xs font-semibold text-white/86 transition hover:bg-white/10 hover:text-white sm:px-3.5 sm:text-[0.82rem]"
+              className="inline-flex min-h-11 items-center rounded-full border border-ink/12 bg-ink/[0.04] px-3 text-xs font-semibold text-ink-86 transition hover:bg-ink/10 hover:text-ink sm:px-3.5 sm:text-[0.82rem]"
             >
               {getLanguageLabel(lang)}
             </Link>
+            <ThemeSwitch lang={lang} />
             <Link
               href={`/${lang}/registration#booth-request`}
-              className="liquid-button liquid-button--gold hidden min-h-10 items-center gap-1.5 rounded-full px-4 text-[0.82rem] font-black lg:inline-flex"
+              className="liquid-button liquid-button--gold hidden min-h-10 items-center gap-1.5 whitespace-nowrap rounded-full px-4 text-[0.82rem] font-black lg:inline-flex"
             >
               {isFa ? "درخواست غرفه" : "Request a booth"}
               <Arrow size={15} />
@@ -225,7 +237,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
               }
               aria-expanded={isOpen}
               aria-controls="site-menu"
-              className="liquid-button grid h-11 w-11 place-items-center rounded-full text-white"
+              className="liquid-button grid h-11 w-11 place-items-center rounded-full text-ink"
               onClick={() => setIsOpen((value) => !value)}
             >
               {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -238,7 +250,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
         aria-hidden="true"
         onClick={close}
         className={cn(
-          "fixed inset-0 z-30 bg-black/50 backdrop-blur-[2px] transition duration-300",
+          "fixed inset-0 z-30 bg-shade/50 backdrop-blur-[2px] transition duration-300",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
@@ -260,7 +272,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
         >
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
             {navGroups.map((group) => (
-              <div key={group.key} className="rounded-[1.25rem] border border-white/8 bg-white/[0.025] p-3">
+              <div key={group.key} className="rounded-[1.25rem] border border-ink/8 bg-ink/[0.025] p-3">
                 <div className="px-2 pb-2 pt-1 text-[0.72rem] font-black text-[var(--gold)]">
                   {group.title[lang]}
                 </div>
@@ -275,22 +287,22 @@ export function SiteChrome({ content }: SiteChromeProps) {
                           aria-current={active ? "page" : undefined}
                           className={cn(
                             "group flex items-center justify-between gap-3 rounded-xl px-2.5 py-2.5 transition",
-                            active ? "bg-white/10" : "hover:bg-white/[0.06]",
+                            active ? "bg-ink/10" : "hover:bg-ink/[0.06]",
                           )}
                         >
                           <span className="min-w-0">
-                            <span className="block text-sm font-bold text-white">
+                            <span className="block text-sm font-bold text-ink">
                               {link.label[lang]}
                             </span>
                             {link.hint ? (
-                              <span className="mt-0.5 block truncate text-xs text-white/50">
+                              <span className="mt-0.5 block truncate text-xs text-ink-50">
                                 {link.hint[lang]}
                               </span>
                             ) : null}
                           </span>
                           <Arrow
                             size={15}
-                            className="shrink-0 text-white/25 transition group-hover:text-[var(--cyan)]"
+                            className="shrink-0 text-ink-25 transition group-hover:text-[var(--cyan)]"
                           />
                         </Link>
                       </li>
@@ -301,13 +313,13 @@ export function SiteChrome({ content }: SiteChromeProps) {
             ))}
           </div>
 
-          <div className="mt-3 grid gap-2 rounded-[1.25rem] border border-white/8 bg-black/20 p-3 sm:mt-4 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/72">
+          <div className="mt-3 grid gap-2 rounded-[1.25rem] border border-ink/8 bg-shade/20 p-3 sm:mt-4 sm:grid-cols-[1fr_auto] sm:items-center">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink-72">
               {content.contact.phones.map((phone) => (
                 <a
                   key={phone}
                   href={telHref(phone)}
-                  className="font-latin inline-flex min-h-10 items-center gap-2 hover:text-white"
+                  className="font-latin inline-flex min-h-10 items-center gap-2 hover:text-ink"
                 >
                   <Phone size={15} className="text-[var(--cyan)]" />
                   {phone}
@@ -315,7 +327,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
               ))}
               <a
                 href="mailto:info@arattaexpo.ir"
-                className="font-latin inline-flex min-h-10 items-center gap-2 hover:text-white"
+                className="font-latin inline-flex min-h-10 items-center gap-2 hover:text-ink"
               >
                 <Mail size={15} className="text-[var(--cyan)]" />
                 info@arattaexpo.ir
@@ -324,7 +336,7 @@ export function SiteChrome({ content }: SiteChromeProps) {
                 href={content.contact.directionsUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-10 items-center gap-2 hover:text-white"
+                className="inline-flex min-h-10 items-center gap-2 hover:text-ink"
               >
                 <MapPin size={15} className="text-[var(--cyan)]" />
                 {isFa ? "دفتر کرمان، بلوار جهاد" : "Kerman office, Jahad Blvd"}

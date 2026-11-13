@@ -11,6 +11,7 @@ export type NavGroup = { key: string; title: Text; links: NavLink[] };
 /** Shown inline in the desktop header, in this order. */
 export const primaryNav: NavLink[] = [
   { id: "exhibitions", label: { fa: "نمایشگاه‌ها", en: "Exhibitions" } },
+  { id: "plans", label: { fa: "پلان‌ها", en: "Plans" } },
   { id: "registration", label: { fa: "ثبت‌نام", en: "Registration" } },
   { id: "equipment", label: { fa: "اجاره تجهیزات", en: "Equipment" } },
   { id: "news", label: { fa: "اخبار", en: "News" } },
@@ -25,6 +26,7 @@ export const navGroups: NavGroup[] = [
     title: { fa: "نمایشگاه‌ها", en: "Exhibitions" },
     links: [
       { id: "exhibitions", label: { fa: "تقویم نمایشگاه‌ها", en: "Exhibition calendar" }, hint: { fa: "دوره‌های پیش رو و برگزارشده", en: "Upcoming and past editions" } },
+      { id: "plans", label: { fa: "پلان‌ها و راهنمای غرفه", en: "Plans and stand guide" }, hint: { fa: "سالن‌ها، انواع غرفه و درخواست پلان", en: "Halls, stand types, plan requests" } },
       { id: "participants", label: { fa: "مشارکت‌کنندگان", en: "Participants" }, hint: { fa: "فهرست رسمی و حامیان", en: "Official lists and supporters" } },
       { id: "archive", label: { fa: "آرشیو کامل", en: "Complete archive" }, hint: { fa: "همه خبرها و گزارش‌ها", en: "Every news item and report" } },
     ],

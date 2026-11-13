@@ -9,9 +9,15 @@ export type StaffSession =
   /** Supabase env vars are missing: the portal runs as a local demo. */
   | { state: "unconfigured" }
   | { state: "signed-out" }
-  /** Signed in with Google/Apple, but this email has no active invite. */
+  /** Signed in, but this email has no active invite. */
   | { state: "pending"; email: string | null; status: StaffMember["status"] | null }
-  | { state: "active"; staff: StaffMember; email: string | null };
+  | {
+      state: "active";
+      staff: StaffMember;
+      email: string | null;
+      /** Still on the starting password an admin handed out: choose your own first. */
+      mustChangePassword: boolean;
+    };
 
 /**
  * Resolves who is looking at a staff page. Cached per request so layouts and
@@ -35,7 +41,12 @@ export const getStaffSession = cache(async (): Promise<StaffSession> => {
   if (!staff || staff.status !== "active") {
     return { state: "pending", email: user.email ?? null, status: staff?.status ?? null };
   }
-  return { state: "active", staff, email: user.email ?? null };
+  return {
+    state: "active",
+    staff,
+    email: user.email ?? null,
+    mustChangePassword: Boolean(user.app_metadata?.must_change_password),
+  };
 });
 
 export const roleRank: Record<StaffMember["role"], number> = {

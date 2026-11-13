@@ -4,6 +4,7 @@ import { afterChatMessage, dmKey } from "./chat.ts";
 import { carryFurniture, cleanStaffIds, deriveBooth, deriveHandoverPeople, deriveOrder, deriveProblem, deriveTeam, staffChangeError } from "./rules.ts";
 import { DEMO_STAFF_ID } from "./demo-seed.ts";
 import { PortalStore, newId, type AnyRow, type Collection, type HistoryQuery, type MyProfilePatch } from "./store.ts";
+import { passwordProblem } from "./team.ts";
 import type { AuditEntry, Insert, MutationResult, Patch, PortalTable, Row } from "./types";
 
 const STORAGE_KEY = "aratta.portal.demo.v1";
@@ -476,6 +477,13 @@ export class DemoStore extends PortalStore {
       else (clean as Record<string, unknown>)[key] = typeof value === "string" ? value.trim() || null : value;
     }
     return this.update("staff_members", staffId, clean);
+  }
+
+  // The demo has no sign-in, so there is nothing to store.
+  async setStaffPassword(staffId: string, password: string) {
+    if (!this.isStaff(staffId)) return this.fail("missing");
+    if (passwordProblem(password)) return this.fail("password-length");
+    return { ok: true as const };
   }
 
   async history(query: HistoryQuery) {

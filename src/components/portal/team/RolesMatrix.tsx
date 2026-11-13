@@ -90,7 +90,7 @@ export function RolesMatrix() {
             <li>{fa ? "هیچ کس نقش یا وضعیت خودش را تغییر نمی دهد و دسترسی خودش را حذف نمی کند." : "Nobody changes their own role or status, or removes their own access."}</li>
             <li>{fa ? "فقط مالک می تواند مالک تازه تعیین کند یا مالک دیگری را تغییر دهد." : "Only an owner can make someone an owner or change another owner."}</li>
             <li>{fa ? "همیشه دست کم یک مالک فعال باقی می ماند." : "There is always at least one active owner."}</li>
-            <li>{fa ? "ورود فقط با Google یا Apple و همان ایمیلی است که دعوت شده." : "Sign-in is Google or Apple only, with the exact email that was invited."}</li>
+            <li>{fa ? "ورود با ایمیلی است که دعوت شده و گذرواژه خود همکار. مدیر سامانه گذرواژه شروع می دهد و هر کس همان اول آن را عوض می کند." : "Sign-in is the invited email and the colleague's own password. An admin hands out a starting password, and each person replaces it straight away."}</li>
             <li>
               {mode === "live"
                 ? fa

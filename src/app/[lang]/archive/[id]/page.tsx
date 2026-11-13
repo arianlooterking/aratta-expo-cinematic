@@ -83,7 +83,7 @@ export default async function ArchiveArticle({ params }: Props) {
           </Link>
         </nav>
         <article className="mx-auto max-w-5xl">
-          <header className="border-b border-white/15 pb-8">
+          <header className="border-b border-ink/15 pb-8">
             <time
               className="text-sm text-[var(--gold)]"
               dateTime={entry.publishedAt}
@@ -98,7 +98,7 @@ export default async function ArchiveArticle({ params }: Props) {
             >
               {entry.title}
             </h1>
-            <p className="mt-6 rounded-2xl border border-white/15 bg-white/[0.035] p-4 text-sm leading-7 text-white/65">
+            <p className="mt-6 rounded-2xl border border-ink/15 bg-ink/[0.035] p-4 text-sm leading-7 text-ink-65">
               {entry.kind === "catalogue"
                 ? fa
                   ? "معرفی کتاب از آرشیو رسمی اَرَتَ. فروش و پرداخت آنلاین در این وبسایت فعال نیست؛ برای دسترسی به کتاب و شرایط تهیه آن با دفتر اَرَتَ تماس بگیرید."
@@ -113,7 +113,7 @@ export default async function ArchiveArticle({ params }: Props) {
             </p>
           </header>
           <div
-            className="mt-9 space-y-6 text-lg leading-[2.15] text-white/85"
+            className="mt-9 space-y-6 text-lg leading-[2.15] text-ink-85"
             dir="rtl"
             lang="fa"
           >
@@ -122,7 +122,7 @@ export default async function ArchiveArticle({ params }: Props) {
             ))}
           </div>
           {links.length > 0 && (
-            <section className="my-10 rounded-3xl border border-white/15 p-5">
+            <section className="my-10 rounded-3xl border border-ink/15 p-5">
               <h2 className="text-xl font-bold">
                 {fa ? "فایل‌ها و پیوندهای مرتبط" : "Files & related links"}
               </h2>
@@ -131,7 +131,7 @@ export default async function ArchiveArticle({ params }: Props) {
                   <a
                     key={i}
                     href={localizeSourceLink(link.href, lang)}
-                    className="min-w-0 break-words rounded-2xl border border-white/10 p-4 text-sm leading-7 text-[var(--gold)] hover:border-amber-200/40"
+                    className="min-w-0 break-words rounded-2xl border border-ink/10 p-4 text-sm leading-7 text-[var(--gold)] hover:border-gilt-200/40"
                     rel="noreferrer"
                     dir="auto"
                   >
@@ -147,7 +147,7 @@ export default async function ArchiveArticle({ params }: Props) {
                 {fa
                   ? "تصاویر و پوسترهای مطلب"
                   : "Article photographs & posters"}{" "}
-                <span className="text-sm text-white/55">
+                <span className="text-sm text-ink-55">
                   ({new Intl.NumberFormat(lang).format(entry.images.length)})
                 </span>
               </h2>
@@ -167,10 +167,10 @@ export default async function ArchiveArticle({ params }: Props) {
               />
             </section>
           )}
-          <div className="mt-12 border-t border-white/15 pt-6">
+          <div className="mt-12 border-t border-ink/15 pt-6">
             <Link
               href={`/${lang}/archive`}
-              className="inline-flex min-h-12 items-center rounded-full border border-white/20 px-6 text-[var(--gold)]"
+              className="inline-flex min-h-12 items-center rounded-full border border-ink/20 px-6 text-[var(--gold)]"
             >
               {fa ? "بازگشت به آرشیو" : "Back to archive"}
             </Link>

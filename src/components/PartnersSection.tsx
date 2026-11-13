@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, FileDown } from "lucide-react";
 import { partnerGroups, partnerSourceHref } from "@/data/partners";
 import type { Lang } from "@/lib/lang";
+import { BuildBackdrop } from "@/components/backdrops/BuildBackdrop";
 
 const copy = {
   fa: {
@@ -45,30 +46,33 @@ export function PartnersSection({
     <section
       id={compact ? undefined : "partners"}
       aria-labelledby={compact ? undefined : "partners-title"}
-      className={compact ? "" : "relative py-20 sm:py-24"}
+      className={compact ? "" : "section-pad relative isolate"}
     >
+      {compact ? null : (
+        <BuildBackdrop motif="presswall" lang={lang} className="end-[-30%] top-0 w-[140vw] lg:end-[calc(50%-min(590px,47%)-4rem)] lg:top-[-1rem] lg:w-[min(640px,46vw)]" />
+      )}
       <div className={compact ? "" : "section-shell"}>
         {compact ? null : (
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <div className="section-kicker">{text.kicker}</div>
-              <h2 id="partners-title" className="section-display-title mt-4 max-w-3xl text-balance font-black text-white">
+              <h2 id="partners-title" className="section-display-title mt-4 max-w-3xl text-balance font-black text-ink">
                 {text.title}
               </h2>
-              <p className="site-copy mt-4 text-base text-white/62">{text.body}</p>
+              <p className="site-copy mt-4 text-base text-ink-62">{text.body}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <a
                 href="/downloads/kimex-2025-participants-list.pdf"
                 download
-                className="liquid-button inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-black text-white"
+                className="liquid-button inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-black text-ink"
               >
                 <FileDown size={16} />
                 {text.list}
               </a>
               <Link
                 href={`/${lang}/participants`}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/12 px-5 text-sm font-bold text-white/80 transition hover:border-white/25 hover:text-white"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/12 px-5 text-sm font-bold text-ink-80 transition hover:border-ink/25 hover:text-ink"
               >
                 {text.page}
                 <ArrowUpRight size={16} />
@@ -79,10 +83,10 @@ export function PartnersSection({
 
         <div className={compact ? "" : "mt-10"}>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-sm font-black text-white">{supporters.title[lang]}</h3>
+            <h3 className="text-sm font-black text-ink">{supporters.title[lang]}</h3>
             <Link
               href={partnerSourceHref(lang, supporters.names[0].source)}
-              className="text-xs text-white/45 hover:text-[var(--cyan)]"
+              className="text-xs text-ink-45 hover:text-[var(--cyan)]"
             >
               {text.source}: {supporters.note[lang]}
             </Link>
@@ -99,7 +103,7 @@ export function PartnersSection({
                 >
                   {monogram(item.name[lang])}
                 </span>
-                <span className="text-sm font-black leading-6 text-white sm:text-[0.95rem]">
+                <span className="text-sm font-black leading-6 text-ink sm:text-[0.95rem]">
                   {item.name[lang]}
                 </span>
               </li>
@@ -107,8 +111,8 @@ export function PartnersSection({
           </ul>
 
           <div className="mt-8 flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-sm font-black text-white">{exhibitors.title[lang]}</h3>
-            <span className="text-xs text-white/45">{exhibitors.note[lang]}</span>
+            <h3 className="text-sm font-black text-ink">{exhibitors.title[lang]}</h3>
+            <span className="text-xs text-ink-45">{exhibitors.note[lang]}</span>
           </div>
           <div className="marquee mt-3" dir="ltr">
             <ul className="marquee-track" data-dir={lang === "fa" ? "rtl" : "ltr"}>
@@ -122,7 +126,7 @@ export function PartnersSection({
                     href={partnerSourceHref(lang, item.source)}
                     tabIndex={index >= exhibitors.names.length ? -1 : undefined}
                     dir={lang === "fa" ? "rtl" : "ltr"}
-                    className="industrial-card flex min-h-14 items-center gap-3 whitespace-nowrap rounded-full px-5 text-sm font-bold text-white/80 transition hover:text-white"
+                    className="industrial-card flex min-h-14 items-center gap-3 whitespace-nowrap rounded-full px-5 text-sm font-bold text-ink-80 transition hover:text-ink"
                   >
                     <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
                     {item.name[lang]}

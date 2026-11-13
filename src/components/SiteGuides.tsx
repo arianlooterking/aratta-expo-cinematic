@@ -21,17 +21,17 @@ export function QuickActions({ lang }: { lang: Lang }) {
           <Link
             key={a.id}
             href={`/${lang}${a.href}`}
-            className="industrial-card group flex min-h-[8.5rem] flex-col justify-between rounded-[1.6rem] p-4 transition hover:-translate-y-0.5 hover:border-cyan-200/35 sm:p-5"
+            className="industrial-card group flex min-h-[8.5rem] flex-col justify-between rounded-[1.6rem] p-4 transition hover:-translate-y-0.5 hover:border-aqua-200/35 sm:p-5"
           >
             <span className="flex items-start justify-between gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-cyan-200/22 bg-cyan-200/8 text-[var(--cyan)]">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-aqua-200/22 bg-aqua-200/8 text-[var(--cyan)]">
                 <Icon size={20} />
               </span>
-              <Arrow size={18} className="text-white/35 transition group-hover:text-[var(--gold)]" />
+              <Arrow size={18} className="text-ink-35 transition group-hover:text-[var(--gold)]" />
             </span>
             <span>
-              <span className="block text-base font-black text-white sm:text-lg">{t(lang, a.title)}</span>
-              <span className="mt-1 block text-xs leading-6 text-white/55 sm:text-sm">{t(lang, a.body)}</span>
+              <span className="block text-base font-black text-ink sm:text-lg">{t(lang, a.title)}</span>
+              <span className="mt-1 block text-xs leading-6 text-ink-55 sm:text-sm">{t(lang, a.body)}</span>
             </span>
           </Link>
         );
@@ -49,11 +49,11 @@ export function ExhibitorJourney({ lang, heading = true }: { lang: Lang; heading
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             <div className="section-kicker">{fa ? "مسیر مشارکت" : "Exhibitor journey"}</div>
-            <h2 className="section-display-title mt-4 font-black text-white">
+            <h2 className="section-display-title mt-4 font-black text-ink">
               {fa ? "از اولین تماس تا آخرین روز نمایشگاه" : "From first call to the last show day"}
             </h2>
           </div>
-          <p className="site-copy text-white/62">
+          <p className="site-copy text-ink-62">
             {fa
               ? "شش قدم روشن که هر مشارکت‌کننده با تیم اَرَتَ طی می‌کند. در هر مرحله یک نفر از تیم پیگیر کار شماست."
               : "Six clear steps every exhibitor takes with the Aratta team, with one person following up at each stage."}
@@ -63,7 +63,7 @@ export function ExhibitorJourney({ lang, heading = true }: { lang: Lang; heading
       <ol className={`${heading ? "mt-9" : ""} grid gap-3 sm:grid-cols-2 lg:grid-cols-3`}>
         {journey.map((step, i) => (
           <li key={step.kicker.en} className="industrial-card relative overflow-hidden rounded-[1.6rem] p-5 sm:p-6">
-            <span className="pointer-events-none absolute -bottom-5 end-3 font-latin text-[5rem] font-black leading-none text-white/[0.04]">
+            <span className="pointer-events-none absolute -bottom-5 end-3 font-latin text-[5rem] font-black leading-none text-ink/[0.04]">
               {String(i + 1).padStart(2, "0")}
             </span>
             {lang === "fa" ? (
@@ -75,8 +75,8 @@ export function ExhibitorJourney({ lang, heading = true }: { lang: Lang; heading
                 {String(i + 1).padStart(2, "0")} · {step.kicker.en}
               </span>
             )}
-            <h3 className="mt-3 text-lg font-black leading-8 text-white sm:text-xl">{t(lang, step.title)}</h3>
-            <p className="mt-2 text-sm leading-7 text-white/60">{t(lang, step.body)}</p>
+            <h3 className="mt-3 text-lg font-black leading-8 text-ink sm:text-xl">{t(lang, step.title)}</h3>
+            <p className="mt-2 text-sm leading-7 text-ink-60">{t(lang, step.body)}</p>
           </li>
         ))}
       </ol>
@@ -90,12 +90,12 @@ export function FaqList({ lang, limit }: { lang: Lang; limit?: number }) {
   return (
     <div className="grid gap-3">
       {items.map((item, i) => (
-        <details key={item.q.en} className="industrial-card group rounded-[1.4rem] px-5 py-1 open:border-amber-200/25" open={i === 0}>
-          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-base font-black text-white [&::-webkit-details-marker]:hidden">
+        <details key={item.q.en} className="industrial-card group rounded-[1.4rem] px-5 py-1 open:border-gilt-200/25" open={i === 0}>
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-base font-black text-ink [&::-webkit-details-marker]:hidden">
             {t(lang, item.q)}
             <ChevronDown size={19} className="shrink-0 text-[var(--gold)] transition group-open:rotate-180" />
           </summary>
-          <p className="site-copy pb-5 text-white/66">{t(lang, item.a)}</p>
+          <p className="site-copy pb-5 text-ink-66">{t(lang, item.a)}</p>
         </details>
       ))}
     </div>

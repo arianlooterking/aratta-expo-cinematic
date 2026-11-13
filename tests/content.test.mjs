@@ -16,7 +16,6 @@ const seo = await readFile(new URL("../src/lib/seo.ts", import.meta.url), "utf8"
 const ogPreview = await stat(new URL("../public/og/aratta-expo-booth-preview-v2.png", import.meta.url));
 const siteChrome = await readFile(new URL("../src/components/SiteChrome.tsx", import.meta.url), "utf8");
 const mapPanel = await readFile(new URL("../src/components/GoogleMapPanel.tsx", import.meta.url), "utf8");
-const boothScenes = await readFile(new URL("../src/lib/booth-scenes.ts", import.meta.url), "utf8");
 const boothHero = await readFile(new URL("../src/components/BoothBuildHero.tsx", import.meta.url), "utf8");
 const homeSections = await readFile(new URL("../src/components/HomeSections.tsx", import.meta.url), "utf8");
 const upcomingExhibitions = await readFile(new URL("../src/components/UpcomingExhibitions.tsx", import.meta.url), "utf8");
@@ -61,6 +60,7 @@ test("bilingual navigation preserves all current public tabs", () => {
     "home",
     "about",
     "exhibitions",
+    "plans",
     "registration",
     "forms",
     "equipment",
@@ -90,13 +90,24 @@ test("language routes own the document language and direction", () => {
 test("hero stage captions use polished bilingual production copy", () => {
   assert.match(content, /نمایشگاه‌های صنعت و معدن/);
   assert.match(content, /Industry & mining exhibitions/);
-  assert.match(content, /آغاز از صحنه خالص/);
-  assert.match(content, /نقشه فنی و مسیر حرکت/);
-  assert.match(content, /فضای آماده مذاکره/);
-  assert.match(content, /From blank hall to intent/);
-  assert.match(content, /Ready for business conversations/);
-  assert.doesNotMatch(content, /سالن خام و نور محیط/);
-  assert.doesNotMatch(content, /Clean hall and ambient light/);
+  assert.match(content, /همه‌چیز از نقشه شروع می‌شود/);
+  assert.match(content, /اول، سازهٔ سقفی/);
+  assert.match(content, /آمادهٔ میزبانی/);
+  assert.match(content, /It starts with a plan/);
+  assert.match(content, /Overhead goes first/);
+  assert.match(content, /Ready to host/);
+  assert.match(content, /scrollHint/);
+  assert.match(content, /finale:/);
+});
+
+test("hero build chapters stay in Persian and English parity, in the real build order", () => {
+  const blocks = [...content.matchAll(/stages: \[([\s\S]*?)\n    \],/g)].map((m) => [...m[1].matchAll(/label: "([^"]+)"/g)].map((l) => l[1]));
+  assert.equal(blocks.length, 2);
+  const [fa, en] = blocks;
+  assert.equal(fa.length, 8);
+  assert.equal(en.length, 8);
+  assert.deepEqual(en, ["Plot", "Rigging", "Floor", "Structure", "Walls", "Light", "Brand", "Hosting"]);
+  assert.deepEqual(fa, ["زمین", "آویز", "کف", "سازه", "دیوار", "نور", "هویت", "میزبانی"]);
 });
 
 test("link previews use localized professional metadata and booth image", () => {
@@ -143,62 +154,95 @@ test("equipment rental route alias stays live", () => {
   assert.match(routedPage, /page === "equipment-rental" \? "equipment" : page/);
 });
 
-test("official language-specific brand assets are wired into chrome and map", () => {
-  assert.match(brandAssets, /brand-v2\/aratta-tab\.png/);
-  assert.match(brandAssets, /brand-v2\/aratta-logo-en-horizontal\.png/);
+test("official brand assets are wired into chrome and map", () => {
+  assert.match(brandAssets, /brand-v3\/aratta-logo-official-tight\.png/);
+  assert.match(brandAssets, /brand-v3\/aratta-icon-512\.png/);
   assert.match(siteChrome, /getBrandAssets\(content\.lang\)/);
   assert.match(mapPanel, /src=\{brand\.pin\}/);
 });
 
-test("landing hero uses a pinned HQ stage scroll sequence", () => {
-  for (const file of [
-    "desktop/stage-01.webp",
-    "desktop/stage-02.webp",
-    "desktop/stage-03.webp",
-    "desktop/stage-04.webp",
-    "desktop/stage-05.webp",
-    "desktop/stage-06.webp",
-  ]) {
-    assert.match(boothScenes, new RegExp(file));
+test("landing hero builds a real 3D booth while the visitor scrolls", async () => {
+  const dir = new URL("../src/components/booth3d/", import.meta.url);
+  const modules = ["booth-scene", "core", "materials", "hall", "rigging", "floor", "structure", "walls", "light", "identity", "furniture", "camera"];
+  const sources = Object.fromEntries(await Promise.all(modules.map(async (name) => [name, await readFile(new URL(`${name}.ts`, dir), "utf8")])));
+  const scene = Object.values(sources).join("\n");
+  const timeline = await readFile(new URL("timeline.ts", dir), "utf8");
+  // Eight chapters in the real build order, one timeline shared by the scene and the copy.
+  assert.match(timeline, /CHAPTER_STARTS = \[0, 0\.11, 0\.22, 0\.33, 0\.44, 0\.55, 0\.66, 0\.77\]/);
+  assert.match(timeline, /FINALE_AT = 0\.9/);
+  for (const part of ["tape", "plan", "truss", "fixtures", "chains", "rigRise", "pedestals", "panels", "finish", "columns", "deck", "balustrade", "deckLift", "stair", "towerFrames", "frames", "cladding", "slats", "glass", "power", "ledLines", "lightboxes", "spots", "ledTiles", "mark", "sign", "counter", "vitrines", "plants"]) {
+    assert.match(timeline, new RegExp(`\\b${part}: \\[`));
   }
-  for (const file of [
-    "mobile/stage-01.webp",
-    "mobile/stage-02.webp",
-    "mobile/stage-03.webp",
-    "mobile/stage-04.webp",
-    "mobile/stage-05.webp",
-    "mobile/stage-06.webp",
-  ]) {
-    assert.match(boothScenes, new RegExp(file));
-  }
-  // About one screen of scroll per stage: six stages on phones, a little less on desktop.
-  assert.match(boothHero, /h-\[600svh\]/);
-  assert.match(boothHero, /md:h-\[540svh\]/);
-  assert.match(boothHero, /md:hidden/);
-  assert.match(boothHero, /mobileBoothStageFrames/);
-  assert.match(boothHero, /mobileCtas/);
-  assert.match(boothHero, /data-mobile-hero-card/);
-  assert.match(boothHero, /grid-cols-2/);
-  assert.match(boothHero, /min-h-11/);
-  assert.match(boothHero, /text-\[clamp\(0\.92rem,4\.55vw,1\.08rem\)\]/);
-  assert.match(boothHero, /hero-copy-scrim pointer-events-none absolute inset-0/);
-  assert.match(boothHero, /transition: "opacity 360ms ease-out"/);
-  assert.doesNotMatch(boothHero, /saturate\(/);
-  assert.doesNotMatch(boothHero, /scale\(\$\{scale/);
+  // Rigging comes before the floor, the deck is lifted after its balustrade is fitted.
+  const start = (name) => Number(timeline.match(new RegExp(`\\b${name}: \\[([0-9.]+)`))[1]);
+  assert.ok(start("rigRise") < start("pedestals"));
+  assert.ok(start("balustrade") < start("deckLift"));
+  assert.ok(start("frames") < start("power") && start("spots") < start("ledTiles") && start("ledTiles") < start("counter"));
+  assert.match(sources["booth-scene"], /from "three"/);
+  assert.match(scene, /LOGO_RECTS/);
+  assert.match(scene, /drawLogo/);
+  assert.match(scene, /اَرَتَ/);
+  assert.match(scene, /InstancedMesh/);
+  assert.match(scene, /RoundedBoxGeometry/);
+  assert.match(sources["booth-scene"], /setPixelRatio\(Math\.min/);
+  assert.match(sources["booth-scene"], /shadowMap\.enabled = !compact/);
+  assert.match(sources["booth-scene"], /UnrealBloomPass/);
+  assert.match(sources["booth-scene"], /PMREMGenerator/);
+  assert.match(sources["booth-scene"], /setTarget\(progress, immediate\)/);
+  assert.match(sources["booth-scene"], /setActive\(value\)/);
+  assert.match(sources.materials, /transmission|MeshPhysicalMaterial/);
+  // The production minifier breaks a destructuring assignment onto existing fields
+  // ("[a.x, a.y] = [1, 2]") and the whole 3D chunk then fails to load. Assign plainly.
+  assert.doesNotMatch(scene, /^\s*(?:if \(.*\)\s*)?\[[\w.,\s]+\]\s*=\s*\[/m);
+  // The 3D code loads on demand, and the hero keeps a still image when WebGL is missing.
+  assert.match(boothHero, /import\("@\/components\/booth3d\/booth-scene"\)/);
+  assert.match(boothHero, /hero-v6\/desktop\/stage-06\.webp/);
+  assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
+  assert.match(boothHero, /h-\[1000svh\]/);
+  // Slow-motion playback: the shown progress is speed limited (with a catch-up for long flicks) and the copy follows it.
+  assert.match(sources.camera, /export const PLAYBACK = \{ speed: 0\.05,/);
+  assert.match(sources["booth-scene"], /playbackStep\(play, target/);
+  assert.match(boothHero, /onFrame: paint/);
+  // LED cabinets light with their slice of the picture as they lock in.
+  assert.match(timeline, /ledTiles: \[0\.664, 0\.716\]/);
+  assert.match(sources.identity, /float since = uP - vTile\.z;/);
+  // The LED wall plays a calm brand reel drawn once into textures, with text from the site content.
+  const reel = await readFile(new URL("reel.ts", dir), "utf8");
+  assert.match(reel, /export function buildReel/);
+  assert.match(reel, /export const REEL_LOOP = 30;/);
+  assert.match(reel, /export function shortName/);
+  // Photos of Aratta's own exhibitions, downscaled copies, loaded after the first frame.
+  for (const name of ["mining-machinery", "steel-copper-energy", "mineral-production"]) {
+    for (const size of [1024, 640]) {
+      const photo = await stat(new URL(`../public/booth-reel/${name}-${size}.jpg`, import.meta.url));
+      assert.ok(photo.size < 125_000, `${name}-${size}.jpg is ${photo.size} bytes`);
+    }
+  }
+  assert.match(sources["booth-scene"], /loadReel/);
+  assert.match(sources.identity, /buildReel\(ctx/);
+  assert.match(boothHero, /import type \{ SiteContent \} from "@\/data\/aratta-content"/);
+  assert.match(boothHero, /events: contentRef\.current\.exhibitions\.items\.map\(\(item\) => item\.title\)/);
+  assert.match(boothHero, /title: contentRef\.current\.hero\.title/);
+  // No canvas is redrawn or uploaded in the frame loop: only uniforms change.
+  assert.doesNotMatch(reel, /needsUpdate\s*=\s*true/);
+  assert.doesNotMatch(sources.identity, /needsUpdate\s*=\s*true/);
+  assert.match(sources["booth-scene"], /reel\(t: number \| null\)/);
+  // One calm crane move: no idle sway, a measurable path.
+  assert.doesNotMatch(sources.camera, /Math\.sin\(time/);
+  assert.match(sources.camera, /export function pathStats/);
+  assert.match(sources["booth-scene"], /pathStats\(/);
+  assert.match(timeline, /CAMERA_KEYS: Array<\{ at: number; azimuth: number; distance: number; height: number; target: Vec3 \}>/);
+  assert.match(boothHero, /grid-cols-8/);
+  assert.match(boothHero, /data-mobile-hero-card/);
   assert.match(boothHero, /data-hero-loader/);
   assert.match(boothHero, /prefers-reduced-motion: reduce/);
   assert.match(boothHero, /hero-stage-copy/);
-  assert.doesNotMatch(boothHero, /hero-brand-lockup--late/);
-  assert.doesNotMatch(boothHero, /aratta-logo-en-horizontal/);
+  assert.match(boothHero, /className="sr-only"/);
   assert.match(globalStyles, /@keyframes hero-loader-scan/);
   assert.match(globalStyles, /@keyframes hero-stage-copy-in/);
-  assert.match(globalStyles, /@media \(max-width: 767px\)/);
+  assert.match(globalStyles, /\.booth3d__chapter/);
   assert.match(globalStyles, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(boothHero, /opacity/);
-  assert.doesNotMatch(boothHero, /process-row-inner/);
-  assert.doesNotMatch(boothHero, /process-bubble-row/);
-  assert.doesNotMatch(boothHero, /dashboard-card/);
 });
 
 test("hero sequence ships responsive 4K assets and keeps generated masters outside public", async () => {
@@ -255,7 +299,6 @@ test("hero sequence ships responsive 4K assets and keeps generated masters outsi
     { limitInputPixels: false },
   ).metadata();
 
-  assert.equal((boothScenes.match(/hero-v6\//g) ?? []).length, 12);
   assert.match(boothHero, /unoptimized/);
   assert.match(animatedTabs, /unoptimized/);
   assert.match(aboutExperience, /unoptimized/);
@@ -272,12 +315,14 @@ test("hero sequence ships responsive 4K assets and keeps generated masters outsi
 
 test("both languages use the supplied official Aratta logo system", async () => {
   const tab = await sharp(
-    fileURLToPath(new URL("../public/brand-v2/aratta-tab.png", import.meta.url)),
+    fileURLToPath(new URL("../public/brand-v3/aratta-icon-512.png", import.meta.url)),
   ).metadata();
   assert.deepEqual([tab.width, tab.height], [512, 512]);
-  assert.equal((brandAssets.match(/brand-v2\/aratta-tab\.png/g) ?? []).length, 12);
+  // One official artwork for both languages; the older v2 marks are no longer used for the site logo.
+  assert.doesNotMatch(brandAssets, /brand-v2\//);
+  assert.match(brandAssets, /fa: official,\s*en: official/);
   assert.match(siteChrome, />\s*Aratta Expo\s*</);
-  assert.match(boothHero, /brand-v2\/aratta-official-mark\.png/);
+  assert.match(boothHero, /brand-v3\/aratta-logo-official-tight\.png/);
   assert.doesNotMatch(boothHero, /brand-v2\/aratta-logo-en-horizontal\.png/);
 });
 
@@ -288,8 +333,8 @@ test("landing page does not render the duplicate build-stage showcase", () => {
 test("related industry news is a dedicated bilingual public section", () => {
   assert.match(content, /relatedTitle/);
   assert.match(content, /relatedItems/);
-  assert.match(content, /اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین/);
-  assert.match(content, /Related news for mining, steel, copper, and supply-chain markets/);
+  assert.match(content, /معدن، فولاد، مس و زنجیرهٔ تأمین/);
+  assert.match(content, /Mining, steel, copper and supply chain/);
   assert.match(routedPage, /"industry-news"/);
   assert.match(routedPage, /RelatedNewsPage/);
   assert.match(homeSections, /RelatedNewsSection/);
@@ -358,6 +403,7 @@ test("robots and sitemap handle admin and public pages correctly", () => {
     assert.match(robots, new RegExp(privateRoute.replace(/[/*]/g, "\\$&")));
   }
   assert.match(sitemap, /"industry-news"/);
+  assert.match(sitemap, /"plans"/);
   assert.match(sitemap, /"blog"/);
   assert.match(sitemap, /siteUrl/);
 });
@@ -378,4 +424,26 @@ test("operating system section uses stage imagery and real route links", () => {
     assert.match(animatedTabs, new RegExp(`route: "${route}"`));
   }
   assert.match(animatedTabs, /href=\{`\/\$\{content\.lang\}\/\$\{activeMeta\.route\}`\}/);
+});
+
+test("the hall around the stand is designed and built in the background", async () => {
+  const dir = new URL("../src/components/booth3d/", import.meta.url);
+  const read = (name) => readFile(new URL(`${name}.ts`, dir), "utf8");
+  const [architecture, neighbours, surroundings, theme, scene, hall] = await Promise.all(["hall-architecture", "neighbours", "surroundings-timeline", "theme", "booth-scene", "hall"].map(read));
+  // A vaulted hall with a glazed back wall, a gallery, ring lights and banners.
+  for (const part of ["curtain wall", "mezzanine", "wayfinding", "ring lights", "banners"]) assert.match(architecture, new RegExp(part, "i"));
+  // Five unbranded neighbours, two of them round, each with its own build windows.
+  for (const stand of ["rotunda", "portal", "ribbon", "pergola", "dome"]) {
+    assert.match(neighbours, new RegExp(`\\b${stand}\\b`));
+    assert.match(surroundings, new RegExp(`${stand}: \\{`));
+  }
+  assert.match(neighbours, /TorusGeometry/);
+  assert.match(scene, /buildHallArchitecture\(ctx\)/);
+  assert.match(scene, /buildNeighbours\(ctx\)/);
+  // A live theme switch (dark default, light opening day with a red carpet).
+  assert.match(theme, /"dark" \| "light"/);
+  assert.match(scene, /setTheme\(theme\)/);
+  assert.match(hall, /AISLE\.light/);
+  const sources = [architecture, neighbours, surroundings, theme].join("\n");
+  assert.doesNotMatch(sources, /^\s*(?:if \(.*\)\s*)?\[[\w.,\s]+\]\s*=\s*\[/m);
 });

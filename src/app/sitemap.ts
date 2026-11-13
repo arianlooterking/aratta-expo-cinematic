@@ -8,6 +8,7 @@ const publicPages = [
   "",
   "about",
   "exhibitions",
+  "plans",
   "registration",
   "forms",
   "equipment",

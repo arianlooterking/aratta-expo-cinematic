@@ -16,7 +16,7 @@ export function BlogCards({ content, posts, limit }: BlogCardsProps) {
     return (
       <div className="industrial-card rounded-[2rem] p-8 text-center">
         <BookOpenText className="mx-auto text-[var(--cyan)]" size={30} />
-        <p className="mt-4 font-bold text-white/64">{content.blog.emptyLabel}</p>
+        <p className="mt-4 font-bold text-ink-64">{content.blog.emptyLabel}</p>
       </div>
     );
   }
@@ -32,10 +32,10 @@ export function BlogCards({ content, posts, limit }: BlogCardsProps) {
 
 function BlogCard({ content, post }: { content: SiteContent; post: BlogPost }) {
   return (
-    <article className="industrial-card group flex min-h-full flex-col overflow-hidden rounded-[2rem] transition duration-300 hover:-translate-y-1 hover:border-cyan-200/36">
+    <article className="industrial-card group flex min-h-full flex-col overflow-hidden rounded-[2rem] transition duration-300 hover:-translate-y-1 hover:border-aqua-200/36">
       <Link
         href={`/${content.lang}/blog/${post.slug}`}
-        className="relative block aspect-[16/10] overflow-hidden"
+        className="on-photo relative block aspect-[16/10] overflow-hidden"
         aria-label={`${content.blog.readMoreLabel}: ${post.title}`}
       >
         <Image
@@ -47,26 +47,26 @@ function BlogCard({ content, post }: { content: SiteContent; post: BlogPost }) {
           className="object-cover transition duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/12 to-transparent" />
-        <span className="absolute start-4 top-4 rounded-full border border-white/14 bg-black/48 px-3 py-1.5 text-xs font-black text-white/86 backdrop-blur-xl">
+        <span className="absolute start-4 top-4 rounded-full border border-ink/14 bg-shade/48 px-3 py-1.5 text-xs font-black text-ink-86 backdrop-blur-xl">
           {post.category}
         </span>
         {post.featured ? (
-          <span className="absolute end-4 top-4 rounded-full border border-amber-200/24 bg-amber-200/14 px-3 py-1.5 text-xs font-black text-amber-50 backdrop-blur-xl">
+          <span className="absolute end-4 top-4 rounded-full border border-gilt-200/24 bg-gilt-200/14 px-3 py-1.5 text-xs font-black text-gilt-50 backdrop-blur-xl">
             {content.blog.featuredLabel}
           </span>
         ) : null}
       </Link>
 
       <div className="flex flex-1 flex-col p-6">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-white/46">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-ink-46">
           <time>{post.publishedAt}</time>
           <span className="inline-flex items-center gap-1.5">
             <Clock3 size={14} />
             {post.readTime}
           </span>
         </div>
-        <h3 className="mt-4 text-2xl font-black leading-[1.45] text-white">{post.title}</h3>
-        <p className="mt-4 line-clamp-3 leading-8 text-white/62">{post.excerpt}</p>
+        <h3 className="mt-4 text-2xl font-black leading-[1.45] text-ink">{post.title}</h3>
+        <p className="mt-4 line-clamp-3 leading-8 text-ink-62">{post.excerpt}</p>
         <Link
           href={`/${content.lang}/blog/${post.slug}`}
           className="mt-auto inline-flex min-h-11 items-center gap-2 pt-6 font-black text-[var(--gold)]"

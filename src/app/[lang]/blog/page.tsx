@@ -69,7 +69,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
       <SiteChrome content={content} />
       <main id="main-content" dir={content.dir} lang={content.lang} className="min-h-screen pt-32">
         <section className="section-shell pb-24">
-          <header className="relative isolate min-h-[390px] overflow-hidden rounded-[2.2rem] border border-white/14 p-6 shadow-2xl shadow-black/30 lg:p-8">
+          <header className="on-photo relative isolate min-h-[390px] overflow-hidden rounded-[2.2rem] border border-ink/14 p-6 shadow-2xl shadow-umbra/30 lg:p-8">
             <Image
               src="/hero-v6/desktop/stage-05.webp"
               alt=""
@@ -82,11 +82,11 @@ export default async function BlogPage({ params }: BlogPageProps) {
             <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(2,5,8,0.94)_0%,rgba(2,5,8,0.76)_50%,rgba(2,5,8,0.26)_100%)] rtl:bg-[linear-gradient(270deg,rgba(2,5,8,0.94)_0%,rgba(2,5,8,0.76)_50%,rgba(2,5,8,0.26)_100%)]" />
             <div className="relative flex min-h-[325px] max-w-[52rem] flex-col justify-end">
               <div className="section-kicker">{content.blog.kicker}</div>
-              <h1 className="page-display-title mt-4 font-black text-white">{content.blog.title}</h1>
-              <p className="site-copy mt-5 text-lg font-semibold text-white/72 sm:text-xl">
+              <h1 className="page-display-title mt-4 font-black text-ink">{content.blog.title}</h1>
+              <p className="site-copy mt-5 text-lg font-semibold text-ink-72 sm:text-xl">
                 {content.blog.body}
               </p>
-              <div className="mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/22 bg-black/34 px-4 py-2 text-sm font-black text-white/76 backdrop-blur-xl">
+              <div className="mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-aqua-200/22 bg-shade/34 px-4 py-2 text-sm font-black text-ink-76 backdrop-blur-xl">
                 <BookOpenText size={17} className="text-[var(--cyan)]" />
                 {content.lang === "fa" ? `${posts.length} مقاله منتشرشده` : `${posts.length} published articles`}
               </div>

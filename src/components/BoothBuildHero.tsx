@@ -7,373 +7,407 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { SiteContent } from "@/data/aratta-content";
-import { boothStageFrames, mobileBoothStageFrames } from "@/lib/booth-scenes";
+import type { BoothQuality, BoothScene } from "@/components/booth3d/booth-scene";
+import { CHAPTER_STARTS, chapterAt } from "@/components/booth3d/timeline";
+import { getTheme, subscribeTheme } from "@/lib/theme";
 
 type BoothBuildHeroProps = {
   content: SiteContent;
 };
 
+const faDigits = (value: string) => value.replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+/**
+ * Share of the pinned scroll (900svh) that builds the stand; the rest, about 70svh, holds the
+ * finished stand before the hero scrolls away.
+ */
+const BUILD_SHARE = 0.92;
+/** While the build catches up with a fast scroll, a chapter's copy stays at least this long (ms). */
+const CHAPTER_DWELL = 650;
+
+/**
+ * Landing hero: a real 3D exhibition booth is built piece by piece while the
+ * visitor scrolls, in the real build order: plot and plan, rigging, raised floor,
+ * structure, walls and glass, power and light, brand and media, hosting.
+ * GSAP ScrollTrigger owns the scroll; the scene follows it in slow motion (speed
+ * limited), and the copy, rail and phone card follow the progress the scene shows.
+ */
 export function BoothBuildHero({ content }: BoothBuildHeroProps) {
   const rootRef = useRef<HTMLElement | null>(null);
-  const [progress, setProgress] = useState(0);
-  const [heroReady, setHeroReady] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const barRefs = useRef<Array<HTMLSpanElement | null>>([]);
+  const finaleRef = useRef<HTMLDivElement | null>(null);
+  const copyRef = useRef<HTMLDivElement | null>(null);
+  const chapterRef = useRef(-1);
+  const [chapter, setChapter] = useState(-1);
+  const [ready, setReady] = useState(false);
+  const [fallback, setFallback] = useState(false);
 
-  const stageFrames = boothStageFrames.map((frame, index) => ({
-    ...frame,
-    stage:
-      content.hero.stages[index] ??
-      content.hero.stages[content.hero.stages.length - 1],
-  }));
-  const mobileStageFrames = mobileBoothStageFrames.map((frame, index) => ({
-    ...frame,
-    stage:
-      content.hero.stages[index] ??
-      content.hero.stages[content.hero.stages.length - 1],
-  }));
-  const mobileCtas =
-    content.lang === "fa"
-      ? {
-          registration: "درخواست غرفه",
-          exhibitions: "نمایشگاه‌ها",
-          forms: "فرم‌ها",
-          continue: "ادامه",
-        }
-      : {
-          registration: "Register",
-          exhibitions: "Exhibits",
-          forms: "Forms",
-          continue: "More",
-        };
-
-  const getFrameState = (count: number) => {
-    const local = Math.min(count - 0.0001, Math.max(0, progress * count));
-    const current = Math.min(count - 1, Math.floor(local));
-    const next = Math.min(count - 1, current + 1);
-    const segment = local - current;
-    const fadeWindow = 0.2;
-    const fadeStart = 1 - fadeWindow;
-    const rawFade =
-      current === count - 1
-        ? 0
-        : Math.max(0, Math.min(1, (segment - fadeStart) / fadeWindow));
-    const fade = rawFade * rawFade * (3 - 2 * rawFade);
-    const active = fade >= 0.5 ? next : current;
-
-    return { local, current, next, fade, active };
+  const fa = content.lang === "fa";
+  const stages = content.hero.stages.slice(0, CHAPTER_STARTS.length);
+  const total = stages.length;
+  const number = (n: number) => {
+    const text = String(n).padStart(2, "0");
+    return fa ? faDigits(text) : text;
   };
+  const mobileCtas = fa
+    ? { registration: "درخواست غرفه", exhibitions: "نمایشگاه‌ها", forms: "فرم‌ها", continue: "ادامه" }
+    : { registration: "Book a booth", exhibitions: "Exhibitions", forms: "Forms", continue: "Continue" };
+  const loaderLabel = fa ? "در حال آماده‌سازی سالن نمایشگاه" : "Preparing the exhibition hall";
 
-  const activeIndex = getFrameState(stageFrames.length).active;
-
-  const activeStage = stageFrames[activeIndex]?.stage ?? stageFrames[0].stage;
-  const introOpacity = reducedMotion
-    ? 1
-    : Math.max(0, Math.min(1, (0.18 - progress) / 0.07));
-  const introStyle = {
-    opacity: heroReady ? introOpacity : 0,
-    transform: `translate3d(0, ${(1 - introOpacity) * -16}px, 0)`,
-  };
-  const getLayerStyle = (index: number, count: number) => {
-    const { current, next, fade } = getFrameState(count);
-    const opacity = index === current ? 1 - fade : index === next ? fade : 0;
-
-    return {
-      opacity,
-      zIndex: index === next && fade > 0 ? 2 : index === current ? 1 : 0,
-      transition: "opacity 360ms ease-out",
-    };
-  };
+  // The scene is built once per language; it reads the reel text from the latest content.
+  const contentRef = useRef(content);
+  useEffect(() => {
+    contentRef.current = content;
+  });
 
   useEffect(() => {
-    const readyFallback = window.setTimeout(() => setHeroReady(true), 4_000);
-    return () => window.clearTimeout(readyFallback);
-  }, []);
-
-  useEffect(() => {
+    const root = rootRef.current;
+    const canvas = canvasRef.current;
+    if (!root || !canvas) return;
     gsap.registerPlugin(ScrollTrigger);
-    const media = gsap.matchMedia();
-    media.add("(prefers-reduced-motion: no-preference)", () => {
-      const frame = requestAnimationFrame(() => setReducedMotion(false));
-      const trigger = ScrollTrigger.create({
-        trigger: rootRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        invalidateOnRefresh: true,
-        onUpdate: (self) => setProgress(self.progress),
-        onRefresh: (self) => setProgress(self.progress),
+
+    let scene: BoothScene | null = null;
+    let disposed = false;
+    let progress = 0;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const compact = window.matchMedia("(max-width: 767px), (pointer: coarse) and (max-width: 1100px)").matches;
+    // ?booth=high|low pins a rendering tier (for reviews and captures); default is automatic.
+    const requested = new URLSearchParams(window.location.search).get("booth");
+    const quality: BoothQuality = requested === "high" || requested === "low" ? requested : "auto";
+
+    // While the build catches up with a fast scroll, the copy changes chapter at most every
+    // CHAPTER_DWELL ms (no flashing text); the closing copy comes in at once.
+    let chapterSince = 0;
+    const paint = (p: number, catchingUp = false) => {
+      for (const bar of barRefs.current) if (bar) bar.style.transform = `scaleX(${Math.max(0.02, p)})`;
+      const next = chapterAt(p);
+      if (next !== chapterRef.current) {
+        const now = performance.now();
+        if (catchingUp && next < CHAPTER_STARTS.length && now - chapterSince < CHAPTER_DWELL) return;
+        chapterSince = now;
+        chapterRef.current = next;
+        setChapter(next);
+      }
+    };
+
+    const trigger = reduced
+      ? null
+      : ScrollTrigger.create({
+          trigger: root,
+          start: "top top",
+          end: "bottom bottom",
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            // The last stretch of the pin holds the finished stand.
+            progress = Math.min(1, self.progress / BUILD_SHARE);
+            if (scene) scene.setTarget(progress);
+            else paint(progress);
+          },
+        });
+    if (reduced) {
+      progress = 1;
+      paint(1);
+    }
+
+    const supportsWebGL = (() => {
+      try {
+        const probe = document.createElement("canvas");
+        return Boolean(probe.getContext("webgl2") || probe.getContext("webgl"));
+      } catch {
+        return false;
+      }
+    })();
+
+    const fallbackTimer = window.setTimeout(() => setReady(true), 6_000);
+    if (!supportsWebGL) {
+      requestAnimationFrame(() => {
+        setFallback(true);
+        setReady(true);
       });
-      return () => {
-        cancelAnimationFrame(frame);
-        trigger.kill();
-      };
-    });
-    media.add("(prefers-reduced-motion: reduce)", () => {
-      const frame = requestAnimationFrame(() => {
-        setReducedMotion(true);
-        setProgress(1);
-      });
-      return () => cancelAnimationFrame(frame);
-    });
-    return () => media.revert();
-  }, []);
+    } else {
+      import("@/components/booth3d/booth-scene")
+        .then(({ createBoothScene }) =>
+          createBoothScene(canvas, {
+            lang: content.lang,
+            compact,
+            quality,
+            theme: getTheme(),
+            fontFamily: getComputedStyle(document.body).fontFamily || "sans-serif",
+            onFrame: paint,
+            // The LED wall's reel shows only the site's own text: event names and hero copy.
+            reel: {
+              heading: contentRef.current.exhibitions.title,
+              events: contentRef.current.exhibitions.items.map((item) => item.title),
+              title: contentRef.current.hero.title,
+              line: contentRef.current.hero.subtitle,
+            },
+            // Phones: the stand is centred between the header and the copy card.
+            freeBand: () => {
+              const frame = canvas.getBoundingClientRect();
+              const card = document.querySelector("[data-mobile-hero-card]")?.getBoundingClientRect();
+              if (!card || card.height < 1 || frame.height < 1) return null;
+              const header = document.querySelector("header")?.getBoundingClientRect();
+              const top = header ? (header.bottom - frame.top) / frame.height + 0.015 : 0.08;
+              return { top, bottom: (card.top - frame.top) / frame.height - 0.015 };
+            },
+            // Landscape screens: the stand is centred between the header and the chapter copy under it.
+            chapterBand: () => {
+              const frame = canvas.getBoundingClientRect();
+              const copy = copyRef.current;
+              const holder = copy?.offsetParent;
+              if (!copy || !holder || copy.offsetHeight < 1 || frame.height < 1 || frame.width < frame.height) return null;
+              // Layout position (offsetTop), not the box: the copy's entrance transform must not move the band.
+              const copyTop = holder.getBoundingClientRect().top + copy.offsetTop;
+              const header = document.querySelector("header")?.getBoundingClientRect();
+              const top = header ? (header.bottom - frame.top) / frame.height + 0.02 : 0.1;
+              return { top: Math.max(0.06, top), bottom: (copyTop - frame.top) / frame.height - 0.025 };
+            },
+            // The closing elevation sits between the fixed site header and the closing copy.
+            safeBand: () => {
+              const frame = canvas.getBoundingClientRect();
+              const closing = finaleRef.current?.getBoundingClientRect();
+              if (!closing || frame.height < 1) return null;
+              const header = document.querySelector("header")?.getBoundingClientRect();
+              const shift = finaleRef.current?.classList.contains("is-on") ? 0 : 20;
+              const top = header ? (header.bottom - frame.top) / frame.height + 0.025 : 0.1;
+              const bottom = (closing.top - shift - frame.top) / frame.height - 0.025;
+              return { top: Math.max(0.07, top), bottom };
+            },
+          }),
+        )
+        .then((created) => {
+          if (disposed) {
+            created.dispose();
+            return;
+          }
+          scene = created;
+          scene.setTheme(getTheme());
+          scene.resize();
+          scene.setTarget(progress, true);
+          setReady(true);
+        })
+        .catch(() => {
+          setFallback(true);
+          setReady(true);
+        });
+    }
+
+    const visibility = new IntersectionObserver(([entry]) => scene?.setActive(entry.isIntersecting), { rootMargin: "120px" });
+    visibility.observe(root);
+    // The hall follows the site theme: red carpet and daylight in the light theme.
+    const unsubscribeTheme = subscribeTheme((theme) => scene?.setTheme(theme));
+
+    const onResize = () => scene?.resize();
+    window.addEventListener("resize", onResize);
+    // The free bands follow the copy and the header when their height changes (fonts, wrapping).
+    const relayout = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => scene?.relayout());
+    if (relayout) {
+      if (copyRef.current) relayout.observe(copyRef.current);
+      const header = document.querySelector("header");
+      if (header) relayout.observe(header);
+    }
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    const onPointer = (event: PointerEvent) => {
+      scene?.setPointer((event.clientX / window.innerWidth - 0.5) * 2, (event.clientY / window.innerHeight - 0.5) * -2);
+    };
+    if (finePointer) window.addEventListener("pointermove", onPointer, { passive: true });
+
+    return () => {
+      disposed = true;
+      window.clearTimeout(fallbackTimer);
+      trigger?.kill();
+      visibility.disconnect();
+      relayout?.disconnect();
+      unsubscribeTheme();
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pointermove", onPointer);
+      scene?.dispose();
+    };
+  }, [content.lang]);
+
+  const inChapter = chapter >= 0 && chapter < total;
+  const finale = chapter >= total;
 
   return (
-    <section
-      id="home"
-      ref={rootRef}
-      className="relative h-[600svh] bg-black md:h-[540svh]"
-      aria-label={content.hero.title}
-    >
-      <div className="sticky top-0 h-[100svh] overflow-hidden bg-black">
-        <div className="absolute inset-0 hidden md:block">
-          {stageFrames.map((frame, index) => {
-            return (
-              <Image
-                key={frame.key}
-                src={frame.src}
-                alt=""
-                fill
-                unoptimized
-                loading={index < 2 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                sizes="(min-width: 768px) 100vw, 1px"
-                className="absolute inset-0 object-cover object-center"
-                style={getLayerStyle(index, stageFrames.length)}
-                onLoad={index === 0 ? () => setHeroReady(true) : undefined}
-                onError={index === 0 ? () => setHeroReady(true) : undefined}
-              />
-            );
-          })}
+    <section id="home" ref={rootRef} className={`booth3d relative h-[1000svh] bg-[var(--booth-bg)] ${fallback ? "on-photo" : ""}`} aria-label={content.hero.title}>
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-[var(--booth-bg)]">
+        <canvas ref={canvasRef} className="booth3d__canvas absolute inset-0 h-full w-full" aria-hidden="true" />
+        {fallback ? (
+          <>
+            <Image src="/hero-v6/desktop/stage-06.webp" alt="" fill unoptimized priority sizes="100vw" className="absolute inset-0 hidden object-cover md:block" />
+            <Image src="/hero-v6/mobile/stage-06.webp" alt="" fill unoptimized priority sizes="100vw" className="absolute inset-0 object-cover md:hidden" />
+          </>
+        ) : null}
+        <div className={`booth3d__vignette pointer-events-none absolute inset-0 ${finale ? "is-on" : ""}`} aria-hidden="true" />
+        <div className="hero-copy-scrim booth3d__scrim pointer-events-none absolute inset-0" aria-hidden="true" />
+
+        {/* Intro: the promise, before anything is built. */}
+        <div dir={content.dir} className={`booth3d__intro pointer-events-none absolute inset-x-0 z-10 ${chapter === -1 ? "is-on" : ""}`}>
+          <div className="section-shell text-center text-ink">
+            <p className="font-latin text-[0.68rem] font-black uppercase tracking-[0.42em] text-[var(--gold)]">Aratta Expo · Kerman</p>
+            <h1 className="hero-display-title booth3d__title mx-auto mt-5 text-balance">{content.hero.title}</h1>
+            <p className="hero-subtitle mx-auto mt-5 text-ink-78">{content.hero.subtitle}</p>
+            <p className="booth3d__hint mt-9 hidden flex-col md:inline-flex items-center gap-3 text-xs font-bold text-ink-62">
+              <span>{content.hero.scrollHint}</span>
+              <span className="booth3d__hint-line" aria-hidden="true" />
+            </p>
+          </div>
         </div>
 
-        <div className="absolute inset-0 md:hidden">
-          {mobileStageFrames.map((frame, index) => {
-            return (
-              <Image
-                key={frame.key}
-                src={frame.src}
-                alt=""
-                fill
-                unoptimized
-                loading={index < 2 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                sizes="(max-width: 767px) 100vw, 1px"
-                className="absolute inset-0 object-cover object-center"
-                style={getLayerStyle(index, mobileStageFrames.length)}
-                onLoad={index === 0 ? () => setHeroReady(true) : undefined}
-                onError={index === 0 ? () => setHeroReady(true) : undefined}
-              />
-            );
-          })}
-        </div>
+        <div dir={content.dir} className={`booth3d__side-scrim pointer-events-none absolute inset-0 hidden md:block ${inChapter ? "is-on" : ""}`} aria-hidden="true" />
+        <div className={`booth3d__low-scrim pointer-events-none absolute inset-0 ${finale ? "is-on" : ""}`} aria-hidden="true" />
+        {/* Landscape screens: a lower veil under the centred chapter copy (it cross-fades with the finale's). */}
+        <div className={`booth3d__low-scrim booth3d__low-scrim--chapter pointer-events-none absolute inset-0 hidden ${inChapter ? "is-on" : ""}`} aria-hidden="true" />
 
-        <div
-          className="hero-copy-scrim pointer-events-none absolute inset-0"
-          aria-hidden="true"
-        />
-
-        <div
-          dir={content.dir}
-          className="hero-intro-layer pointer-events-none absolute inset-x-0 z-10"
-          style={introStyle}
-        >
-          <div className="section-shell">
-            <div className="hero-copy-cluster text-white [text-shadow:0_5px_28px_rgba(0,0,0,0.78)]">
-              <p className="text-start">
-                <span className="font-latin inline-block text-[0.68rem] font-black uppercase tracking-[0.3em] text-[var(--cyan)]">
-                  Aratta Expo / 2026+
-                </span>
-              </p>
-              <h1 className="hero-display-title mt-4 text-balance text-white">
-                {content.hero.title}
-              </h1>
-              <p className="hero-subtitle mt-5 font-semibold text-white/88">
-                {content.hero.subtitle}
-              </p>
+        {/* Chapter copy on wide screens: centred under the stand on landscape screens (reading-start
+            side on upright tablets and without WebGL), large and calm. */}
+        <div dir={content.dir} className="pointer-events-none absolute inset-0 z-10 hidden md:block">
+          <div className="booth3d__chapter-wrap section-shell flex h-full items-center">
+            <div ref={copyRef} className={`booth3d__chapter booth3d__stack ${inChapter ? "is-on" : ""}`}>
+              {/* Every chapter is laid out in the same cell: the copy cross-fades without a layout shift. */}
+              {stages.map((item, index) => (
+                <div key={`chapter-${item.label}`} aria-hidden={index !== chapter} className={`hero-stage-copy ${index === chapter ? "is-on" : ""}`}>
+                  <div className="booth3d__chapter-meta flex items-center gap-3">
+                    <span className={`text-[0.72rem] font-black text-[var(--gold)] ${fa ? "" : "font-latin tracking-[0.3em]"}`}>
+                      {fa ? (
+                        <>
+                          {faDigits(String(index + 1))} <span className="text-ink-40">از {faDigits(String(total))}</span>
+                        </>
+                      ) : (
+                        <>
+                          {number(index + 1)} <span className="text-ink-36">/ {number(total)}</span>
+                        </>
+                      )}
+                    </span>
+                    <span className="h-px w-10 bg-[var(--gold)]/50" aria-hidden="true" />
+                    <span className="text-xs font-bold text-ink-66">{item.label}</span>
+                  </div>
+                  <h2 className="booth3d__chapter-title mt-5 text-balance text-ink">{item.title}</h2>
+                  <p className={`booth3d__chapter-body mt-5 max-w-[30rem] leading-8 text-ink-78 ${fa ? "text-[1.06rem]" : "text-[0.98rem]"}`}>{item.body}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+
+        {/* Step rail on wide screens. */}
+        <div dir={content.dir} className={`booth3d__rail absolute inset-x-0 bottom-0 z-10 hidden pb-7 md:block ${chapter === -1 ? "" : "is-on"}`}>
+          <div className="section-shell">
+            <div className="relative">
+              <div className="h-px overflow-hidden bg-ink/14">
+                <span ref={(el) => void (barRefs.current[0] = el)} className="booth3d__bar block h-full bg-gradient-to-r from-[var(--gold)] to-[#f2d28c]" />
+              </div>
+              <ol className="mt-3 grid grid-cols-8 gap-2">
+                {stages.map((item, index) => (
+                  <li key={item.label} className={`booth3d__step text-[0.7rem] font-bold ${index === chapter ? "is-current" : index < chapter || finale ? "is-done" : ""}`}>
+                    <span className="font-latin me-1.5">{number(index + 1)}</span>
+                    {item.label}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        {/* Finale: the call to action once the booth stands complete. */}
+        <div ref={finaleRef} dir={content.dir} className={`booth3d__finale absolute inset-x-0 z-20 ${finale ? "is-on" : ""}`}>
+          <div className="section-shell text-center text-ink">
+            <p className={`text-xs font-black text-[var(--gold)] ${fa ? "" : "tracking-[0.2em] uppercase"}`}>{content.hero.finale.kicker}</p>
+            <h2 className="booth3d__chapter-title mx-auto mt-4 max-w-[22ch] text-balance">{content.hero.finale.title}</h2>
+            <p className="mx-auto mt-4 max-w-[38rem] text-sm leading-7 text-ink-74 md:text-base md:leading-8">{content.hero.finale.body}</p>
+            <div className="mt-7 hidden flex-wrap justify-center gap-2.5 md:flex">
+              <Link tabIndex={finale ? 0 : -1} href={`/${content.lang}/registration`} className="booth3d__cta booth3d__cta--gold">
+                <UserRoundPlus size={17} aria-hidden="true" />
+                {content.hero.primary}
+              </Link>
+              <Link tabIndex={finale ? 0 : -1} href={`/${content.lang}/exhibitions`} className="booth3d__cta">
+                <Images size={17} aria-hidden="true" />
+                {content.hero.secondary}
+              </Link>
+              <Link tabIndex={finale ? 0 : -1} href={`/${content.lang}/forms`} className="booth3d__cta">
+                <FileDown size={17} aria-hidden="true" />
+                {mobileCtas.forms}
+              </Link>
+              <a tabIndex={finale ? 0 : -1} href="#about" className="booth3d__cta">
+                {mobileCtas.continue}
+                <ArrowDown size={17} aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Phone card: chapter copy, progress and the main actions. */}
+        <div dir={content.dir} className="booth3d__card-wrap absolute inset-x-3 z-20 md:hidden">
+          <div data-mobile-hero-card className="booth3d__card rounded-[1.25rem] px-4 pb-3.5 pt-4 text-ink">
+            {/* Chapters share one cell, so the card keeps its height; it folds away for the closing copy. */}
+            <div className={`booth3d__card-copy ${finale ? "is-folded" : ""}`} aria-hidden={finale}>
+              <div className="booth3d__card-inner">
+                <div className="booth3d__stack pb-3">
+                  <p aria-hidden={chapter !== -1} className={`hero-stage-copy self-center text-center text-[0.875rem] font-bold leading-[1.7] text-ink-72 ${chapter === -1 ? "is-on" : ""}`}>
+                    {content.hero.scrollHint}
+                  </p>
+                  {stages.map((item, index) => (
+                    <div key={`m-chapter-${item.label}`} aria-hidden={index !== chapter} className={`hero-stage-copy ${index === chapter ? "is-on" : ""}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[0.75rem] font-black leading-5 text-[var(--gold)]">{item.label}</span>
+                        <span className="text-[0.75rem] font-black leading-5 text-ink-56">
+                          {fa ? `${faDigits(String(index + 1))} از ${faDigits(String(total))}` : `${number(index + 1)}/${number(total)}`}
+                        </span>
+                      </div>
+                      <h2 className={`booth3d__card-title mt-1.5 text-balance font-black ${fa ? "leading-[1.45]" : "leading-[1.25]"}`}>{item.title}</h2>
+                      <p className="mt-1.5 text-[0.9375rem] leading-[1.8] text-ink-76">{item.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="h-[2px] overflow-hidden rounded-full bg-ink/14">
+              <span ref={(el) => void (barRefs.current[1] = el)} className="booth3d__bar block h-full rounded-full bg-gradient-to-r from-[var(--gold)] to-[#f2d28c]" />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Link href={`/${content.lang}/registration`} className="booth3d__cta booth3d__cta--gold min-h-11 justify-center px-3 text-[0.8125rem]">
+                <UserRoundPlus size={15} aria-hidden="true" />
+                {mobileCtas.registration}
+              </Link>
+              {finale ? (
+                <Link href={`/${content.lang}/exhibitions`} className="booth3d__cta min-h-11 justify-center px-3 text-[0.8125rem]">
+                  <Images size={15} aria-hidden="true" />
+                  {mobileCtas.exhibitions}
+                </Link>
+              ) : (
+                <a href="#about" className="booth3d__cta min-h-11 justify-center px-3 text-[0.8125rem]">
+                  {mobileCtas.continue}
+                  <ArrowDown size={15} aria-hidden="true" />
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Every chapter in plain text for screen readers and search engines. */}
+        <ol className="sr-only">
+          {stages.map((item) => (
+            <li key={`sr-${item.label}`}>
+              {item.title}: {item.body}
+            </li>
+          ))}
+        </ol>
 
         <div
           data-hero-loader
           role="status"
           aria-live="polite"
-          aria-label={
-            content.lang === "fa"
-              ? "در حال آماده‌سازی تجربه نمایشگاهی"
-              : "Preparing the exhibition experience"
-          }
-          className={[
-            "hero-loader absolute inset-0 z-30 grid place-items-center bg-black",
-            heroReady ? "hero-loader--ready pointer-events-none" : "",
-          ].join(" ")}
+          aria-label={loaderLabel}
+          className={`hero-loader absolute inset-0 z-30 grid place-items-center bg-[var(--booth-bg)] ${ready ? "hero-loader--ready pointer-events-none" : ""}`}
         >
-          <div className="hero-loader__content text-center text-white">
-            <Image
-              src="/brand-v2/aratta-official-mark.png"
-              alt=""
-              width={703}
-              height={703}
-              unoptimized
-              priority
-              className="hero-loader__mark mx-auto h-auto w-20 sm:w-24"
-            />
-            <p className="mt-5 text-sm font-bold text-white/72">
-              {content.lang === "fa"
-                ? "در حال آماده‌سازی تجربه نمایشگاهی"
-                : "Preparing the exhibition experience"}
-            </p>
-            <div className="hero-loader__track mx-auto mt-4 h-px w-40 overflow-hidden bg-white/15">
+          <div className="hero-loader__content text-center text-ink">
+            <span className="hero-loader__mark mx-auto block w-[5.5rem] rounded-[0.6rem] bg-white p-1.5 sm:w-24">
+              <Image src="/brand-v3/aratta-logo-official-tight.png" alt="" width={2008} height={1914} unoptimized priority className="block h-auto w-full" />
+            </span>
+            <p className="mt-5 text-sm font-bold text-ink-72">{loaderLabel}</p>
+            <div className="hero-loader__track mx-auto mt-4 h-px w-40 overflow-hidden bg-ink/15">
               <span className="hero-loader__bar block h-full bg-gradient-to-r from-[var(--cyan)] to-[var(--gold)]" />
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute end-4 top-1/2 z-10 grid -translate-y-1/2 gap-2 md:hidden">
-          {mobileStageFrames.map((frame, index) => (
-            <span
-              key={frame.key}
-              className={[
-                "h-2 w-2 rounded-full border transition",
-                index === activeIndex
-                  ? "scale-125 border-amber-200 bg-[var(--gold)] shadow-[0_0_18px_rgba(216,180,106,0.72)]"
-                  : "border-white/30 bg-white/18",
-              ].join(" ")}
-              aria-hidden="true"
-            />
-          ))}
-        </div>
-
-        <div
-          dir={content.dir}
-          className="absolute inset-x-3 bottom-[calc(0.55rem+env(safe-area-inset-bottom))] z-10 md:hidden"
-        >
-          <div
-            data-mobile-hero-card
-            className="rounded-[1.15rem] border border-white/14 bg-black/48 p-2.5 text-white shadow-2xl shadow-black/36 backdrop-blur-lg"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-latin rounded-full border border-cyan-200/22 bg-cyan-200/8 px-2 py-0.5 text-[0.5rem] font-black uppercase tracking-[0.16em] text-[var(--cyan)]">
-                {activeStage.label}
-              </span>
-              <span className="font-latin text-[0.64rem] font-black text-white/64">
-                {activeIndex + 1}/{mobileStageFrames.length}
-              </span>
-            </div>
-            <div
-              key={`mobile-stage-copy-${activeIndex}`}
-              className="hero-stage-copy"
-            >
-              <h2 className="mt-1.5 text-balance text-[clamp(0.92rem,4.55vw,1.08rem)] font-black leading-[1.35] text-white">
-                {activeStage.title}
-              </h2>
-              <p className="mt-0.5 overflow-hidden text-[0.62rem] font-bold leading-[1.65] text-white/66 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:1]">
-                {activeStage.body}
-              </p>
-            </div>
-            <div className="mt-1.5 h-[2px] overflow-hidden rounded-full bg-white/16">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--cyan)] to-[var(--gold)]"
-                style={{ width: `${Math.max(5, progress * 100)}%` }}
-              />
-            </div>
-            <div className="mt-2 grid grid-cols-2 gap-1.5">
-              <Link
-                href={`/${content.lang}/registration`}
-                className="inline-flex min-h-11 items-center justify-center rounded-[0.72rem] border border-amber-200/30 bg-amber-200/16 px-2 text-[0.66rem] font-black leading-4 text-white"
-              >
-                <UserRoundPlus className="me-1" size={12} />
-                {mobileCtas.registration}
-              </Link>
-              <Link
-                href={`/${content.lang}/exhibitions`}
-                className="inline-flex min-h-11 items-center justify-center rounded-[0.72rem] border border-white/13 bg-white/7 px-2 text-[0.66rem] font-black leading-4 text-white"
-              >
-                <Images className="me-1" size={12} />
-                {mobileCtas.exhibitions}
-              </Link>
-              <Link
-                href={`/${content.lang}/forms`}
-                className="inline-flex min-h-11 items-center justify-center rounded-[0.72rem] border border-white/13 bg-white/7 px-2 text-[0.66rem] font-black leading-4 text-white"
-              >
-                <FileDown className="me-1" size={12} />
-                {mobileCtas.forms}
-              </Link>
-              <Link
-                href="#about"
-                className="inline-flex min-h-11 items-center justify-center rounded-[0.72rem] border border-cyan-200/28 bg-cyan-200/11 px-2 text-[0.66rem] font-black leading-4 text-white"
-              >
-                {mobileCtas.continue}
-                <ArrowDown className="ms-1" size={12} />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div
-          dir={content.dir}
-          className="absolute inset-x-0 bottom-0 z-10 hidden px-4 pb-5 sm:pb-8 md:block"
-        >
-          <div className="section-shell">
-            <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-              <div className="max-w-[42rem] rounded-[1rem] border border-white/14 bg-black/22 p-3 text-white shadow-2xl shadow-black/30 backdrop-blur-sm sm:p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <span className="font-latin text-[0.7rem] font-black uppercase tracking-[0.24em] text-[var(--cyan)]">
-                    {activeStage.label}
-                  </span>
-                  <span className="font-latin text-sm font-black text-white/72">
-                    {activeIndex + 1}/{stageFrames.length}
-                  </span>
-                </div>
-                <div
-                  key={`desktop-stage-copy-${activeIndex}`}
-                  className="hero-stage-copy"
-                >
-                  <h2 className="mt-2 text-xl font-black leading-7 sm:text-2xl">
-                    {activeStage.title}
-                  </h2>
-                  <p className="mt-1 text-xs leading-6 text-white/74 sm:text-sm">
-                    {activeStage.body}
-                  </p>
-                </div>
-                <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/18">
-                  <div
-                    className="h-full rounded-full bg-[var(--gold)]"
-                    style={{ width: `${Math.max(4, progress * 100)}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="pointer-events-auto flex flex-wrap gap-2 lg:justify-end">
-                <Link
-                  href={`/${content.lang}/registration`}
-                  className="rounded-full border border-white/18 bg-black/38 px-4 py-3 text-sm font-black text-white shadow-xl shadow-black/25 backdrop-blur-md transition hover:bg-white/12"
-                >
-                  <UserRoundPlus className="me-2 inline-block" size={17} />
-                  {content.hero.primary}
-                </Link>
-                <Link
-                  href={`/${content.lang}/exhibitions`}
-                  className="rounded-full border border-white/18 bg-black/38 px-4 py-3 text-sm font-black text-white shadow-xl shadow-black/25 backdrop-blur-md transition hover:bg-white/12"
-                >
-                  <Images className="me-2 inline-block" size={17} />
-                  {content.hero.secondary}
-                </Link>
-                <Link
-                  href={`/${content.lang}/forms`}
-                  className="rounded-full border border-white/18 bg-black/38 px-4 py-3 text-sm font-black text-white shadow-xl shadow-black/25 backdrop-blur-md transition hover:bg-white/12"
-                >
-                  <FileDown className="me-2 inline-block" size={17} />
-                  {content.lang === "fa" ? "فرم‌ها" : "Forms"}
-                </Link>
-                <Link
-                  href="#about"
-                  className="rounded-full border border-amber-200/45 bg-amber-200/18 px-4 py-3 text-sm font-black text-white shadow-xl shadow-black/25 backdrop-blur-md transition hover:bg-amber-200/26"
-                >
-                  {content.lang === "fa" ? "ادامه" : "Continue"}
-                  <ArrowDown className="ms-2 inline-block" size={17} />
-                </Link>
-              </div>
             </div>
           </div>
         </div>

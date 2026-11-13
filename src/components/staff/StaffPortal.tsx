@@ -3759,7 +3759,7 @@ function PortalSidebar({
       >
         <div className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#d4aa55]/25 bg-[#d4aa55]/10">
           <Image
-            src="/brand-v2/aratta-official-mark.png"
+            src="/brand-v3/aratta-logo-official-tight.png"
             alt=""
             width={48}
             height={48}

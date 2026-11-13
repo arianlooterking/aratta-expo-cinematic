@@ -7,13 +7,15 @@ import { Constants } from "@/lib/platform/database.types";
 import { departmentLabels, roleDescriptions, roleLabels } from "@/lib/platform/labels";
 import { pick } from "@/lib/portal/format";
 import { newId } from "@/lib/portal/store";
-import { grantableRoles, isEmail } from "@/lib/portal/team";
+import { grantableRoles, isEmail, newStartingPassword, passwordProblem } from "@/lib/portal/team";
 import type { Department, StaffRole, Team } from "@/lib/portal/types";
 import { useCollection, usePortal } from "../PortalProvider";
 import { Button, Field, Input, Select, Sheet } from "../ui";
 import { inviteMailto, signInUrl } from "./shared";
+import { SignInDetails, StartingPasswordField } from "./StartingPassword";
 
-type Done = { email: string; name: string | null };
+/** `password` is null when the invite was saved but the password could not be set. */
+type Done = { email: string; name: string | null; password: string | null };
 
 export function InviteSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { lang } = usePortal();
@@ -33,6 +35,7 @@ function InviteBody({ onClose }: { onClose: () => void }) {
   const [role, setRole] = useState<StaffRole>("member");
   const [departments, setDepartments] = useState<Department[]>([]);
   const [teamIds, setTeamIds] = useState<string[]>([]);
+  const [password, setPassword] = useState(newStartingPassword);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Done | null>(null);
@@ -44,15 +47,20 @@ function InviteBody({ onClose }: { onClose: () => void }) {
         <div className="flex items-start gap-3 rounded-2xl bg-p-ok-soft p-4 text-p-ok">
           <Check className="mt-0.5 size-5 shrink-0" />
           <div className="text-sm">
-            <p className="font-semibold">{fa ? "دعوت ثبت شد" : "Invite saved"}</p>
+            <p className="font-semibold">{fa ? "همکار اضافه شد" : "Colleague added"}</p>
             <p className="mt-1 text-p-ink-2">
-              {fa
-                ? `${done.name ?? done.email} با حساب Google یا Apple همین ایمیل وارد می شود و دسترسی اش خودکار فعال می شود. سامانه خودش ایمیلی نمی فرستد؛ نشانی ورود را برایش بفرستید.`
-                : `${done.name ?? done.email} signs in with the Google or Apple account for this email and is switched on automatically. The portal doesn't send email itself, so send them the sign-in link.`}
+              {done.password
+                ? fa
+                  ? `${done.name ?? done.email} می تواند همین حالا وارد شود. سامانه خودش ایمیلی نمی فرستد؛ مشخصات زیر را برایش بفرستید.`
+                  : `${done.name ?? done.email} can sign in right away. The portal doesn't send email itself, so send them the details below.`
+                : fa
+                  ? `${done.name ?? done.email} اضافه شد، ولی گذرواژه شروع ذخیره نشد. از صفحه همین همکار در «تیم و کارکنان» برایش گذرواژه بگذارید.`
+                  : `${done.name ?? done.email} was added, but the starting password wasn't saved. Set one from their page in Team and staff.`}
             </p>
           </div>
         </div>
-        {mode === "demo" ? (
+        {done.password ? <SignInDetails email={done.email} password={done.password} /> : null}
+        {mode === "demo" && !done.password ? (
           <p className="rounded-xl bg-p-surface-2 px-3 py-2 text-xs text-p-ink-3">
             {fa ? "در حالت نمایشی این دعوت فقط در همین مرورگر ذخیره می شود." : "In the demo, this invite is saved in this browser only."}
           </p>
@@ -60,7 +68,7 @@ function InviteBody({ onClose }: { onClose: () => void }) {
         <div className="flex flex-wrap gap-2">
           <a
             href={inviteMailto(lang, done.email, done.name, user.name)}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-p-brand px-3.5 text-sm font-medium text-p-brand-ink hover:brightness-110"
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-p-line bg-p-surface px-3.5 text-sm font-medium text-p-ink-2 hover:border-p-line-strong"
           >
             <Mail className="size-4" />
             {fa ? "نوشتن ایمیل دعوت" : "Write the invite email"}
@@ -87,6 +95,7 @@ function InviteBody({ onClose }: { onClose: () => void }) {
               setCopied(false);
               setDepartments([]);
               setTeamIds([]);
+              setPassword(newStartingPassword());
             }}
           >
             {fa ? "دعوت نفر بعدی" : "Invite someone else"}
@@ -110,6 +119,10 @@ function InviteBody({ onClose }: { onClose: () => void }) {
           setError(fa ? "ایمیل معتبر نیست." : "That email address isn't valid.");
           return;
         }
+        if (passwordProblem(password)) {
+          setError(fa ? "گذرواژه شروع باید دست کم ۸ نویسه باشد." : "The starting password needs at least 8 characters.");
+          return;
+        }
         setError(null);
         setBusy(true);
         const id = newId();
@@ -129,15 +142,16 @@ function InviteBody({ onClose }: { onClose: () => void }) {
             const team = teams.find((t) => t.id === teamId);
             if (team) await store.update("teams", team.id, { member_ids: [...team.member_ids, id] });
           }
-          setDone({ email, name });
+          const saved = await store.setStaffPassword(id, password);
+          setDone({ email, name, password: saved.ok ? password : null });
         }
         setBusy(false);
       }}
     >
       <p className="text-sm text-p-ink-3">
         {fa
-          ? "همکار با همین ایمیل از طریق Google یا Apple وارد می شود. تا وقتی وارد نشده، «دعوت شده» نمایش داده می شود."
-          : "They sign in with Google or Apple using this exact email. Until then they show as invited."}
+          ? "همکار با همین ایمیل و گذرواژه شروع وارد می شود. بعد از ثبت، مشخصات ورود را می بینید تا برایش بفرستید."
+          : "They sign in with this email and the starting password. After saving you get the sign-in details to send them."}
       </p>
       <Field label={fa ? "ایمیل" : "Email"}>
         <Input name="email" type="email" required dir="ltr" autoComplete="off" placeholder="name@example.com" />
@@ -175,6 +189,7 @@ function InviteBody({ onClose }: { onClose: () => void }) {
           />
         </Field>
       ) : null}
+      <StartingPasswordField value={password} onChange={setPassword} disabled={busy} />
       {error ? (
         <p role="alert" className="text-sm text-p-danger">
           {error}
@@ -185,7 +200,7 @@ function InviteBody({ onClose }: { onClose: () => void }) {
           {fa ? "انصراف" : "Cancel"}
         </Button>
         <Button tone="primary" type="submit" disabled={busy} icon={<UserPlus className="size-4" />}>
-          {fa ? "ثبت دعوت" : "Save invite"}
+          {fa ? "افزودن همکار" : "Add colleague"}
         </Button>
       </div>
     </form>

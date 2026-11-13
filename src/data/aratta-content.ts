@@ -56,6 +56,8 @@ export type SiteContent = {
     primary: string;
     secondary: string;
     stages: Array<{ label: string; title: string; body: string }>;
+    finale: { kicker: string; title: string; body: string };
+    scrollHint: string;
     metrics: Array<{ value: string; label: string }>;
   };
   exhibitions: {
@@ -251,6 +253,7 @@ const fa: SiteContent = {
     { id: "home", label: "خانه" },
     { id: "about", label: "درباره ما" },
     { id: "exhibitions", label: "نمایشگاه‌ها" },
+    { id: "plans", label: "پلان‌ها" },
     { id: "registration", label: "ثبت نام" },
     { id: "forms", label: "فرم‌ها" },
     { id: "equipment", label: "اجاره تجهیزات" },
@@ -264,41 +267,57 @@ const fa: SiteContent = {
   hero: {
     title: "نمایشگاه‌های صنعت و معدن",
     subtitle:
-      "رویدادهای حرفه‌ای برای معرفی توانمندی‌ها، توسعه ارتباطات و شکل‌گیری همکاری‌های تجاری.",
+      "رویدادهای تخصصی برای معرفی توانمندی‌ها، گسترش ارتباطات و همکاری تجاری.",
     primary: "ثبت درخواست",
     secondary: "مشاهده نمایشگاه‌ها",
     stages: [
       {
-        label: "مرحله ۰۱",
-        title: "آغاز از صحنه خالص",
-        body: "نور محیط، خطوط کف و جایگاه اولیه، سالن را به نقطه شروع یک تجربه نمایشگاهی دقیق تبدیل می‌کند.",
+        label: "زمین",
+        title: "همه‌چیز از نقشه شروع می‌شود",
+        body: "زمین ۱۲ در ۹ متری علامت‌گذاری می‌شود و جای هر بخش، پیش از رسیدن اولین قطعه، قطعی است.",
       },
       {
-        label: "مرحله ۰۲",
-        title: "نقشه فنی و مسیر حرکت",
-        body: "شبکه نور، مسیر بازدیدکننده و محدوده‌های اجرایی، جانمایی غرفه را به یک نقشه قابل اجرا تبدیل می‌کنند.",
+        label: "آویز",
+        title: "اول، سازهٔ سقفی",
+        body: "تراس آلومینیومی روی زمین بسته می‌شود و با بالابر زنجیری به ارتفاع نهایی می‌رسد.",
       },
       {
-        label: "مرحله ۰۳",
-        title: "ورود اجرا و متریال",
-        body: "تیم نصب، تجهیزات، پنل‌ها و زیرساخت‌ها وارد سالن می‌شوند تا طرح از تصویر به ساخت نزدیک شود.",
+        label: "کف",
+        title: "کف تراز، زیرساخت پنهان",
+        body: "پایه‌های قابل‌تنظیم کف را تراز می‌کنند و کابل برق و داده از زیر پنل‌ها می‌گذرد.",
       },
       {
-        label: "مرحله ۰۴",
-        title: "شکل‌گیری معماری غرفه",
-        body: "ستون‌ها، شیشه، قاب‌های فلزی و نورهای خطی، حجم اصلی غرفه را با هویت صنعتی می‌سازند.",
+        label: "سازه",
+        title: "اسکلت دوطبقه",
+        body: "ستون و تیر فولادی نصب می‌شود و عرشهٔ طبقهٔ بالا، یک‌تکه، سر جای خود می‌نشیند.",
       },
       {
-        label: "مرحله ۰۵",
-        title: "هویت برند و روایت صنعتی",
-        body: "تابلوهای دو زبانه، نمایشگرهای معدن و فولاد و مسیر خدمات، پیام اَرَتَ را در صحنه فعال می‌کنند.",
+        label: "دیوار",
+        title: "دیوار، چوب و شیشه",
+        body: "قاب‌های مدولار پوشش می‌گیرند: پنل مات، تیغهٔ چوبی و شیشهٔ اتاق جلسه.",
       },
       {
-        label: "مرحله ۰۶",
-        title: "فضای آماده مذاکره",
-        body: "پذیرش، جلسه، فرم‌های رسمی و مسیر تماس، تجربه نهایی را برای مشارکت‌کننده و بازدیدکننده کامل می‌کنند.",
+        label: "نور",
+        title: "برق و نور",
+        body: "برق وصل می‌شود و نور لایه‌لایه می‌آید: نور خطی، لایت‌باکس و پروژکتورهای سقفی.",
+      },
+      {
+        label: "هویت",
+        title: "برند، از دور خوانا",
+        body: "ویدئووال روشن می‌شود، نشان روی برج می‌نشیند و تابلوی معلق نام شما را به همهٔ راهروها می‌رساند.",
+      },
+      {
+        label: "میزبانی",
+        title: "آمادهٔ میزبانی",
+        body: "پذیرش، نمونهٔ محصول و مبلمان سر جای خود است؛ طبقهٔ بالا برای مذاکره.",
       },
     ],
+    finale: {
+      kicker: "غرفهٔ شما",
+      title: "در نمایشگاه بعدی، جای شما این‌جاست",
+      body: "از ثبت درخواست تا تحویل غرفه در روز افتتاح، اَرَتَ کنار شماست.",
+    },
+    scrollHint: "برای ساخت غرفه اسکرول کنید",
     metrics: [
       { value: "۱۰۰+", label: "غرفه در SIMEX 2020" },
       { value: "۸۰", label: "شرکت در SICE 2023" },
@@ -310,12 +329,12 @@ const fa: SiteContent = {
     kicker: "آرشیو نمایشگاه‌ها",
     title: "رویدادهای تخصصی اَرَتَ",
     note:
-      "دوره‌های زیر برگزار شده‌اند. تاریخ دوره‌های بعد به محض اعلام رسمی در تقویم پیش رو منتشر می‌شود.",
+      "این دوره‌ها برگزار شده‌اند. تاریخ دوره‌های بعد، پس از اعلام رسمی، در تقویم منتشر می‌شود.",
     items: faExhibitions,
   },
   services: {
     kicker: "خدمات نمایشگاهی",
-    title: "از برنامه‌ریزی رویداد تا حضور حرفه‌ای در نمایشگاه",
+    title: "از برنامه‌ریزی تا روز افتتاح",
     items: [
       {
         title: "طراحی و سازماندهی رویداد",
@@ -337,9 +356,9 @@ const fa: SiteContent = {
   },
   registration: {
     kicker: "ثبت‌نام",
-    title: "آغاز فرآیند حضور در نمایشگاه",
+    title: "حضور در نمایشگاه را آغاز کنید",
     body:
-      "فرم رسمی را دانلود کنید یا درخواست غرفه را در سه قدم آماده کنید. درخواست با ایمیل به دفتر اَرَتَ می‌رسد و کارشناس فروش برای متراژ، جانمایی و قرارداد با شما تماس می‌گیرد.",
+      "فرم رسمی را دانلود کنید یا درخواست غرفه را در سه قدم بسازید. درخواست با ایمیل به دفتر اَرَتَ می‌رسد و کارشناس فروش برای متراژ، جانمایی و قرارداد تماس می‌گیرد.",
     formTitle: "پیش‌نویس درخواست غرفه",
     fields: {
       name: "نام و نام خانوادگی",
@@ -382,7 +401,7 @@ const fa: SiteContent = {
         sourceHref: officialLinks.equipment,
         type: "JPG",
         fileName: "aratta-expo-equipment-list.jpg",
-        size: "447 KB",
+        size: "407 KB",
         category: "equipment",
         description:
           "تصویر رسمی لیست تجهیزات برای بررسی نیازهای اجرایی غرفه و هماهنگی اجاره.",
@@ -391,7 +410,7 @@ const fa: SiteContent = {
   },
   gallery: {
     kicker: "گالری",
-    title: "تصویر واقعی از کف نمایشگاه",
+    title: "نمایشگاه از نزدیک",
     items: [
       { src: "/gallery/simex-2019-01.jpg", alt: "نمایشگاه سیمکس ۲۰۱۹", caption: "سیمکس ۲۰۱۹" },
       { src: "/gallery/expo-floor-01.jpg", alt: "سالن نمایشگاه", caption: "کف نمایشگاه" },
@@ -407,7 +426,7 @@ const fa: SiteContent = {
   },
   news: {
     kicker: "اتاق خبر",
-    title: "آخرین خبرهای رسمی اَرَتَ",
+    title: "تازه‌ترین خبرهای اَرَتَ",
     items: [
       {
         date: "۲۲ اردیبهشت ۱۴۰۴",
@@ -441,9 +460,9 @@ const fa: SiteContent = {
       },
     ],
     relatedKicker: "اخبار صنعت",
-    relatedTitle: "اخبار مرتبط با معدن، فولاد، مس و زنجیره تامین",
+    relatedTitle: "معدن، فولاد، مس و زنجیرهٔ تأمین",
     relatedBody:
-      "گزارش‌ها، گفتگوها و مطالب آموزشی مرتبط با بازارهای معدن، فولاد، مس و زنجیره تامین؛ هر مطلب با تاریخ، حوزه و لینک منبع نمایش داده می‌شود.",
+      "گزارش، گفت‌وگو و مطالب آموزشی؛ هر مطلب با تاریخ، حوزه و لینک منبع.",
     relatedItems: [
       {
         date: "۱۴ دی ۱۴۰۲",
@@ -479,9 +498,9 @@ const fa: SiteContent = {
   },
   blog: {
     kicker: "مجله اَرَتَ",
-    title: "راهنمای عملی برای ساخت و مدیریت نمایشگاه",
+    title: "راهنمای عملی نمایشگاه",
     body:
-      "مقاله‌های کوتاه و اجرایی برای تیم‌های برگزارکننده، غرفه‌داران و مدیران عملیات؛ از برنامه‌ریزی سالن تا تحویل تجهیزات و پیگیری تجاری.",
+      "مقاله‌های کوتاه و کاربردی برای برگزارکنندگان، غرفه‌داران و تیم‌های اجرایی؛ از برنامه‌ریزی سالن تا تحویل تجهیزات.",
     emptyLabel: "هنوز مقاله منتشرشده‌ای وجود ندارد.",
     readMoreLabel: "مطالعه مقاله",
     allPostsLabel: "مشاهده همه مقاله‌ها",
@@ -563,20 +582,20 @@ const fa: SiteContent = {
   },
   about: {
     kicker: "درباره اَرَتَ",
-    title: "زیرساخت قابل اعتماد برای رویدادهای تخصصی صنعتی",
+    title: "برگزارکنندهٔ رویدادهای تخصصی صنعت و معدن",
     body:
-      "شرکت توسعه تجارت اَرَتَ برگزارکننده رویدادهای تخصصی در حوزه معدن، صنایع معدنی، فولاد، مس و زنجیره تأمین است؛ بستری برای معرفی توانمندی‌ها، ارتباط تأمین‌کنندگان با صنایع و شکل‌گیری همکاری‌های تجاری.",
+      "شرکت توسعه تجارت اَرَتَ رویدادهای تخصصی معدن، صنایع معدنی، فولاد، مس و زنجیرهٔ تأمین را برگزار می‌کند؛ جایی برای معرفی توانمندی‌ها و پیوند تأمین‌کنندگان با صنایع.",
     proof: ["معدن و صنایع معدنی", "فولاد و مس", "ماشین‌آلات و تجهیزات", "رسانه و مشارکت"],
   },
   contact: {
     kicker: "تماس",
-    title: "تماس مستقیم با دفتر کرمان",
+    title: "تماس با دفتر کرمان",
     addressLabel: "آدرس دفتر",
     address: "کرمان، بلوار جهاد، نبش کوچه ۴۳، ساختمان بانک پارسیان",
     emailLabel: "ایمیل",
     phoneLabel: "تلفن",
     mapLabel: "محدوده دفتر کرمان",
-    phones: ["034-91305910", "034-91015910"],
+    phones: ["034-91305910"],
     placeName: "شرکت توسعه تجارت اَرَتَ",
     plusCode: officeMap.plusCode,
     mapsUrl: officeMap.mapsUrl,
@@ -597,6 +616,7 @@ const en: SiteContent = {
     { id: "home", label: "Home" },
     { id: "about", label: "About" },
     { id: "exhibitions", label: "Exhibitions" },
+    { id: "plans", label: "Plans" },
     { id: "registration", label: "Registration" },
     { id: "forms", label: "Forms" },
     { id: "equipment", label: "Equipment" },
@@ -610,41 +630,57 @@ const en: SiteContent = {
   hero: {
     title: "Industry & mining exhibitions",
     subtitle:
-      "Professional events designed to connect capabilities, decision-makers and commercial opportunities.",
+      "Specialized events that connect capability, decision-makers and trade.",
     primary: "Register Interest",
     secondary: "View Exhibitions",
     stages: [
       {
-        label: "Stage 01",
-        title: "From blank hall to intent",
-        body: "Ambient light, floor lines, and the first footprint turn the empty venue into a precise starting point.",
+        label: "Plot",
+        title: "It starts with a plan",
+        body: "The 12 by 9 meter plot is marked out and every zone is fixed before the first crate arrives.",
       },
       {
-        label: "Stage 02",
-        title: "Technical plan and visitor flow",
-        body: "Grid lines, circulation paths, and operating zones translate the booth concept into an executable plan.",
+        label: "Rigging",
+        title: "Overhead goes first",
+        body: "The aluminium truss is built on the ground and hoisted to height while the floor is clear.",
       },
       {
-        label: "Stage 03",
-        title: "Execution team and materials",
-        body: "Install crews, equipment, panels, and infrastructure enter the hall as the design moves from image to build.",
+        label: "Floor",
+        title: "A level floor, services hidden",
+        body: "Adjustable feet level the platform, and power and data run beneath the panels.",
       },
       {
-        label: "Stage 04",
-        title: "Architecture takes shape",
-        body: "Columns, glass, metal frames, and linear lighting define the booth volume with industrial clarity.",
+        label: "Structure",
+        title: "A two-storey frame",
+        body: "Steel columns and beams go up, and the upper deck is lifted into place in one piece.",
       },
       {
-        label: "Stage 05",
-        title: "Brand identity and industry story",
-        body: "Bilingual signage, mining and steel media, and service pathways bring Aratta's message into the space.",
+        label: "Walls",
+        title: "Walls, timber and glass",
+        body: "Modular frames take their finish: matt panels, timber slats and a glass meeting room.",
       },
       {
-        label: "Stage 06",
-        title: "Ready for business conversations",
-        body: "Reception, meetings, official forms, and contact paths complete the experience for participants and visitors.",
+        label: "Light",
+        title: "Power and light",
+        body: "Power goes live and light arrives in layers: linear light, lightboxes and overhead spots.",
+      },
+      {
+        label: "Brand",
+        title: "A brand seen across the hall",
+        body: "The video wall goes live, the mark is set on the tower, and the hanging sign carries your name down every aisle.",
+      },
+      {
+        label: "Hosting",
+        title: "Ready to host",
+        body: "Reception, product displays and seating are in place, with the upper floor for negotiation.",
       },
     ],
+    finale: {
+      kicker: "Your booth",
+      title: "At the next exhibition, this space is yours",
+      body: "From your booth request to handover on opening day, Aratta is with you.",
+    },
+    scrollHint: "Scroll to build the booth",
     metrics: [
       { value: "100+", label: "booths at SIMEX 2020" },
       { value: "80", label: "companies at SICE 2023" },
@@ -653,15 +689,15 @@ const en: SiteContent = {
     ],
   },
   exhibitions: {
-    kicker: "Archive / Exhibitions",
+    kicker: "Exhibition archive",
     title: "Aratta's specialized events",
     note:
-      "The editions below have been held. Dates for the next editions appear in the upcoming calendar as soon as they are officially announced.",
+      "These editions have been held. Dates for the next ones appear in the calendar once they are officially announced.",
     items: enExhibitions,
   },
   services: {
     kicker: "Exhibition Services",
-    title: "From event planning to a professional exhibition presence",
+    title: "From planning to opening day",
     items: [
       {
         title: "Event organization",
@@ -683,9 +719,9 @@ const en: SiteContent = {
   },
   registration: {
     kicker: "Registration",
-    title: "Start your exhibition participation inquiry",
+    title: "Start your exhibition inquiry",
     body:
-      "Download the official form or prepare a booth request in three steps. It reaches the Aratta office by email, and a sales specialist calls you about area, placement and the contract.",
+      "Download the official form or build a booth request in three steps. It reaches the Aratta office by email, and a sales specialist calls you about area, placement and contract.",
     formTitle: "Booth inquiry draft",
     fields: {
       name: "Full name",
@@ -728,7 +764,7 @@ const en: SiteContent = {
         sourceHref: officialLinks.equipment,
         type: "JPG",
         fileName: "aratta-expo-equipment-list.jpg",
-        size: "447 KB",
+        size: "407 KB",
         category: "equipment",
         description:
           "Official equipment list image for booth requirements and rental coordination.",
@@ -737,7 +773,7 @@ const en: SiteContent = {
   },
   gallery: {
     kicker: "Gallery",
-    title: "Real moments from the exhibition floor",
+    title: "From the exhibition floor",
     items: [
       { src: "/gallery/simex-2019-01.jpg", alt: "SIMEX 2019 exhibition", caption: "SIMEX 2019" },
       { src: "/gallery/expo-floor-01.jpg", alt: "Exhibition hall", caption: "Exhibition floor" },
@@ -753,7 +789,7 @@ const en: SiteContent = {
   },
   news: {
     kicker: "Newsroom",
-    title: "Latest official news from Aratta",
+    title: "Latest news from Aratta",
     items: [
       {
         date: "May 12, 2025",
@@ -786,10 +822,10 @@ const en: SiteContent = {
         href: "https://arattaexpo.ir/video-%d8%b5%d8%ad%d8%a8%d8%aa-%d9%87%d8%a7%db%8c-%d9%85%d9%87%d9%86%d8%af%d8%b3-%d8%a7%db%8c%d9%85%d8%a7%d9%86-%d8%b9%d8%aa%db%8c%d9%82%db%8c-%d9%85%d8%af%db%8c%d8%b1-%d9%85%d8%ac%d8%aa%d9%85%d8%b9/",
       },
     ],
-    relatedKicker: "Industry Signals",
-    relatedTitle: "Related news for mining, steel, copper, and supply-chain markets",
+    relatedKicker: "Industry news",
+    relatedTitle: "Mining, steel, copper and supply chain",
     relatedBody:
-      "Reports, interviews, and practical insights for mining, steel, copper, and supply-chain markets, with a visible date, sector, and source link for every item.",
+      "Reports, interviews and practical insight, each with its date, sector and source link.",
     relatedItems: [
       {
         date: "January 4, 2024",
@@ -825,9 +861,9 @@ const en: SiteContent = {
   },
   blog: {
     kicker: "Aratta Journal",
-    title: "Practical guidance for building and operating exhibitions",
+    title: "A practical guide to exhibitions",
     body:
-      "Short, field-ready articles for organizers, exhibitors, and operations teams—from hall planning to equipment handover and commercial follow-up.",
+      "Short, practical articles for organizers, exhibitors and operations teams, from hall planning to equipment handover.",
     emptyLabel: "No articles have been published yet.",
     readMoreLabel: "Read article",
     allPostsLabel: "View all articles",
@@ -909,20 +945,20 @@ const en: SiteContent = {
   },
   about: {
     kicker: "About Aratta",
-    title: "Trusted infrastructure for specialized industrial events",
+    title: "Organizer of specialized industry and mining events",
     body:
-      "Aratta Trade Development Company organizes specialized events for mining, mineral industries, steel, copper, and supply chains—connecting industrial capabilities, suppliers, decision-makers, and new commercial opportunities.",
+      "Aratta Trade Development Company organizes specialized events for mining, mineral industries, steel, copper and supply chains, connecting suppliers with industry and capability with opportunity.",
     proof: ["Mining industries", "Steel and copper", "Machinery and equipment", "Media and participation"],
   },
   contact: {
     kicker: "Contact",
-    title: "Direct contact with the Kerman office",
+    title: "Contact the Kerman office",
     addressLabel: "Office address",
     address: "Kerman, Jahad Boulevard, corner of Alley 43, Parsian Bank Building",
     emailLabel: "Email",
     phoneLabel: "Phone",
     mapLabel: "Kerman office area",
-    phones: ["034-91305910", "034-91015910"],
+    phones: ["034-91305910"],
     placeName: "Aratta Trade Development Company",
     plusCode: officeMap.plusCode,
     mapsUrl: officeMap.mapsUrl,

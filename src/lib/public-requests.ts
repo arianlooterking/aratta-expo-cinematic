@@ -155,6 +155,42 @@ export function equipmentRequestDraft(lang: RequestLang, r: EquipmentRequest) {
   return { subject, body, mailto: mailto(subject, body), pieces: lines.reduce((s, l) => s + l.qty, 0) };
 }
 
+/**
+ * An email asking the office for an exhibition's hall plan. Hall plans are
+ * sent by the sales team once they exist; the website never shows or reserves
+ * stand positions, and the draft says so.
+ */
+export function hallPlanRequestDraft(lang: RequestLang, exhibition: string) {
+  const fa = lang === "fa";
+  const subject = fa ? `درخواست پلان سالن - ${exhibition}` : `Hall plan request - ${exhibition}`;
+  const body = (
+    fa
+      ? [
+          "با سلام،",
+          `لطفا پلان سالن و فضاهای قابل ارائه «${exhibition}» را پس از آماده شدن برای من بفرستید.`,
+          "",
+          "نام:",
+          "شرکت:",
+          "تلفن:",
+          "متراژ و نوع غرفه مورد نظر (اختیاری):",
+          "",
+          "این درخواست فقط برای دریافت اطلاعات است و به معنی رزرو یا تخصیص غرفه نیست.",
+        ]
+      : [
+          "Hello,",
+          `Please send me the hall plan and the space on offer for "${exhibition}" once it is ready.`,
+          "",
+          "Name:",
+          "Company:",
+          "Phone:",
+          "Stand size and type I have in mind (optional):",
+          "",
+          "This request is for information only, not a booking or a stand allocation.",
+        ]
+  ).join("\n");
+  return { subject, body, mailto: mailto(subject, body) };
+}
+
 export function mailto(subject: string, body: string) {
   return `mailto:${OFFICE_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

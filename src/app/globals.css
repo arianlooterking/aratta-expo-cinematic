@@ -13,11 +13,117 @@
   --steel: #d9e3e6;
   --danger: #ff6b6b;
   --success: #6ee7b7;
+  --umbra: #000;
+  /* Solid form-field and <option> backgrounds (native pop-ups ignore alpha). */
+  --field: #101819;
+  --field-option: #0b1016;
+  /* Bright gold for fills and the main call-to-action, the same in both themes
+     (--gold is the text gold and darkens in the light theme). */
+  --gold-fill: #d6ae65;
 }
+
+/* ---------------------------------------------------------- Theme: surface tokens
+   The public pages colour text, hairlines and tints with these instead of
+   white/black/amber/cyan utilities (text-ink, border-ink/10, bg-shade/20,
+   border-gilt-200/24 ...). Dark values equal the Tailwind colours they replace,
+   so the dark look is unchanged. .on-photo puts the dark values back for copy
+   that sits on a photograph or a dark scrim, in both themes. */
+:root,
+.on-photo {
+  --ink: #fff;
+  --ink-floor: 0%;
+  --shade: #000;
+  --gilt-50: oklch(98.7% 0.022 95.277);
+  --gilt-100: oklch(96.2% 0.059 95.617);
+  --gilt-200: oklch(92.4% 0.12 95.746);
+  --gilt-300: oklch(87.9% 0.169 91.605);
+  --aqua-50: oklch(98.4% 0.019 200.873);
+  --aqua-100: oklch(95.6% 0.045 203.388);
+  --aqua-200: oklch(91.7% 0.08 205.041);
+  --aqua-300: oklch(86.5% 0.127 207.078);
+  --jade-200: oklch(90.5% 0.093 164.15);
+  --blush-100: oklch(94.1% 0.03 12.58);
+  --blush-200: oklch(89.2% 0.058 10.001);
+}
+
+:root {
+  --carpet: #d6ae65;
+}
+
+.on-photo {
+  --gold: #d6ae65;
+  --cyan: #7ddce8;
+  --muted: #a9b2b8;
+  --foreground: #f6f2ea;
+  --success: #6ee7b7;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+/* ---------------------------------------------------------- end theme: surface tokens */
+
+/* ---------------------------------------------------------- Theme: light tokens
+   Warm ivory page, near-black warm ink, frosted white glass and the carpet red
+   as the theme's signature (thin rules, small active markers, backdrop tints). */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: #f4efe6;
+  --foreground: #1d1812;
+  --muted: #5f564b;
+  --panel: rgba(255, 255, 255, 0.62);
+  --panel-strong: rgba(255, 253, 249, 0.94);
+  --border: rgba(29, 24, 18, 0.14);
+  --gold: #845a12;
+  --cyan: #0e6670;
+  --copper: #8f5a2e;
+  --steel: #44505a;
+  --danger: #b42318;
+  --success: #0d6e4a;
+  --carpet: #9e1b24;
+  --field: #fffdf9;
+  --field-option: #fffdf9;
+
+  --ink: #1d1812;
+  /* Translucent ink text never drops below this share of full ink, so a
+     text-ink-50 caption keeps 4.5:1 on ivory. */
+  --ink-floor: 40%;
+  --shade: #ffffff;
+  --umbra: #3b2a17;
+  --gilt-50: #6f4b0e;
+  --gilt-100: #7a520f;
+  --gilt-200: #845a12;
+  --gilt-300: #8f6316;
+  --aqua-50: #0a535b;
+  --aqua-100: #0b5d66;
+  --aqua-200: #0e6670;
+  --aqua-300: #11717c;
+  --jade-200: #0d6e4a;
+  --blush-100: #9e1b24;
+  --blush-200: #9e1b24;
+}
+/* ---------------------------------------------------------- end theme: light tokens */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Theme-following colours for the public pages (values above). */
+  --color-ink: var(--ink);
+  --color-shade: var(--shade);
+  --color-umbra: var(--umbra);
+  --color-carpet: var(--carpet);
+  --color-gilt-50: var(--gilt-50);
+  --color-gilt-100: var(--gilt-100);
+  --color-gilt-200: var(--gilt-200);
+  --color-gilt-300: var(--gilt-300);
+  --color-aqua-50: var(--aqua-50);
+  --color-aqua-100: var(--aqua-100);
+  --color-aqua-200: var(--aqua-200);
+  --color-aqua-300: var(--aqua-300);
+  --color-jade-200: var(--jade-200);
+  --color-blush-100: var(--blush-100);
+  --color-blush-200: var(--blush-200);
   --font-sans: var(--font-geist-sans);
   --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
 
@@ -52,6 +158,13 @@
   --color-p-side-hover: var(--p-side-hover);
 }
 
+/* Translucent ink text: text-ink-62 is ink at 62% in the dark theme (the same
+   colour as text-white/62) and is lifted toward full ink by --ink-floor in the
+   light theme, so captions stay readable on ivory. */
+@utility text-ink-* {
+  color: color-mix(in oklab, var(--ink) calc(var(--ink-floor) + (100% - var(--ink-floor)) * --value(integer) / 100), transparent);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -79,7 +192,7 @@ body {
 html[lang="fa"] body {
   font-family: var(--font-persian), Tahoma, Arial, sans-serif;
   font-kerning: normal;
-  line-height: 1.78;
+  line-height: 1.9;
 }
 
 html[lang="en"] body {
@@ -117,6 +230,29 @@ body::before {
   background: rgba(125, 220, 232, 0.3);
   color: #ffffff;
 }
+
+/* ---------------------------------------------------------- Theme: light page
+   Ivory page with a warm gold glow and a faint carpet-red one, ink grid lines,
+   carpet-red selection. */
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(158, 27, 36, 0.05), transparent 32rem),
+    radial-gradient(circle at 86% 12%, rgba(214, 174, 101, 0.18), transparent 30rem),
+    linear-gradient(180deg, #f7f2ea 0%, #f1eadf 46%, #f4efe6 100%);
+}
+
+:root[data-theme="light"] body::before {
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(29, 24, 18, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 24, 18, 0.045) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] ::selection {
+  background: rgba(158, 27, 36, 0.18);
+  color: #1d1812;
+}
+/* ---------------------------------------------------------- end theme: light page */
 
 /* Links inherit their colour unless a utility class gives them one. In the base
    layer, so text-* utilities on <a> win (an unlayered rule here beat them all). */
@@ -180,7 +316,8 @@ dt {
    specular rim drawn through the transparent border (bright at the top
    corner, fading round the sides, warm at the far corner). The blur and the
    saturation boost do the "lens" work on whatever sits behind. */
-:root {
+:root,
+.on-photo {
   --glass-fill: rgba(12, 17, 22, 0.52);
   --glass-fill-strong: rgba(10, 14, 18, 0.72);
   --glass-rim: linear-gradient(
@@ -309,7 +446,8 @@ dt {
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  :root {
+  :root,
+  .on-photo {
     --glass-fill: rgba(12, 17, 22, 0.96);
     --glass-fill-strong: rgba(10, 14, 18, 0.98);
   }
@@ -330,7 +468,8 @@ dt {
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root {
+  :root,
+  .on-photo {
     --glass-fill: rgba(12, 17, 22, 0.94);
   }
 
@@ -342,8 +481,147 @@ dt {
   }
 }
 
+/* ---------------------------------------------------------- Theme: light liquid glass
+   Frosted white glass with dark ink on it: a whiter fill, a bright rim that
+   fades to a warm hairline, a soft brown shadow. The gold call-to-action keeps
+   its gold. Glass inside .on-photo (over a photograph) stays dark. */
+:root[data-theme="light"] {
+  --glass-fill: rgba(255, 255, 255, 0.6);
+  --glass-fill-strong: rgba(255, 253, 249, 0.82);
+  --glass-rim: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.62) 26%,
+    rgba(29, 24, 18, 0.1) 58%,
+    rgba(178, 135, 60, 0.42) 100%
+  );
+  --glass-sheen: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.22) 34%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.18) 100%
+  );
+}
+
+:root[data-theme="light"] .glass:not(.on-photo, .on-photo *) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 32px rgba(255, 255, 255, 0.3),
+    0 1px 2px rgba(59, 42, 23, 0.08),
+    0 28px 70px -30px rgba(59, 42, 23, 0.32);
+}
+
+:root[data-theme="light"] .glass-header {
+  background:
+    var(--glass-sheen) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)) padding-box,
+    var(--glass-rim) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(29, 24, 18, 0.05),
+    0 18px 44px -22px rgba(59, 42, 23, 0.4);
+}
+
+:root[data-theme="light"] .glass-header[data-scrolled="true"] {
+  background:
+    var(--glass-sheen) padding-box,
+    linear-gradient(var(--glass-fill-strong), var(--glass-fill-strong)) padding-box,
+    var(--glass-rim) border-box;
+}
+
+:root[data-theme="light"] .liquid-button:not(.liquid-button--gold, .on-photo .liquid-button) {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.3) 55%, rgba(255, 255, 255, 0.5)) padding-box,
+    linear-gradient(120deg, rgba(14, 102, 112, 0.06), rgba(214, 174, 101, 0.16)) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.56)) padding-box,
+    linear-gradient(150deg, #fff, rgba(255, 255, 255, 0.6) 38%, rgba(29, 24, 18, 0.12) 62%, rgba(178, 135, 60, 0.55)) border-box;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -10px 18px -12px rgba(59, 42, 23, 0.16),
+    0 10px 26px -14px rgba(59, 42, 23, 0.38);
+}
+
+:root[data-theme="light"] .liquid-button:not(.liquid-button--gold, .on-photo .liquid-button):hover {
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -10px 18px -12px rgba(59, 42, 23, 0.16),
+    0 12px 30px -14px rgba(59, 42, 23, 0.45),
+    0 0 22px -8px rgba(214, 174, 101, 0.6);
+}
+
+:root[data-theme="light"] .liquid-button--gold {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -10px 18px -12px rgba(90, 58, 14, 0.5),
+    0 12px 28px -14px rgba(150, 104, 30, 0.6);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-theme="light"] {
+    --glass-fill: rgba(255, 253, 249, 0.97);
+    --glass-fill-strong: rgba(255, 253, 249, 0.99);
+  }
+
+  :root[data-theme="light"] .glass-header {
+    background:
+      var(--glass-sheen) padding-box,
+      linear-gradient(var(--glass-fill-strong), var(--glass-fill-strong)) padding-box,
+      var(--glass-rim) border-box;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-theme="light"] {
+    --glass-fill: rgba(255, 253, 249, 0.95);
+  }
+
+  :root[data-theme="light"] .glass-header {
+    background:
+      var(--glass-sheen) padding-box,
+      linear-gradient(rgba(255, 253, 249, 0.95), rgba(255, 253, 249, 0.95)) padding-box,
+      var(--glass-rim) border-box;
+  }
+}
+
+/* The theme switch: moon in the dark theme, sun in the light one, swapped
+   with a short turn and fade (a plain fade when motion is reduced). */
+.theme-switch__icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity 220ms ease,
+    transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-switch__sun {
+  color: var(--gold);
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.5);
+}
+
+:root[data-theme="light"] .theme-switch__moon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.5);
+}
+
+:root[data-theme="light"] .theme-switch__sun {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-switch__icon,
+  :root[data-theme="light"] .theme-switch__moon,
+  :root[data-theme="light"] .theme-switch__sun {
+    transform: none;
+  }
+}
+/* ---------------------------------------------------------- end theme: light liquid glass */
+
+/* One gutter for every section: 20px on phones, growing to 36px. */
 .section-shell {
-  width: min(1180px, calc(100vw - clamp(1.5rem, 5vw, 4.5rem)));
+  --gutter: clamp(1.25rem, 4vw, 2.25rem);
+  width: min(1180px, calc(100% - 2 * var(--gutter)));
   margin-inline: auto;
 }
 
@@ -404,8 +682,29 @@ dt {
   animation: hero-loader-scan 1.25s ease-in-out infinite;
 }
 
+/* Chapter copy: every chapter shares one grid cell and cross-fades (~500 ms, a small rise),
+   so the block never changes size. hero-stage-copy-in remains for one-off entrances. */
+.booth3d__stack {
+  display: grid;
+}
+
+.booth3d__stack > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
 .hero-stage-copy {
-  animation: hero-stage-copy-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 8px, 0);
+  transition: opacity 420ms cubic-bezier(0.4, 0, 0.2, 1), transform 520ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 520ms;
+}
+
+.hero-stage-copy.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1) 90ms, transform 600ms cubic-bezier(0.22, 1, 0.36, 1) 90ms, visibility 0s;
 }
 
 @keyframes hero-loader-rise {
@@ -439,24 +738,517 @@ dt {
   }
 }
 
+/* ---------------------------------------------------------------- 3D booth hero */
+.booth3d {
+  --booth-bg: #06080a;
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) {
+  --booth-bg: #e9e3d8;
+}
+
+.booth3d__canvas {
+  display: block;
+  touch-action: pan-y;
+}
+
+.booth3d__scrim {
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 0%, transparent 52%, rgba(3, 5, 6, 0.55) 100%),
+    linear-gradient(180deg, rgba(3, 5, 6, 0.5) 0%, transparent 24%, transparent 70%, rgba(3, 5, 6, 0.82) 100%);
+}
+
+.booth3d__side-scrim,
+.booth3d__low-scrim {
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+/* The neighbouring stands stand behind the chapter copy, so its side of the frame is held well down. */
+.booth3d__side-scrim {
+  background: linear-gradient(to left, rgba(4, 6, 8, 0.92) 0%, rgba(4, 6, 8, 0.84) 24%, rgba(4, 6, 8, 0.6) 40%, rgba(4, 6, 8, 0.24) 53%, transparent 66%);
+}
+
+[dir="ltr"].booth3d__side-scrim {
+  background: linear-gradient(to right, rgba(4, 6, 8, 0.92) 0%, rgba(4, 6, 8, 0.84) 24%, rgba(4, 6, 8, 0.6) 40%, rgba(4, 6, 8, 0.24) 53%, transparent 66%);
+}
+
+.booth3d__low-scrim {
+  background: linear-gradient(180deg, transparent 48%, rgba(4, 6, 8, 0.55) 66%, rgba(4, 6, 8, 0.82) 82%, rgba(4, 6, 8, 0.92) 100%);
+}
+
+.booth3d__side-scrim.is-on,
+.booth3d__low-scrim.is-on {
+  opacity: 1;
+}
+
+.booth3d__intro {
+  top: 50%;
+  opacity: 0;
+  transform: translate3d(0, calc(-50% + 18px), 0);
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.booth3d__intro.is-on {
+  opacity: 1;
+  transform: translate3d(0, -50%, 0);
+}
+
+/* A soft pool behind the opening title keeps it readable over the half-built hall. */
+.booth3d__intro::before {
+  content: "";
+  position: absolute;
+  inset: -34% 6%;
+  z-index: -1;
+  background: radial-gradient(ellipse closest-side, rgba(4, 6, 8, 0.74) 0%, rgba(4, 6, 8, 0.52) 48%, rgba(4, 6, 8, 0.18) 78%, transparent 100%);
+  pointer-events: none;
+}
+
+.booth3d__title {
+  max-width: 18ch;
+  font-size: clamp(2.3rem, 5.2vw, 4.6rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  text-shadow: 0 10px 48px rgba(0, 0, 0, 0.6);
+}
+
+html[lang="fa"] .booth3d__title {
+  line-height: 1.32;
+  letter-spacing: 0;
+}
+
+.booth3d__hint-line {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 46px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.booth3d__hint-line::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -40%;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, var(--gold));
+  animation: booth3d-hint 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes booth3d-hint {
+  to {
+    top: 100%;
+  }
+}
+
+.booth3d__chapter {
+  width: min(31rem, 40vw);
+  margin-top: -4vh;
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+  transition: opacity 600ms cubic-bezier(0.22, 1, 0.36, 1), transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.72);
+}
+
+.booth3d__chapter.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+.booth3d__chapter-title {
+  font-size: clamp(2rem, 3.6vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+html[lang="fa"] .booth3d__chapter-title {
+  line-height: 1.38;
+}
+
+.booth3d__rail {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.booth3d__rail.is-on {
+  opacity: 1;
+}
+
+.booth3d__bar {
+  transform: scaleX(0.02);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+[dir="rtl"] .booth3d__bar {
+  transform-origin: right center;
+}
+
+.booth3d__step {
+  color: rgba(255, 255, 255, 0.36);
+  transition: color 400ms ease;
+}
+
+.booth3d__step.is-done {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.booth3d__step.is-current {
+  color: #f2d28c;
+}
+
+.booth3d__finale {
+  bottom: clamp(4.5rem, 10svh, 6.5rem);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(0, 20px, 0);
+  transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.75);
+}
+
+.booth3d__finale.is-on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+/* The closing headline is a little smaller than a chapter title so the finished stand keeps the frame. */
+.booth3d__finale .booth3d__chapter-title {
+  font-size: clamp(1.7rem, 2.5vw, 2.4rem);
+}
+
+/* Wide screens: the closing copy stays compact (one-line title) so the elevation gets the height. */
+@media (min-width: 768px) {
+  .booth3d__finale {
+    bottom: clamp(4.25rem, 8svh, 5.5rem);
+  }
+
+  .booth3d__finale .booth3d__chapter-title {
+    max-width: none;
+  }
+}
+
+.booth3d__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(10, 13, 15, 0.5);
+  padding: 0.8rem 1.25rem;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 800;
+  text-shadow: none;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: background 250ms ease, border-color 250ms ease, transform 250ms ease;
+}
+
+.booth3d__cta:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.booth3d__cta--gold {
+  border-color: rgba(242, 210, 140, 0.6);
+  background: linear-gradient(135deg, #e3bd6c, #b88a35);
+  color: #15100a;
+}
+
+.booth3d__cta--gold:hover {
+  background: linear-gradient(135deg, #f0cd80, #c89a42);
+}
+
+.booth3d__card-wrap {
+  bottom: calc(0.6rem + env(safe-area-inset-bottom));
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+}
+
+/* Phone actions: two equal 44 px buttons whose labels never wrap at 360 px. */
+.booth3d__card .booth3d__cta {
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  white-space: nowrap;
+}
+
+.booth3d__card-title {
+  font-size: clamp(1.3rem, 6vw, 1.5rem);
+}
+
+.booth3d__card-copy {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 360ms ease;
+}
+
+.booth3d__card-copy.is-folded {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.booth3d__card-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The closing frame: a soft vignette that deepens the hall around the lit stand. */
+.booth3d__vignette {
+  opacity: 0;
+  background: radial-gradient(120% 85% at 50% 40%, transparent 52%, rgba(4, 7, 12, 0.55) 100%);
+  transition: opacity 1200ms ease;
+}
+
+.booth3d__vignette.is-on {
+  opacity: 1;
+}
+
+.booth3d__card {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 10, 12, 0.62);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+
+/* Portrait tablets: the booth sits in the upper part, the copy below it. */
+@media (min-width: 768px) and (orientation: portrait) {
+  .booth3d__chapter-wrap {
+    align-items: flex-end !important;
+    padding-bottom: 7.5rem;
+  }
+
+  .booth3d__chapter {
+    width: min(36rem, 100%);
+    margin-top: 0;
+  }
+
+  .booth3d__side-scrim {
+    background: linear-gradient(180deg, transparent 50%, rgba(3, 5, 6, 0.85) 82%) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .booth3d__intro {
+    top: 38%;
+  }
+
+  .booth3d__title {
+    font-size: clamp(1.9rem, 8.6vw, 2.6rem);
+  }
+
+  .booth3d__finale {
+    bottom: calc(7.4rem + env(safe-area-inset-bottom));
+  }
+
+  .booth3d__finale .booth3d__chapter-title {
+    font-size: clamp(1.45rem, 6.4vw, 1.9rem);
+  }
+}
+
+/* 3D booth hero in the light theme: the hall is day-lit with a red carpet, so the copy turns to
+   dark ink on ivory veils. Without WebGL the dark still image is shown and the dark look stays (.on-photo). */
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__scrim {
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 0%, transparent 58%, rgba(244, 239, 230, 0.34) 100%),
+    linear-gradient(180deg, rgba(244, 239, 230, 0.62) 0%, transparent 22%, transparent 72%, rgba(244, 239, 230, 0.8) 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__side-scrim {
+  background: linear-gradient(to left, rgba(244, 239, 230, 0.95) 0%, rgba(244, 239, 230, 0.88) 24%, rgba(244, 239, 230, 0.64) 40%, rgba(244, 239, 230, 0.26) 53%, transparent 66%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) [dir="ltr"].booth3d__side-scrim {
+  background: linear-gradient(to right, rgba(244, 239, 230, 0.95) 0%, rgba(244, 239, 230, 0.88) 24%, rgba(244, 239, 230, 0.64) 40%, rgba(244, 239, 230, 0.26) 53%, transparent 66%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__low-scrim {
+  background: linear-gradient(180deg, transparent 48%, rgba(244, 239, 230, 0.62) 64%, rgba(244, 239, 230, 0.9) 80%, rgba(244, 239, 230, 0.97) 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__vignette {
+  background: radial-gradient(120% 85% at 50% 40%, transparent 58%, rgba(244, 239, 230, 0.5) 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__intro::before {
+  background: radial-gradient(ellipse closest-side, rgba(244, 239, 230, 0.9) 0%, rgba(244, 239, 230, 0.72) 48%, rgba(244, 239, 230, 0.28) 78%, transparent 100%);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__title,
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__chapter,
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__finale {
+  text-shadow: 0 1px 22px rgba(244, 239, 230, 0.9);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__hint-line {
+  background: rgba(29, 24, 18, 0.18);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__step {
+  color: rgba(29, 24, 18, 0.5);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__step.is-done {
+  color: rgba(29, 24, 18, 0.74);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__step.is-current {
+  color: var(--carpet);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__cta:not(.booth3d__cta--gold) {
+  border-color: rgba(29, 24, 18, 0.14);
+  background: rgba(255, 253, 249, 0.72);
+  color: #1d1812;
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__cta:not(.booth3d__cta--gold):hover {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__cta--gold {
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__card {
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 253, 249, 0.78);
+  box-shadow: 0 24px 60px rgba(59, 42, 23, 0.2);
+}
+
+@media (min-width: 768px) and (orientation: portrait) {
+  :root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__side-scrim {
+    background: linear-gradient(180deg, transparent 50%, rgba(244, 239, 230, 0.9) 82%) !important;
+  }
+}
+
+/* Landscape screens (desktops, tablets on their side): the stand is centred in the frame and the
+   chapter copy sits centred under it, above the step rail, like the closing copy. The camera is
+   given the free band between the header and this block. Upright tablets and the still-image
+   fallback (.on-photo) keep the side column. */
+@media (min-width: 768px) and (orientation: landscape) {
+  .booth3d:not(.on-photo) .booth3d__side-scrim {
+    display: none;
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter-wrap {
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 5rem;
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter {
+    width: min(46rem, 100%);
+    margin-top: 0;
+    text-align: center;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter-meta {
+    justify-content: center;
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter .booth3d__chapter-title {
+    margin-top: 0.55rem;
+    font-size: clamp(1.6rem, 2.05vw, 2.3rem);
+    line-height: 1.2;
+  }
+
+  html[lang="fa"] .booth3d:not(.on-photo) .booth3d__chapter .booth3d__chapter-title {
+    line-height: 1.45;
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter-body {
+    max-width: 46rem;
+    margin-inline: auto;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+
+  /* During the chapters the low veil holds the floor under the copy down (the finale keeps its own). */
+  .booth3d:not(.on-photo) .booth3d__low-scrim--chapter {
+    display: block;
+    background: linear-gradient(180deg, transparent 64%, rgba(4, 6, 8, 0.46) 75%, rgba(4, 6, 8, 0.76) 87%, rgba(4, 6, 8, 0.9) 100%);
+  }
+
+  :root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__low-scrim--chapter {
+    background: linear-gradient(180deg, transparent 64%, rgba(244, 239, 230, 0.6) 75%, rgba(244, 239, 230, 0.88) 87%, rgba(244, 239, 230, 0.96) 100%);
+  }
+
+  :root[data-theme="light"] .booth3d:not(.on-photo) .booth3d__chapter {
+    text-shadow: 0 1px 18px rgba(244, 239, 230, 0.95);
+  }
+}
+
+/* Short landscape screens: tighter type so the stand keeps at least 55% of the height. */
+@media (min-width: 768px) and (orientation: landscape) and (max-height: 760px) {
+  .booth3d:not(.on-photo) .booth3d__chapter-wrap {
+    padding-bottom: 4.4rem;
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter .booth3d__chapter-title {
+    margin-top: 0.35rem;
+    font-size: clamp(1.3rem, 1.75vw, 1.7rem);
+  }
+
+  .booth3d:not(.on-photo) .booth3d__chapter-body {
+    margin-top: 0.3rem;
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .booth3d__intro,
+  .booth3d__chapter,
+  .booth3d__finale,
+  .booth3d__hint-line::after {
+    animation: none !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Section rhythm: one vertical padding for every landing section, 56px on
+   phones growing to 96px on desktops. */
+.section-pad {
+  padding-block: clamp(3.5rem, 2rem + 4.5vw, 6rem);
+}
+
+/* Display sizes scale smoothly from a 360px phone to a desktop. */
 .section-display-title {
-  font-size: clamp(2rem, 3.5vw, 3.25rem);
+  font-size: clamp(1.75rem, 1.1rem + 2.6vw, 3.25rem);
   line-height: 1.18;
 }
 
 .page-display-title {
-  font-size: clamp(2.2rem, 3.8vw, 3.5rem);
+  font-size: clamp(1.95rem, 1.2rem + 3vw, 3.5rem);
   line-height: 1.16;
 }
 
 .card-display-title {
-  font-size: clamp(1.55rem, 2.45vw, 2.65rem);
-  line-height: 1.16;
+  font-size: clamp(1.45rem, 1rem + 1.9vw, 2.65rem);
+  line-height: 1.18;
+}
+
+/* Persian letters need more room between lines than Latin ones. */
+html[lang="fa"] .section-display-title,
+html[lang="fa"] .page-display-title,
+html[lang="fa"] .card-display-title {
+  line-height: 1.4;
 }
 
 .site-copy {
   max-width: 68ch;
   line-height: 1.9;
+}
+
+html[lang="fa"] .site-copy {
+  line-height: 1.95;
 }
 
 @media (max-width: 1160px) {
@@ -568,6 +1360,54 @@ a .industrial-card:hover {
     0 26px 60px -24px rgba(0, 0, 0, 0.75);
 }
 
+/* ---------------------------------------------------------- Theme: light cards and rules
+   Content cards turn to soft white with a bright rim; section kickers keep the
+   teal label with a thin carpet-red rule. */
+:root[data-theme="light"] .industrial-card:not(.on-photo, .on-photo *) {
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.35) 42%, rgba(255, 255, 255, 0.55)) padding-box,
+    linear-gradient(rgba(255, 253, 249, 0.8), rgba(255, 253, 249, 0.8)) padding-box,
+    linear-gradient(155deg, #fff, rgba(29, 24, 18, 0.1) 34%, rgba(29, 24, 18, 0.08) 66%, rgba(178, 135, 60, 0.36)) border-box;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 18px 44px -26px rgba(59, 42, 23, 0.3);
+}
+
+:root[data-theme="light"] a.industrial-card:hover,
+:root[data-theme="light"] a .industrial-card:hover {
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 0 0 1px rgba(158, 27, 36, 0.16),
+    0 22px 50px -24px rgba(59, 42, 23, 0.36);
+}
+
+:root[data-theme="light"] .section-kicker:not(.on-photo *)::before {
+  background: linear-gradient(90deg, transparent, var(--carpet));
+}
+
+:root[data-theme="light"] [dir="ltr"] .section-kicker:not(.on-photo *)::before,
+:root[data-theme="light"][dir="ltr"] .section-kicker:not(.on-photo *)::before {
+  background: linear-gradient(90deg, var(--carpet), transparent);
+}
+/* The page you are on, in the header pill and the menu: carpet-red label on a
+   faint carpet tint, the theme's small active marker. */
+:root[data-theme="light"] .glass-header nav a[aria-current="page"],
+:root[data-theme="light"] #site-menu a[aria-current="page"] {
+  background-color: rgba(158, 27, 36, 0.07);
+  color: var(--carpet);
+}
+
+:root[data-theme="light"] #site-menu a[aria-current="page"] .text-ink {
+  color: var(--carpet);
+}
+
+/* The reading-progress line under the header: gold into carpet red. */
+:root[data-theme="light"] .scroll-progress {
+  background-image: linear-gradient(to right, var(--gold-fill), var(--carpet));
+}
+
+/* ---------------------------------------------------------- end theme: light cards and rules */
+
 .hero-grid-plane {
   background-image:
     linear-gradient(rgba(62, 231, 255, 0.22) 1px, transparent 1px),
@@ -675,4 +1515,200 @@ a .industrial-card:hover {
 }
 .card-rail::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------------------------------------------------------- Build backdrops
+   Line drawings of a stand being built, behind the sections below the hero
+   (src/components/backdrops). The root sets --draw (0..1) and --u (drawing
+   units per screen pixel). Each timed element has a window --a..--b; --t is
+   its local progress. Only stroke-dashoffset, opacity and transform change. */
+.bb {
+  --draw: 0;
+  --u: 1;
+  --bb-gold: rgba(214, 174, 101, 0.17);
+  --bb-gold-faint: rgba(214, 174, 101, 0.09);
+  --bb-teal: rgba(125, 220, 232, 0.15);
+  --bb-teal-faint: rgba(125, 220, 232, 0.075);
+  --bb-label: rgba(214, 174, 101, 0.46);
+  --bb-fill-gold: rgba(214, 174, 101, 0.07);
+  --bb-fill-teal: rgba(125, 220, 232, 0.035);
+  --bb-beam-gold: rgba(232, 201, 135, 0.085);
+  --bb-beam-teal: rgba(125, 220, 232, 0.06);
+  overflow: visible;
+}
+
+.bb--quiet {
+  --bb-gold: rgba(214, 174, 101, 0.12);
+  --bb-gold-faint: rgba(214, 174, 101, 0.065);
+  --bb-teal: rgba(125, 220, 232, 0.1);
+  --bb-teal-faint: rgba(125, 220, 232, 0.055);
+  --bb-label: rgba(214, 174, 101, 0.32);
+  --bb-fill-gold: rgba(214, 174, 101, 0.05);
+  --bb-beam-gold: rgba(232, 201, 135, 0.06);
+  --bb-beam-teal: rgba(125, 220, 232, 0.04);
+}
+
+/* ---------------------------------------------------------- Theme: light backdrops
+   The stand drawings in dark gold ink, with carpet red where the dark theme
+   uses teal. */
+:root[data-theme="light"] .bb {
+  --bb-gold: rgba(132, 90, 18, 0.2);
+  --bb-gold-faint: rgba(132, 90, 18, 0.11);
+  --bb-teal: rgba(158, 27, 36, 0.15);
+  --bb-teal-faint: rgba(158, 27, 36, 0.08);
+  --bb-label: rgba(132, 90, 18, 0.55);
+  --bb-fill-gold: rgba(214, 174, 101, 0.12);
+  --bb-fill-teal: rgba(158, 27, 36, 0.035);
+  --bb-beam-gold: rgba(214, 174, 101, 0.16);
+  --bb-beam-teal: rgba(158, 27, 36, 0.05);
+}
+
+:root[data-theme="light"] .bb--quiet {
+  --bb-gold: rgba(132, 90, 18, 0.14);
+  --bb-gold-faint: rgba(132, 90, 18, 0.08);
+  --bb-teal: rgba(158, 27, 36, 0.1);
+  --bb-teal-faint: rgba(158, 27, 36, 0.06);
+  --bb-label: rgba(132, 90, 18, 0.4);
+  --bb-fill-gold: rgba(214, 174, 101, 0.09);
+  --bb-beam-gold: rgba(214, 174, 101, 0.11);
+  --bb-beam-teal: rgba(158, 27, 36, 0.035);
+}
+
+:root[data-theme="light"] .bb-solid-dark {
+  fill: rgba(158, 27, 36, 0.03);
+}
+/* ---------------------------------------------------------- end theme: light backdrops */
+
+.bb-ln {
+  fill: none;
+  stroke: var(--bb-gold);
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+.bb-w1 { stroke-width: calc(0.75px * var(--u)); }
+.bb-w2 { stroke-width: calc(1px * var(--u)); }
+.bb-w3 { stroke-width: calc(1.4px * var(--u)); }
+.bb-teal { stroke: var(--bb-teal); }
+.bb-faint { stroke: var(--bb-gold-faint); }
+.bb-teal-faint { stroke: var(--bb-teal-faint); }
+.bb-panel { fill: var(--bb-fill-gold); }
+.bb-panel--teal { fill: var(--bb-fill-teal); }
+.bb-solid-gold { fill: var(--bb-fill-gold); }
+.bb-solid-dark { fill: rgba(125, 220, 232, 0.03); }
+.bb-solid-teal { fill: var(--bb-teal); }
+
+.bb-label {
+  direction: ltr;
+  fill: var(--bb-label);
+  font-family: var(--font-geist-sans), Inter, Arial, sans-serif;
+  font-size: calc(11px * var(--u));
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+html[lang="fa"] .bb-label { font-family: var(--font-persian), Tahoma, sans-serif; letter-spacing: 0; }
+.bb-label--md { font-size: calc(12px * var(--u)); }
+
+.bb-d,
+.bb-f,
+.bb-m,
+.bb-mv,
+.bb-sy,
+.bb-st {
+  --t: clamp(0, (var(--draw) - var(--a)) / (var(--b) - var(--a)), 1);
+}
+
+/* Draw on: the path is normalised to length 1 (pathLength). */
+.bb-d {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: calc(1 - var(--t));
+  opacity: min(1, calc(var(--t) * 40));
+}
+
+.bb-f { opacity: var(--t); }
+
+.bb-m,
+.bb-mv {
+  transform: translate(calc((1 - var(--t)) * var(--dx, 0) * 1px), calc((1 - var(--t)) * var(--dy, 0) * 1px));
+}
+.bb-m { opacity: min(1, calc(var(--t) * 4)); }
+
+/* A frame standing up, seen in elevation: it grows from its base line. */
+.bb-sy {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: scaleY(max(0.002, var(--t)));
+  opacity: min(1, calc(var(--t) * 12));
+}
+
+/* Hoist chain: hangs from the top and shortens as the load rises. */
+.bb-st {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  transform: scaleY(calc(1 + (1 - var(--t)) * var(--k, 0)));
+}
+.bb-chain { stroke-dasharray: calc(3px * var(--u)) calc(2px * var(--u)); }
+
+/* Idle life once a drawing is complete and on screen (.is-live). */
+.bb.is-live .bb-breathe { animation: bb-breathe 5.6s ease-in-out infinite alternate; }
+.bb.is-live .bb-breathe--2 { animation-delay: -1.9s; animation-duration: 6.4s; }
+.bb.is-live .bb-breathe--3 { animation-delay: -3.7s; animation-duration: 7.2s; }
+.bb.is-live .bb-tick { animation: bb-tick 2.4s steps(5) infinite; }
+.bb.is-live .bb-settle { animation: bb-settle 9s ease-in-out infinite; }
+
+@keyframes bb-breathe {
+  to { opacity: 0.5; }
+}
+
+@keyframes bb-tick {
+  to { stroke-dashoffset: calc(-10px * var(--u)); }
+}
+
+@keyframes bb-settle {
+  0%, 62%, 100% { transform: translateY(0); }
+  70% { transform: translateY(calc(-9px * var(--u))); }
+  78% { transform: translateY(calc(-9px * var(--u))); }
+  86% { transform: translateY(calc(1px * var(--u))); }
+  90% { transform: translateY(0); }
+}
+
+/* Slow idle motion for the topic drawings (backdrops/motifs-topics.tsx). Every
+   loop moves a few screen pixels per second at most and never flashes. */
+.bb-dash { stroke-dasharray: calc(7px * var(--u)) calc(9px * var(--u)); }
+.bb.is-live .bb-flow { animation: bb-flow 9s linear infinite; }
+.bb.is-live .bb-drift { animation: bb-drift 8s linear infinite; }
+.bb.is-live .bb-scan { animation: bb-scan 16s ease-in-out infinite alternate; }
+.bb.is-live .bb-sway { animation: bb-sway 11s ease-in-out infinite alternate; }
+.bb-ripple { transform-box: fill-box; transform-origin: center; opacity: 0; }
+.bb.is-live .bb-ripple { animation: bb-ripple 8s ease-out infinite; }
+
+@keyframes bb-flow {
+  to { stroke-dashoffset: calc(-48px * var(--u)); }
+}
+
+@keyframes bb-drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(calc(var(--px, 0) * 1px), calc(var(--py, 0) * 1px)); }
+}
+
+@keyframes bb-scan {
+  from { transform: translateY(0); opacity: 0.2; }
+  50% { opacity: 1; }
+  to { transform: translateY(calc(var(--sy, 0) * 1px)); opacity: 0.2; }
+}
+
+@keyframes bb-sway {
+  from { transform: translateX(calc(var(--sx, 0) * -1px)); }
+  to { transform: translateX(calc(var(--sx, 0) * 1px)); }
+}
+
+@keyframes bb-ripple {
+  0% { transform: scale(0.7); opacity: 0; }
+  12% { opacity: 0.9; }
+  70%, 100% { transform: scale(3); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb { --draw: 1 !important; }
+  .bb *,
+  .bb.is-live * { animation: none !important; }
 }

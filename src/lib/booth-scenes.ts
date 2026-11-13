@@ -63,6 +63,7 @@ const pageFrameMap: Record<string, string> = {
   gallery: boothStageFrames[4].src,
   contact: boothStageFrames[5].src,
   search: boothStageFrames[1].src,
+  plans: boothStageFrames[0].src,
 };
 
 export function getBoothFrameForPage(page: string) {

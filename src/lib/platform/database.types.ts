@@ -5,6 +5,99 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      ai_agents: {
+        Row: {
+          id: string;
+          name: string;
+          provider: "claude" | "chatgpt" | "grok" | "other";
+          acts_for: string | null;
+          scopes: string[];
+          needs_approval: boolean;
+          token_hash: string;
+          token_hint: string;
+          created_by: string | null;
+          created_at: string;
+          last_used_at: string | null;
+          expires_at: string | null;
+          revoked_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          provider?: "claude" | "chatgpt" | "grok" | "other";
+          acts_for?: string | null;
+          scopes?: string[];
+          needs_approval?: boolean;
+          token_hash: string;
+          token_hint: string;
+          created_by?: string | null;
+          created_at?: string;
+          last_used_at?: string | null;
+          expires_at?: string | null;
+          revoked_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          provider?: "claude" | "chatgpt" | "grok" | "other";
+          acts_for?: string | null;
+          scopes?: string[];
+          needs_approval?: boolean;
+          token_hash?: string;
+          token_hint?: string;
+          created_by?: string | null;
+          created_at?: string;
+          last_used_at?: string | null;
+          expires_at?: string | null;
+          revoked_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ai_agent_actions: {
+        Row: {
+          id: string;
+          agent_id: string;
+          acting_for: string | null;
+          tool: string;
+          summary: string;
+          input: Json;
+          status: "done" | "failed" | "pending" | "approved" | "rejected";
+          result: Json | null;
+          error: string | null;
+          created_at: string;
+          decided_by: string | null;
+          decided_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          agent_id: string;
+          acting_for?: string | null;
+          tool: string;
+          summary: string;
+          input?: Json;
+          status: "done" | "failed" | "pending" | "approved" | "rejected";
+          result?: Json | null;
+          error?: string | null;
+          created_at?: string;
+          decided_by?: string | null;
+          decided_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          agent_id?: string;
+          acting_for?: string | null;
+          tool?: string;
+          summary?: string;
+          input?: Json;
+          status?: "done" | "failed" | "pending" | "approved" | "rejected";
+          result?: Json | null;
+          error?: string | null;
+          created_at?: string;
+          decided_by?: string | null;
+          decided_at?: string | null;
+        };
+        Relationships: [];
+      };
       activities: {
         Row: {
           id: string;
@@ -1651,6 +1744,8 @@ export type Database = {
       register_push_device: { Args: { p_token: string; p_platform: string; p_app_version?: string }; Returns: undefined };
       unregister_push_device: { Args: { p_token: string }; Returns: undefined };
       set_my_avatar: { Args: { p_avatar: string | null }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
+      staff_set_password: { Args: { p_staff: string; p_password: string }; Returns: undefined };
+      password_change_pending: { Args: Record<PropertyKey, never>; Returns: boolean };
       update_my_profile: { Args: { p_display_name?: string; p_job_title?: string; p_phone?: string; p_locale?: string; p_bio?: string; p_skills?: string[] }; Returns: Database["public"]["Tables"]["staff_members"]["Row"] };
     };
     Enums: {

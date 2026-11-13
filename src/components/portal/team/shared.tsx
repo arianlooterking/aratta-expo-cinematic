@@ -96,7 +96,7 @@ export function inviteMailto(lang: "fa" | "en", email: string, name: string | nu
   const subject = lang === "fa" ? "دعوت به سامانه کارکنان اَرَتَ" : "Your invitation to the Aratta staff portal";
   const body =
     lang === "fa"
-      ? `سلام${name ? ` ${name}` : ""}،\n\nبرای شما در سامانه کارکنان اَرَتَ دسترسی تعریف شد. لطفا از این نشانی و با حساب Google یا Apple همین ایمیل (${email}) وارد شوید:\n${link}\n\n${inviter}`
-      : `Hi${name ? ` ${name}` : ""},\n\nYou now have access to the Aratta staff portal. Sign in here with the Google or Apple account for this email (${email}):\n${link}\n\n${inviter}`;
+      ? `سلام${name ? ` ${name}` : ""}،\n\nبرای شما در سامانه کارکنان اَرَتَ دسترسی تعریف شد. از این نشانی با همین ایمیل (${email}) و گذرواژه شروعی که جداگانه برایتان می فرستم وارد شوید. بعد از اولین ورود، گذرواژه خودتان را انتخاب می کنید.\n${link}\n\n${inviter}`
+      : `Hi${name ? ` ${name}` : ""},\n\nYou now have access to the Aratta staff portal. Sign in here with this email (${email}) and the starting password I'm sending you separately. After your first sign-in you choose your own password.\n${link}\n\n${inviter}`;
   return `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

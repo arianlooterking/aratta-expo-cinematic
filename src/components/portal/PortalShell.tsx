@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  Bot,
   Settings2,
   Bell,
   Building2,
@@ -15,6 +16,7 @@ import {
   Landmark,
   LayoutDashboard,
   ListTodo,
+  KeyRound,
   LogOut,
   MessagesSquare,
   Map as MapIcon,
@@ -169,6 +171,7 @@ function Shell({
       { href: `${base}/tasks`, label: t(lang, "tasks"), icon: <ListTodo className={icon} />, match: (p) => p.startsWith(`${base}/tasks`), badge: today.myTasksDue, tone: "danger" },
     ];
     team.push({ href: `${base}/team`, label: t(lang, "team"), icon: <Users className={icon} />, match: (p) => p.startsWith(`${base}/team`) });
+    team.push({ href: `${base}/agents`, label: fa ? "دستیارهای هوشمند" : "AI agents", icon: <Bot className={icon} />, match: (p) => p.startsWith(`${base}/agents`) });
     if (can.manage) team.push({ href: `${base}/settings`, label: t(lang, "settings"), icon: <Settings2 className={icon} />, match: (p) => p.startsWith(`${base}/settings`) });
     out.push({ label: fa ? "تیم و سازمان" : "Team and setup", items: team });
     return out;
@@ -199,8 +202,16 @@ function Shell({
   const sidebar = (
     <nav className="thin-scroll flex h-full flex-col gap-1 overflow-y-auto p-3" aria-label={t(lang, "menu")}>
       <Link href={base} className="mb-3 flex items-center gap-3 rounded-xl px-2 py-2" onClick={closeDrawer}>
-        <span className="grid size-9 place-items-center rounded-xl bg-[linear-gradient(140deg,#d9b26a,#8f6a24)] text-[15px] font-black text-[#0b1d18]">
-          A
+        <span className="grid size-9 place-items-center rounded-xl bg-[#0b1112] ring-1 ring-[#d9b26a]/40">
+          {/* The official Aratta mark, drawn from its geometry. */}
+          <svg viewBox="200 120 600 760" className="size-5" aria-hidden="true">
+            <g fill="#d9b26a">
+              <rect x="593" y="131" width="190" height="735" />
+              <rect x="218" y="720" width="565" height="146" />
+              <rect x="218" y="345" width="170" height="168" />
+              <rect x="218" y="533" width="170" height="169" />
+            </g>
+          </svg>
         </span>
         <span className="min-w-0 leading-tight">
           <span className="block text-[15px] font-bold tracking-tight text-p-side-ink">{fa ? "اَرَتَ اکسپو" : "Aratta Expo"}</span>
@@ -544,6 +555,12 @@ function UserMenu({ otherLangPath }: { otherLangPath: string }) {
             {t(lang, "resetDemo")}
           </MenuItem>
         ) : (
+          <Link href={`/${lang}/staff/password`} className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm hover:bg-p-sunken">
+            <KeyRound className="size-4" />
+            {lang === "fa" ? "تغییر گذرواژه" : "Change password"}
+          </Link>
+        )}
+        {mode === "demo" ? null : (
           <form action="/auth/sign-out" method="post">
             <input type="hidden" name="lang" value={lang} />
             <button type="submit" className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm text-p-danger hover:bg-p-danger-soft">
