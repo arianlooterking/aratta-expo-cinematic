@@ -200,9 +200,9 @@ test("landing hero builds a real 3D booth while the visitor scrolls", async () =
   assert.match(boothHero, /ScrollTrigger\.create/);
   assert.match(boothHero, /sticky top-0 h-\[100svh\]/);
   assert.match(boothHero, /h-\[1000svh\]/);
-  // Slow-motion playback: the shown progress is speed limited and the copy follows it.
-  assert.match(sources["booth-scene"], /const SPEED = 0\.05;/);
-  assert.match(sources["booth-scene"], /const SPEED_FAR = 0\.2;/);
+  // Slow-motion playback: the shown progress is speed limited (with a catch-up for long flicks) and the copy follows it.
+  assert.match(sources.camera, /export const PLAYBACK = \{ speed: 0\.05,/);
+  assert.match(sources["booth-scene"], /playbackStep\(play, target/);
   assert.match(boothHero, /onFrame: paint/);
   // LED cabinets light with their slice of the picture as they lock in.
   assert.match(timeline, /ledTiles: \[0\.664, 0\.716\]/);
